@@ -51,6 +51,7 @@ describe('Google OAuth (loopback + PKCE)', () => {
     expect(consent!.searchParams.get('scope')).toBe(DRIVE_SCOPE)
     expect(consent!.searchParams.get('redirect_uri')).toMatch(/^http:\/\/127\.0\.0\.1:\d+$/)
     expect(consent!.searchParams.get('code_challenge_method')).toBe('S256')
+    expect(consent!.searchParams.get('prompt')).toContain('select_account')
     const verifier = tokenBody!.get('code_verifier')!
     expect(createHash('sha256').update(verifier).digest('base64url')).toBe(
       consent!.searchParams.get('code_challenge')

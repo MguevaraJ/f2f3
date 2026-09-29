@@ -40,7 +40,10 @@ export interface DriveApi {
     toParent: string
   ): Promise<void>
   download(id: string): Promise<Uint8Array>
-  folderUrl(id: string): string
+  /** Link to a folder; `email` makes Google open it in that account, not the browser's default. */
+  folderUrl(id: string, email?: string): string
+  /** Forget per-account caches (after switching Google accounts). */
+  reset(): void
 }
 
 export class DriveHttpError extends Error {
@@ -258,8 +261,13 @@ export class DriveClient implements DriveApi {
     return new Uint8Array(await res.arrayBuffer())
   }
 
-  folderUrl(id: string): string {
-    return `https://drive.google.com/drive/folders/${id}`
+  reset(): void {
+    this.appFolderId = null
+  }
+
+  folderUrl(id: string, email?: string): string {
+    const url = `https://drive.google.com/drive/folders/${encodeURIComponent(id)}`
+    return email ? `${url}?authuser=${encodeURIComponent(email)}` : url
   }
 
   // ───────────────────────── transport ─────────────────────────

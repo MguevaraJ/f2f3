@@ -97,8 +97,12 @@ class FakeDrive implements DriveApi {
   async download(id: string) {
     return this.items.get(id)!.data!
   }
-  folderUrl(id: string) {
-    return `https://drive.google.com/drive/folders/${id}`
+  resets = 0
+  reset() {
+    this.resets++
+  }
+  folderUrl(id: string, email?: string) {
+    return `https://drive.google.com/drive/folders/${id}${email ? `?authuser=${email}` : ''}`
   }
   files() {
     return [...this.items.values()]
@@ -218,5 +222,19 @@ describe('BackupService', () => {
     expect(r.restored).toBe(1) // a.png comes back…
     expect(existsSync(join(root, 'a.png'))).toBe(true)
     expect(existsSync(join(root, '..', 'evil.png'))).toBe(false) // …the escaping path does not
+  })
+
+  it('switching Google accounts starts clean and opens Drive in the right account', async () => {
+    await backup.run()
+    expect(backup.current.folderUrl).toContain('authuser=steve@example.com')
+    await backup.disconnect()
+    drive.account = async () => ({ email: 'alex@example.com', name: 'Alex' })
+    await backup.connect()
+    expect(drive.resets).toBeGreaterThanOrEqual(2) // on disconnect and on connect
+    expect(backup.current.account?.email).toBe('alex@example.com')
+    expect(backup.current.lastRun).toBeNull()
+    expect(backup.current.folderUrl).toBeUndefined()
+    await backup.run()
+    expect(backup.current.folderUrl).toContain('authuser=alex@example.com')
   })
 })

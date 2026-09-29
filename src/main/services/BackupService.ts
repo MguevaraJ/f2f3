@@ -72,7 +72,7 @@ export class BackupService extends EventEmitter<{ status: [BackupStatus] }> {
       bytesTotal: 0,
       lastRun: this.state.value.lastRun,
       folderUrl: this.state.value.folderId
-        ? this.drive.folderUrl(this.state.value.folderId)
+        ? this.drive.folderUrl(this.state.value.folderId, this.state.value.account?.email)
         : undefined
     }
   }
@@ -87,12 +87,15 @@ export class BackupService extends EventEmitter<{ status: [BackupStatus] }> {
     this.set({ state: 'connecting', error: undefined })
     try {
       await this.auth.login()
+      // Nothing from a previously linked account may leak into this one.
+      this.drive.reset()
       const account = await this.drive.account()
       this.state.update((s) => {
         s.account = account
         s.folderId = null
+        s.lastRun = null
       })
-      this.set({ state: 'idle', account })
+      this.set({ state: 'idle', account, lastRun: null, folderUrl: undefined })
       this.scheduleAuto(1000)
     } catch (err) {
       this.set({ state: 'error', error: message(err) })
@@ -109,6 +112,7 @@ export class BackupService extends EventEmitter<{ status: [BackupStatus] }> {
     this.cancel()
     await this.running?.catch(() => undefined)
     await this.auth.logout()
+    this.drive.reset()
     this.state.update((s) => {
       s.account = null
       s.folderId = null
@@ -191,7 +195,7 @@ export class BackupService extends EventEmitter<{ status: [BackupStatus] }> {
         folderIds.set('', await this.drive.createFolder(source, '', source, appFolder))
       const rootId = folderIds.get('')!
       this.state.update((s) => (s.folderId = rootId))
-      this.set({ folderUrl: this.drive.folderUrl(rootId) })
+      this.set({ folderUrl: this.drive.folderUrl(rootId, this.status.account?.email) })
 
       const remoteFiles = remote.filter((r) => r.kind === 'file')
       const plan = planBackup(local, remoteFiles)

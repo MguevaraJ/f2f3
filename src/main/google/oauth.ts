@@ -110,7 +110,9 @@ export class GoogleAuth {
             code_challenge_method: 'S256',
             state,
             access_type: 'offline',
-            prompt: 'consent'
+            // Always show Google's account chooser: people often have several accounts
+            // signed in and must pick the Drive that will hold their backup.
+            prompt: 'select_account consent'
           })
           this.openBrowser(`${AUTH_URL}?${params}`).catch((e) => {
             finish()
