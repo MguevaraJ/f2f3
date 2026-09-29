@@ -52,7 +52,8 @@ app.whenReady().then(() => {
 
   services = createServices(
     app.getPath('userData'),
-    new URL('./analysis.worker.js', import.meta.url)
+    new URL('./analysis.worker.js', import.meta.url),
+    new URL('./localvision.worker.js', import.meta.url)
   )
   const { library, analysis } = services
 
@@ -64,6 +65,8 @@ app.whenReady().then(() => {
   analysis.on('progress', (p) => broadcast(IPC.events.analysisProgress, p))
   analysis.on('error', (message) => broadcast(IPC.events.notice, { level: 'error', message }))
   services.backup.on('status', (s) => broadcast(IPC.events.backupStatus, s))
+  services.localVision.on('status', (s) => broadcast(IPC.events.localModelStatus, s))
+  services.localVision.start()
 
   // New-capture popup.
   const { settings, captures } = services

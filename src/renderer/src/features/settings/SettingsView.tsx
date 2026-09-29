@@ -6,21 +6,14 @@ import { BackupSettings } from './BackupSettings'
 import { api } from '../../lib/api'
 import { useSettings } from '../../store/settings'
 import { toast } from '../../store/toasts'
-
-const MODELS = [
-  { id: 'claude-opus-5-5', label: 'Claude Opus 5.5 (recomendado)' },
-  { id: 'claude-sonnet-5-5', label: 'Claude Sonnet 5.5 (más económico)' },
-  { id: 'claude-haiku-4-5', label: 'Claude Haiku 4.5 (el más rápido)' }
-]
+import { AnalysisSettings } from './AnalysisSettings'
+import { Toggle } from '../../components/Toggle'
 
 export function SettingsView() {
   const settings = useSettings((s) => s.settings)
   const update = useSettings((s) => s.update)
-  const setApiKey = useSettings((s) => s.setApiKey)
   const [sources, setSources] = useState<MinecraftSource[] | null>(null)
   const [info, setInfo] = useState<SystemInfo | null>(null)
-  const [key, setKey] = useState('')
-  const [testing, setTesting] = useState(false)
 
   useEffect(() => {
     void api.settings.detectSources().then(setSources)
@@ -37,19 +30,6 @@ export function SettingsView() {
     const f = await api.settings.chooseFontSource()
     if (f) await update({ fontSource: f })
   }
-  const saveKey = async (): Promise<void> => {
-    await setApiKey(key)
-    setKey('')
-    toast.success('API key guardada de forma cifrada')
-  }
-  const test = async (): Promise<void> => {
-    setTesting(true)
-    const res = await api.settings.testApiKey()
-    setTesting(false)
-    if (res.ok) toast.success(res.message)
-    else toast.error(res.message)
-  }
-
   return (
     <div className="settings">
       <div className="settings-inner">
@@ -83,100 +63,20 @@ export function SettingsView() {
         </Group>
 
         <Group
-          title="Lectura del F3"
-          desc="El texto del F3 se lee píxel a píxel con la fuente real de Minecraft, tomada del .jar del juego. No necesita internet."
+          title="Análisis de capturas"
+          desc="Craftshot combina tres niveles de información. Cada dato de una captura indica de cuál viene."
         >
-          <Toggle
-            label="Analizar capturas automáticamente"
-            hint="Lee el F3 y estima bioma/dimensión de cada captura nueva."
-            checked={settings.autoAnalyze}
-            onChange={(v) => void update({ autoAnalyze: v })}
+          <AnalysisSettings
+            fontSource={info?.fontSource ?? null}
+            onChooseFont={() => void chooseFont()}
           />
-          <div className="path-row">
-            <code className="path">
-              {info?.fontSource ?? 'No se encontró ningún .jar de Minecraft'}
-            </code>
-            <button className="btn" onClick={() => void chooseFont()}>
-              Elegir .jar
+          <div>
+            <button
+              className="btn small ghost"
+              onClick={() => void update({ onboardingDone: false })}
+            >
+              <Icon name="info" size={14} /> Ver la introducción de nuevo
             </button>
-            {settings.fontSource && (
-              <button className="btn ghost" onClick={() => void update({ fontSource: '' })}>
-                Automático
-              </button>
-            )}
-          </div>
-        </Group>
-
-        <Group
-          title="Visión con IA (Claude)"
-          desc="Opcional. Envía la captura a la API de Anthropic para identificar bioma, mobs, estructuras, clima y momento del día. Tiene coste por uso en tu cuenta de Anthropic."
-        >
-          <Toggle
-            label="Activar análisis con IA"
-            checked={settings.visionEnabled}
-            onChange={(v) => void update({ visionEnabled: v })}
-          />
-          <div className={`vision-options ${settings.visionEnabled ? '' : 'disabled-block'}`}>
-            <label className="field">
-              <span>API key de Anthropic</span>
-              <div className="path-row">
-                <input
-                  className="input"
-                  type="password"
-                  placeholder={settings.hasApiKey ? '•••••••••••• (guardada)' : 'sk-ant-…'}
-                  value={key}
-                  onChange={(e) => setKey(e.target.value)}
-                  autoComplete="off"
-                />
-                <button
-                  className="btn primary"
-                  disabled={!key.trim()}
-                  onClick={() => void saveKey()}
-                >
-                  Guardar
-                </button>
-                {settings.hasApiKey && (
-                  <>
-                    <button className="btn" disabled={testing} onClick={() => void test()}>
-                      {testing ? 'Probando…' : 'Probar'}
-                    </button>
-                    <button className="btn ghost" onClick={() => void setApiKey(null)}>
-                      Borrar
-                    </button>
-                  </>
-                )}
-              </div>
-              <small className="muted">
-                {settings.hasApiKey
-                  ? settings.apiKeyEncrypted
-                    ? 'Guardada y cifrada con el llavero del sistema.'
-                    : 'Guardada (el sistema no ofrece cifrado; se guarda solo en este equipo).'
-                  : 'También puedes definir la variable de entorno ANTHROPIC_API_KEY.'}
-              </small>
-            </label>
-            <label className="field">
-              <span>Modelo</span>
-              <select
-                className="input"
-                value={settings.visionModel}
-                onChange={(e) => void update({ visionModel: e.target.value })}
-              >
-                {MODELS.map((m) => (
-                  <option key={m.id} value={m.id}>
-                    {m.label}
-                  </option>
-                ))}
-                {!MODELS.some((m) => m.id === settings.visionModel) && (
-                  <option value={settings.visionModel}>{settings.visionModel}</option>
-                )}
-              </select>
-            </label>
-            <Toggle
-              label="Analizar con IA cada captura nueva"
-              hint="Cuidado: cada captura es una petición a la API."
-              checked={settings.visionAuto}
-              onChange={(v) => void update({ visionAuto: v })}
-            />
           </div>
         </Group>
 
@@ -307,29 +207,5 @@ function Group({ title, desc, children }: { title: string; desc?: string; childr
       {desc && <p className="muted">{desc}</p>}
       <div className="sgroup-body">{children}</div>
     </section>
-  )
-}
-
-function Toggle({
-  label,
-  hint,
-  checked,
-  onChange
-}: {
-  label: string
-  hint?: string
-  checked: boolean
-  onChange(v: boolean): void
-}) {
-  return (
-    <label className="toggle-row">
-      <span>
-        <span className="toggle-label">{label}</span>
-        {hint && <small className="muted">{hint}</small>}
-      </span>
-      <span className="switch">
-        <input type="checkbox" checked={checked} onChange={(e) => onChange(e.target.checked)} />
-      </span>
-    </label>
   )
 }

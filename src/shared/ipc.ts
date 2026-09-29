@@ -1,6 +1,7 @@
 import type {
   AnalysisProgress,
   CapturePopupPayload,
+  LocalModelStatus,
   BackupStatus,
   BackupSummary,
   AppSettings,
@@ -10,7 +11,8 @@ import type {
   MinecraftSource,
   ScreenshotAnalysis,
   SettingsView,
-  UserMeta
+  UserMeta,
+  VisionProviderId
 } from './types'
 
 /**
@@ -44,6 +46,11 @@ export const IPC = {
     restore: 'backup:restore',
     openFolder: 'backup:open-folder'
   },
+  localModel: {
+    status: 'local-model:status',
+    enable: 'local-model:enable',
+    remove: 'local-model:remove'
+  },
   analysis: {
     reanalyze: 'analysis:reanalyze',
     vision: 'analysis:vision',
@@ -53,7 +60,7 @@ export const IPC = {
     get: 'settings:get',
     update: 'settings:update',
     setApiKey: 'settings:set-api-key',
-    testApiKey: 'settings:test-api-key',
+    testVision: 'settings:test-vision',
     chooseDirectory: 'settings:choose-directory',
     chooseFontSource: 'settings:choose-font',
     detectSources: 'settings:detect-sources',
@@ -76,6 +83,7 @@ export const IPC = {
     notice: 'event:notice',
     backupStatus: 'event:backup-status',
     openScreenshot: 'event:open-screenshot',
+    localModelStatus: 'event:local-model-status',
     confirmClose: 'event:confirm-close'
   }
 } as const
@@ -168,11 +176,23 @@ export interface CraftshotApi {
     openFolder(): Promise<void>
     onStatus(cb: (status: BackupStatus) => void): Unsubscribe
   }
+  localModel: {
+    status(): Promise<LocalModelStatus>
+    /** Downloads (once, with the user's consent) and enables the on-device model. */
+    enable(): Promise<LocalModelStatus>
+    /** Disables it and deletes the files. */
+    remove(): Promise<LocalModelStatus>
+    onStatus(cb: (s: LocalModelStatus) => void): Unsubscribe
+  }
   settings: {
     get(): Promise<SettingsView>
     update(patch: Partial<AppSettings>): Promise<SettingsView>
-    setApiKey(key: string | null): Promise<SettingsView>
-    testApiKey(): Promise<{ ok: boolean; message: string }>
+    /** Stores (encrypted) or clears the key of an advanced-AI provider. */
+    setApiKey(provider: VisionProviderId, key: string | null): Promise<SettingsView>
+    /** Checks the connection and returns the models the provider offers. */
+    testVision(
+      provider: VisionProviderId
+    ): Promise<{ ok: boolean; message: string; models: string[] }>
     chooseDirectory(): Promise<string | null>
     chooseFontSource(): Promise<string | null>
     detectSources(): Promise<MinecraftSource[]>

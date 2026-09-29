@@ -1,3 +1,4 @@
+import type { Facets } from '../../lib/query'
 import { useEffect, useRef, useState } from 'react'
 import { Icon } from '../../components/icons'
 import { activeFilterCount, type SortKey } from '../../lib/query'
@@ -30,7 +31,7 @@ const SORTS: { key: SortKey; label: string }[] = [
 
 interface Props {
   visibleIds: string[]
-  facets: { dimensions: string[]; biomes: string[]; mobs: string[] }
+  facets: Facets
 }
 
 export function Toolbar({ visibleIds, facets }: Props) {

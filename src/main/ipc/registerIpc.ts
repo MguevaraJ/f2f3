@@ -10,7 +10,7 @@ import {
   type IpcMainInvokeEvent
 } from 'electron'
 import { IPC, type ExportFormat } from '@shared/ipc'
-import type { AppSettings, ClipboardMode, UserMeta } from '@shared/types'
+import type { AppSettings, ClipboardMode, UserMeta, VisionProviderId } from '@shared/types'
 import { loadFontFrom, ROW_OFFSET } from '@core/font/minecraftFont'
 import type { DataTable, FontGlyphs } from '@shared/ipc'
 import { copyImageToClipboard } from '../clipboardImage'
@@ -156,6 +156,12 @@ export function registerIpc(services: Services): void {
     return out
   })
 
+  // On-device model (level 2)
+  const { localVision } = services
+  handle(IPC.localModel.status, () => localVision.status)
+  handle(IPC.localModel.enable, () => localVision.enable())
+  handle(IPC.localModel.remove, () => localVision.remove())
+
   // Google Drive backup
   const { backup } = services
   handle(IPC.backup.status, () => backup.current)
@@ -174,7 +180,11 @@ export function registerIpc(services: Services): void {
   // Analysis
   handle(IPC.analysis.reanalyze, (_e, ids) => analysis.enqueueLocal(strArray(ids)))
   handle(IPC.analysis.vision, (_e, ids) => {
-    if (!settings.getApiKey()) throw new Error('Configura tu API key de Anthropic en Ajustes.')
+    if (!settings.value.visionEnabled) throw new Error('Activa la IA avanzada en Ajustes.')
+    if (!vision.isReady())
+      throw new Error(
+        'Termina de configurar la IA avanzada en Ajustes (proveedor, clave y modelo).'
+      )
     analysis.enqueueVision(strArray(ids))
   })
   handle(IPC.analysis.setBiome, (_e, id, biome) =>
@@ -184,8 +194,10 @@ export function registerIpc(services: Services): void {
   // Settings
   handle(IPC.settings.get, () => settings.view())
   handle(IPC.settings.update, (_e, patch) => settings.update((patch ?? {}) as Partial<AppSettings>))
-  handle(IPC.settings.setApiKey, (_e, key) => settings.setApiKey(key == null ? null : str(key)))
-  handle(IPC.settings.testApiKey, () => vision.test(settings.value.visionModel))
+  handle(IPC.settings.setApiKey, (_e, provider, key) =>
+    settings.setProviderKey(visionProvider(provider), key == null ? null : str(key))
+  )
+  handle(IPC.settings.testVision, (_e, provider) => vision.test(visionProvider(provider)))
   handle(IPC.settings.detectSources, () => locator.detectSources())
   handle(IPC.settings.chooseDirectory, async (e) => {
     const parent = win(e)
@@ -266,4 +278,9 @@ function validTable(raw: unknown): DataTable {
   )
     throw new TypeError('Tabla inválida')
   return t
+}
+
+function visionProvider(v: unknown): VisionProviderId {
+  if (v === 'anthropic' || v === 'openai' || v === 'gemini' || v === 'ollama') return v
+  throw new TypeError('Proveedor inválido')
 }

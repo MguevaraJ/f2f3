@@ -1,5 +1,6 @@
 import { biomeName, dimensionName } from '@shared/catalog/biomes'
 import { mobName } from '@shared/catalog/mobs'
+import { structureName } from '@shared/catalog/structures'
 import type { InfoSource, ScreenshotEntry } from '@shared/types'
 
 export type SortKey = 'date' | 'name' | 'size' | 'x' | 'y' | 'z' | 'origin' | 'biome' | 'dimension'
@@ -16,6 +17,7 @@ export interface Filters {
   dimensions: string[]
   biomes: string[]
   mobs: string[]
+  structures: string[]
   onlyF3: boolean
   onlyFavorites: boolean
   biomeSources: InfoSource[]
@@ -27,6 +29,7 @@ export const EMPTY_FILTERS: Filters = {
   dimensions: [],
   biomes: [],
   mobs: [],
+  structures: [],
   onlyF3: false,
   onlyFavorites: false,
   biomeSources: [],
@@ -46,6 +49,7 @@ export function activeFilterCount(f: Filters): number {
     f.dimensions.length +
     f.biomes.length +
     f.mobs.length +
+    f.structures.length +
     f.biomeSources.length +
     Number(f.onlyF3) +
     Number(f.onlyFavorites) +
@@ -61,9 +65,10 @@ export function searchableText(s: ScreenshotEntry): string {
   if (a?.biome) parts.push(a.biome.id, biomeName(a.biome.id))
   if (a?.dimension) parts.push(a.dimension.id, dimensionName(a.dimension.id))
   for (const m of a?.mobs ?? []) parts.push(m.id, mobName(m.id))
+  for (const st of a?.structures ?? []) parts.push(st.id, structureName(st.id))
   if (a?.f3?.version) parts.push(a.f3.version)
   if (a?.f3?.targetedBlock?.id) parts.push(a.f3.targetedBlock.id)
-  if (a?.vision) parts.push(a.vision.description, ...a.vision.structures)
+  if (a?.vision) parts.push(a.vision.description)
   if (a?.hasF3) parts.push('f3')
   return parts.filter(Boolean).join(' ').toLowerCase()
 }
@@ -126,6 +131,7 @@ function matchesFilters(s: ScreenshotEntry, f: Filters): boolean {
   if (f.biomes.length && !(a?.biome && f.biomes.includes(a.biome.id))) return false
   if (f.biomeSources.length && !(a?.biome && f.biomeSources.includes(a.biome.source))) return false
   if (f.mobs.length && !a?.mobs.some((m) => f.mobs.includes(m.id))) return false
+  if (f.structures.length && !a?.structures.some((x) => f.structures.includes(x.id))) return false
   if (f.from && s.capturedAt < new Date(`${f.from}T00:00:00`).getTime()) return false
   if (f.to && s.capturedAt > new Date(`${f.to}T23:59:59.999`).getTime()) return false
   return true
@@ -178,20 +184,26 @@ export function facets(items: ScreenshotEntry[]): {
   dimensions: string[]
   biomes: string[]
   mobs: string[]
+  structures: string[]
 } {
   const d = new Set<string>()
   const b = new Set<string>()
   const m = new Set<string>()
+  const st = new Set<string>()
   for (const s of items) {
     if (s.analysis?.dimension) d.add(s.analysis.dimension.id)
     if (s.analysis?.biome) b.add(s.analysis.biome.id)
     for (const mob of s.analysis?.mobs ?? []) m.add(mob.id)
+    for (const x of s.analysis?.structures ?? []) st.add(x.id)
   }
   const byName = (f: (id: string) => string) => (x: string, y: string) =>
     f(x).localeCompare(f(y), 'es')
   return {
     dimensions: [...d].sort(byName(dimensionName)),
     biomes: [...b].sort(byName(biomeName)),
-    mobs: [...m].sort(byName(mobName))
+    mobs: [...m].sort(byName(mobName)),
+    structures: [...st].sort(byName(structureName))
   }
 }
+
+export type Facets = ReturnType<typeof facets>

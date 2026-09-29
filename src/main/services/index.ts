@@ -4,6 +4,7 @@ import { DriveClient } from '../google/drive'
 import { GoogleAuth, type OAuthClient } from '../google/oauth'
 import { BackupService } from './BackupService'
 import { CaptureWatcher } from './CaptureWatcher'
+import { LocalVisionService } from './LocalVisionService'
 import { SecretStore } from './SecretStore'
 import { join } from 'node:path'
 import { AnalysisService } from './AnalysisService'
@@ -12,7 +13,7 @@ import { MetadataStore } from './MetadataStore'
 import { MinecraftLocator } from './MinecraftLocator'
 import { SettingsService } from './SettingsService'
 import { ThumbnailService } from './ThumbnailService'
-import { VisionService } from './VisionService'
+import { VisionService } from '../vision/VisionService'
 import { WorkerPool } from './WorkerPool'
 
 export interface Services {
@@ -26,12 +27,17 @@ export interface Services {
   analysis: AnalysisService
   backup: BackupService
   captures: CaptureWatcher
+  localVision: LocalVisionService
   fontSource(): string | null
   dispose(): Promise<void>
 }
 
 /** Composition root: wires services together (manual DI keeps them unit-testable). */
-export function createServices(userDataDir: string, workerEntry: URL): Services {
+export function createServices(
+  userDataDir: string,
+  workerEntry: URL,
+  localWorkerEntry: URL
+): Services {
   const locator = new MinecraftLocator()
   const secrets = new SecretStore(userDataDir)
   const settings = new SettingsService(userDataDir, locator, secrets)
@@ -43,7 +49,19 @@ export function createServices(userDataDir: string, workerEntry: URL): Services 
     pool,
     () => settings.value.thumbnailSize
   )
-  const vision = new VisionService(() => settings.getApiKey())
+  const vision = new VisionService({
+    provider: () => settings.value.visionProvider,
+    config: (p) => ({
+      apiKey: settings.getProviderKey(p),
+      model: settings.value.visionModels[p] ?? '',
+      baseUrl:
+        p === 'openai'
+          ? settings.value.openaiBaseUrl
+          : p === 'ollama'
+            ? settings.value.ollamaUrl
+            : undefined
+    })
+  })
 
   let cachedFont: { key: string; value: string | null } | null = null
   const fontSource = (): string | null => {
@@ -89,6 +107,13 @@ export function createServices(userDataDir: string, workerEntry: URL): Services 
   )
 
   const captures = new CaptureWatcher(library, analysis)
+  const localVision = new LocalVisionService(
+    join(userDataDir, 'models'),
+    localWorkerEntry,
+    settings,
+    library,
+    analysis
+  )
 
   library.on('changed', (snap) => {
     captures.onSnapshot(snap)
@@ -115,12 +140,14 @@ export function createServices(userDataDir: string, workerEntry: URL): Services 
     analysis,
     backup,
     captures,
+    localVision,
     fontSource,
     async dispose() {
       library.dispose()
       metadata.flush()
       settings.flush()
       backup.cancel()
+      await localVision.stop()
       backup.flush()
       await pool.dispose()
     }

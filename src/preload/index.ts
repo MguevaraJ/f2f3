@@ -54,11 +54,17 @@ const api: CraftshotApi = {
     openFolder: invoke(IPC.backup.openFolder),
     onStatus: (cb) => subscribe(IPC.events.backupStatus, cb)
   },
+  localModel: {
+    status: invoke(IPC.localModel.status),
+    enable: invoke(IPC.localModel.enable),
+    remove: invoke(IPC.localModel.remove),
+    onStatus: (cb) => subscribe(IPC.events.localModelStatus, cb)
+  },
   settings: {
     get: invoke(IPC.settings.get),
     update: invoke(IPC.settings.update),
     setApiKey: invoke(IPC.settings.setApiKey),
-    testApiKey: invoke(IPC.settings.testApiKey),
+    testVision: invoke(IPC.settings.testVision),
     chooseDirectory: invoke(IPC.settings.chooseDirectory),
     chooseFontSource: invoke(IPC.settings.chooseFontSource),
     detectSources: invoke(IPC.settings.detectSources),

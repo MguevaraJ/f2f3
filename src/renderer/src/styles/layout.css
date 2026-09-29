@@ -631,3 +631,141 @@
   flex: none;
   margin-top: 1px;
 }
+
+/* ───────── Onboarding ───────── */
+.onboarding-backdrop {
+  z-index: 150;
+}
+.onboarding {
+  width: min(720px, calc(100vw - 32px));
+  max-height: calc(100vh - 80px);
+  display: flex;
+  flex-direction: column;
+}
+.onb-steps {
+  display: flex;
+  gap: 4px;
+  padding: 14px 16px 0;
+  flex-wrap: wrap;
+}
+.onb-step {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  border: 0;
+  border-radius: var(--radius);
+  background: none;
+  color: var(--text-4);
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+.onb-step span {
+  display: grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 2px solid currentColor;
+  font-size: 10px;
+}
+.onb-step.on {
+  color: #fff;
+}
+.onb-step.on span {
+  border-color: var(--green-text);
+  color: var(--green-text);
+}
+.onb-step.done {
+  color: var(--text-3);
+}
+.onb-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 18px 28px 22px;
+  color: var(--text-2);
+}
+.onb-body h2 {
+  margin: 0 0 8px;
+  color: #fff;
+  font-size: 20px;
+}
+.onb-body p {
+  margin: 0 0 10px;
+}
+.onb-welcome {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 12px;
+  padding-top: 8px;
+}
+.onb-welcome p {
+  max-width: 520px;
+}
+.onb-list {
+  list-style: none;
+  padding: 0;
+  margin: 4px 0 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  text-align: left;
+}
+.onb-list li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.onb-level {
+  display: flex;
+  gap: 14px;
+  padding: 12px 14px;
+  margin-bottom: 8px;
+  border-radius: var(--radius);
+  background: #232323;
+  border-left: 4px solid #555;
+}
+.onb-level.level-f3 {
+  border-left-color: #e0e0e0;
+}
+.onb-level.level-local {
+  border-left-color: #6cc3ff;
+}
+.onb-level.level-vision {
+  border-left-color: #b89cff;
+}
+.onb-level p {
+  margin: 4px 0 0;
+}
+.onb-level-title {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+.onb-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 6px 0 14px;
+}
+.onb-progress {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 6px 0 14px;
+}
+.state-pill.big {
+  margin: 6px 0 14px;
+  padding: 6px 14px;
+  font-size: 13px;
+}
+.steps.big {
+  font-size: 14px;
+  gap: 8px;
+  margin: 8px 0 12px;
+}

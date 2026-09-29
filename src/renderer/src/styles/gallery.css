@@ -408,3 +408,29 @@ p code {
 .empty-state.small h3 {
   font-size: 16px;
 }
+
+.tip-banner {
+  flex: none;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin: 10px 24px 0;
+  padding: 10px 12px;
+  border-radius: var(--radius);
+  background: #2b2a1a;
+  border: 1px solid #5a5220;
+  font-size: 13px;
+}
+.tip-banner .f3-badge {
+  margin-top: 2px;
+}
+.tip-banner-text {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  color: var(--text-2);
+}
+.tip-banner-text strong {
+  color: var(--yellow);
+}

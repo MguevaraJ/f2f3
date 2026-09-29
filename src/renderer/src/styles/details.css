@@ -455,3 +455,126 @@ button.fact-value:hover svg {
   align-items: center;
   gap: 6px;
 }
+
+/* ── Information sources ── */
+.dsec-headrow {
+  display: flex;
+  align-items: center;
+  padding-right: 6px;
+}
+.dsec-headrow .dsec-head {
+  flex: 1;
+}
+.legend-btn.on {
+  color: var(--blue);
+}
+.legend {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px;
+  border-radius: var(--radius);
+  background: #1b1b1b;
+  border: 1px solid #3a3a3a;
+}
+.legend-row {
+  display: grid;
+  grid-template-columns: 64px 1fr auto;
+  gap: 8px;
+  align-items: start;
+  font-size: 12px;
+  color: var(--text-3);
+}
+.legend-row .source-tag {
+  justify-self: start;
+}
+.legend-text b {
+  color: var(--text-2);
+}
+.legend-state {
+  font-size: 11px;
+  white-space: nowrap;
+  color: var(--text-4);
+}
+.legend-state.on {
+  color: var(--green-text);
+}
+.legend .btn {
+  align-self: flex-start;
+}
+.source-tag.local {
+  background: #1f3d52;
+  color: #bfe3ff;
+}
+.source-tag.heuristic {
+  background: #4a3d1a;
+  color: #ffe08a;
+}
+.source-tag.manual {
+  background: #3a3a3a;
+  color: #ddd;
+}
+.source-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #888;
+}
+.source-dot.f3 {
+  background: #e0e0e0;
+}
+.source-dot.vision {
+  background: #b89cff;
+}
+.source-dot.local {
+  background: #6cc3ff;
+}
+.chip.structure {
+  background: #2c2640;
+  color: #e0d6ff;
+}
+.f3-tip {
+  display: flex;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: var(--radius);
+  background: #2b2a1a;
+  border: 1px solid #5a5220;
+}
+.f3-tip strong {
+  color: var(--yellow);
+  font-size: 13px;
+}
+.f3-tip p {
+  margin: 4px 0 0;
+}
+.f3-tip .f3-badge {
+  height: fit-content;
+}
+
+.legend-row {
+  grid-template-columns: 84px 1fr;
+}
+.legend-side {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 3px;
+}
+.f3-tip {
+  padding: 7px 10px;
+  align-items: flex-start;
+}
+.f3-tip-toggle {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--yellow);
+  font-size: 12.5px;
+  font-weight: 700;
+  text-align: left;
+}
+.f3-tip-toggle u {
+  font-weight: 600;
+  color: var(--text-2);
+}

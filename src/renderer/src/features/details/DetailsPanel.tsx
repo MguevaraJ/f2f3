@@ -1,7 +1,9 @@
 import { useState, type ReactNode } from 'react'
 import { BIOMES, biomeById, biomeName, DIMENSIONS, dimensionName } from '@shared/catalog/biomes'
 import { MOB_CATEGORY_LABEL, mobName } from '@shared/catalog/mobs'
-import type { F3Data, InfoSource, ScreenshotEntry } from '@shared/types'
+import { structureName } from '@shared/catalog/structures'
+import { biomeHiddenInF3 } from '@shared/f3Tips'
+import type { F3Data, InfoSource, ScreenshotEntry, VisionResult } from '@shared/types'
 import { CreeperFace, Icon } from '../../components/icons'
 import { McText } from '../../components/McText'
 import {
@@ -13,6 +15,9 @@ import {
   tpCommand
 } from '../../lib/coords'
 import { formatBytes, formatDateTime, formatNumber, formatRelative } from '../../lib/format'
+import { PROVIDER_LABEL, SOURCE_INFO } from '../../lib/sources'
+import { useLocalModel } from '../../store/localModel'
+import { useSettings } from '../../store/settings'
 import { useLibrary } from '../../store/library'
 import { useUi } from '../../store/ui'
 import {
@@ -27,13 +32,6 @@ import {
   setBiome,
   toggleFavorite
 } from '../library/actions'
-
-const SOURCE_LABEL: Record<InfoSource, string> = {
-  f3: 'F3',
-  vision: 'IA',
-  heuristic: 'Estimado',
-  manual: 'Manual'
-}
 
 const TIME_ES: Record<string, string> = {
   day: 'Día',
@@ -155,9 +153,25 @@ export function DetailsPanel({
 function SummaryChips({ shot }: { shot: ScreenshotEntry }) {
   const a = shot.analysis!
   const [editing, setEditing] = useState(false)
+  const [legend, setLegend] = useState(false)
   const dim = a.dimension?.id
   return (
-    <Section title="Mundo" icon="compass">
+    <Section
+      title="Mundo"
+      icon="compass"
+      action={
+        <button
+          className={`icon-btn legend-btn ${legend ? 'on' : ''}`}
+          onClick={() => setLegend(!legend)}
+          title="¿De dónde sale cada dato?"
+          aria-expanded={legend}
+        >
+          <Icon name="info" size={15} />
+        </button>
+      }
+    >
+      {legend && <SourceLegend />}
+      {biomeHiddenInF3(a) && <F3BiomeTip />}
       <div className="facts">
         <Fact label="Dimensión">
           {dim ? (
@@ -175,7 +189,7 @@ function SummaryChips({ shot }: { shot: ScreenshotEntry }) {
             <select
               className="input small-select"
               autoFocus
-              defaultValue={a.biome?.id ?? ''}
+              defaultValue={a.manualBiome ?? ''}
               onBlur={() => setEditing(false)}
               onChange={(e) => {
                 setEditing(false)
@@ -204,7 +218,11 @@ function SummaryChips({ shot }: { shot: ScreenshotEntry }) {
                     />
                     {biomeName(a.biome.id)}
                   </span>
-                  <SourceTag source={a.biome.source} confidence={a.biome.confidence} />
+                  <SourceTag
+                    source={a.biome.source}
+                    confidence={a.biome.confidence}
+                    vision={a.vision}
+                  />
                 </>
               ) : (
                 <span className="muted">Sin detectar</span>
@@ -226,10 +244,11 @@ function SummaryChips({ shot }: { shot: ScreenshotEntry }) {
               <span
                 key={m.id}
                 className={`chip mob ${m.category ?? 'other'}`}
-                title={`${m.id} · ${MOB_CATEGORY_LABEL[m.category ?? 'other']} · ${SOURCE_LABEL[m.source]}`}
+                title={`${m.id} · ${MOB_CATEGORY_LABEL[m.category ?? 'other']} · ${SOURCE_INFO[m.source].label}: ${SOURCE_INFO[m.source].hint}`}
               >
                 {mobName(m.id)}
                 {m.count > 1 && <b>×{m.count}</b>}
+                <span className={`source-dot ${m.source}`} />
               </span>
             ))}
           </div>
@@ -237,11 +256,107 @@ function SummaryChips({ shot }: { shot: ScreenshotEntry }) {
           <p className="muted small">
             {a.vision
               ? 'No se detectaron mobs.'
-              : 'Sin mobs detectados todavía. El análisis IA puede reconocerlos.'}
+              : a.local
+                ? 'Ningún mob claro en la mira. La IA avanzada puede buscar todos los visibles.'
+                : 'Sin mobs detectados. El modelo local o la IA avanzada pueden reconocerlos.'}
+          </p>
+        )}
+      </div>
+
+      <div className="mobs">
+        <div className="mobs-head">
+          <Icon name="layers" size={15} /> Estructuras
+        </div>
+        {a.structures.length ? (
+          <div className="chip-row">
+            {a.structures.map((st) => (
+              <span
+                key={st.id}
+                className="chip structure"
+                title={`${st.id} · ${SOURCE_INFO[st.source].label}: ${SOURCE_INFO[st.source].hint}`}
+              >
+                {structureName(st.id)}
+                <span className={`source-dot ${st.source}`} />
+              </span>
+            ))}
+          </div>
+        ) : (
+          <p className="muted small">
+            {a.vision
+              ? 'No se ve ninguna estructura.'
+              : 'Las estructuras (aldeas, templos, fortalezas…) las detecta la IA avanzada.'}
           </p>
         )}
       </div>
     </Section>
+  )
+}
+
+/** Explains the three levels right where the values are shown. */
+function SourceLegend() {
+  const localStatus = useLocalModel((s) => s.status)
+  const settings = useSettings((s) => s.settings)
+  const setTab = useUi((s) => s.setTab)
+  const openViewer = useUi((s) => s.openViewer)
+  const aiOn = !!settings?.visionEnabled
+  const rows: { source: InfoSource; on: boolean; state: string }[] = [
+    { source: 'f3', on: true, state: 'Siempre activo' },
+    {
+      source: 'local',
+      on: localStatus?.state === 'ready',
+      state: localStatus?.state === 'ready' ? 'Activo' : 'No descargado'
+    },
+    {
+      source: 'vision',
+      on: aiOn,
+      state: aiOn ? PROVIDER_LABEL[settings!.visionProvider] : 'No configurada'
+    },
+    { source: 'heuristic', on: true, state: 'Último recurso' }
+  ]
+  return (
+    <div className="legend">
+      {rows.map((r) => (
+        <div key={r.source} className="legend-row">
+          <span className="legend-side">
+            <span className={`source-tag ${r.source}`}>{SOURCE_INFO[r.source].tag}</span>
+            <span className={`legend-state ${r.on ? 'on' : ''}`}>{r.state}</span>
+          </span>
+          <span className="legend-text">
+            <b>{SOURCE_INFO[r.source].label}.</b> {SOURCE_INFO[r.source].hint}
+          </span>
+        </div>
+      ))}
+      <button
+        className="btn small"
+        onClick={() => {
+          openViewer(null)
+          setTab('settings')
+        }}
+      >
+        <Icon name="gear" size={14} /> Configurar el análisis
+      </button>
+    </div>
+  )
+}
+
+/** New debug screens hide the biome by default: tell the player how to show it. */
+function F3BiomeTip() {
+  const [open, setOpen] = useState(false)
+  return (
+    <div className="f3-tip">
+      <span className="f3-badge">F3</span>
+      <div>
+        <button className="f3-tip-toggle" onClick={() => setOpen(!open)} aria-expanded={open}>
+          Tu F3 no muestra el bioma · <u>{open ? 'Ocultar' : 'Cómo activarlo'}</u>
+        </button>
+        <p className="muted small" hidden={!open}>
+          En esta versión de Minecraft viene oculto. Para que Craftshot lo lea exacto: en el juego
+          pulsa <span className="kbd">F3</span> + <span className="kbd">F6</span>, busca la línea
+          del <b>bioma</b> (Biome) y actívala. Haz lo mismo con la <b>entidad apuntada</b> para
+          registrar el mob que miras.
+        </p>
+      </div>
+    </div>
   )
 }
 
@@ -420,10 +535,10 @@ function NoF3Notice() {
     <div className="no-f3">
       <span className="f3-badge">F3</span>
       <div>
-        <strong>Sin pantalla de depuración</strong>
+        <strong>Captura sin F3</strong>
         <p className="muted small">
-          Esta captura no muestra el F3. El bioma y la dimensión se estiman por colores; usa el
-          análisis IA para mayor precisión.
+          Sin la pantalla F3 no hay coordenadas. El bioma y los mobs se estiman con el modelo local
+          (o con los colores si no lo tienes); la IA avanzada da el resultado más preciso.
         </p>
       </div>
     </div>
@@ -434,8 +549,10 @@ function VisionSection({ shot }: { shot: ScreenshotEntry }) {
   const v = shot.analysis?.vision
   const progress = useLibrary((s) => s.progress.vision)
   const running = progress?.current === shot.id
+  const settings = useSettings((s) => s.settings)
+  const provider = settings?.visionProvider ?? 'anthropic'
   return (
-    <Section title="Análisis IA" icon="sparkles" collapsed={!v}>
+    <Section title="IA avanzada" icon="sparkles" collapsed={!v}>
       {v ? (
         <>
           <p className="vision-desc">{v.description}</p>
@@ -446,21 +563,21 @@ function VisionSection({ shot }: { shot: ScreenshotEntry }) {
             {v.weather && <Row k="Clima" v={WEATHER_ES[v.weather] ?? v.weather} copy={false} />}
             {v.biome && (
               <Row
-                k="Bioma (IA)"
+                k="Bioma según la IA"
                 v={`${biomeName(v.biome.id)} · ${Math.round(v.biome.confidence * 100)}%`}
                 copy={false}
               />
             )}
-            {!!v.structures.length && <Row k="Estructuras" v={v.structures.join(', ')} />}
           </Rows>
           <p className="muted small">
-            {v.model} · {formatRelative(v.analyzedAt)}
+            {v.provider ? PROVIDER_LABEL[v.provider] : 'IA'} · {v.model} ·{' '}
+            {formatRelative(v.analyzedAt)}
           </p>
         </>
       ) : (
         <p className="muted small">
-          Claude puede identificar el bioma, los mobs, estructuras, clima y momento del día a partir
-          de la imagen.
+          Opcional. Con tu propio servicio de IA (Claude, Gemini, OpenAI u Ollama gratis en tu
+          equipo) se detectan todos los mobs, las estructuras, el clima y la hora.
         </p>
       )}
       <button
@@ -469,7 +586,13 @@ function VisionSection({ shot }: { shot: ScreenshotEntry }) {
         onClick={() => void analyzeWithAi([shot.id])}
       >
         <Icon name="sparkles" size={15} />{' '}
-        {running ? 'Analizando…' : v ? 'Volver a analizar' : 'Analizar con IA'}
+        {running
+          ? 'Analizando…'
+          : v
+            ? 'Volver a analizar'
+            : settings?.visionEnabled
+              ? `Analizar con ${PROVIDER_LABEL[provider]}`
+              : 'Configurar IA avanzada'}
       </button>
     </Section>
   )
@@ -560,22 +683,28 @@ function Section({
   icon,
   children,
   collapsed = false,
-  accent = false
+  accent = false,
+  action
 }: {
   title: string
   icon: string
   children: ReactNode
   collapsed?: boolean
   accent?: boolean
+  /** Extra control shown in the header (kept outside the toggle button). */
+  action?: ReactNode
 }) {
   const [open, setOpen] = useState(!collapsed)
   return (
     <section className={`dsec ${accent ? 'accent' : ''}`}>
-      <button className="dsec-head" onClick={() => setOpen(!open)} aria-expanded={open}>
-        <Icon name={icon} size={16} />
-        <span>{title}</span>
-        <Icon name="chevronDown" size={16} className={`dsec-caret ${open ? 'open' : ''}`} />
-      </button>
+      <div className="dsec-headrow">
+        <button className="dsec-head" onClick={() => setOpen(!open)} aria-expanded={open}>
+          <Icon name={icon} size={16} />
+          <span>{title}</span>
+          <Icon name="chevronDown" size={16} className={`dsec-caret ${open ? 'open' : ''}`} />
+        </button>
+        {action}
+      </div>
       {open && <div className="dsec-body">{children}</div>}
     </section>
   )
@@ -650,18 +779,26 @@ function CopyChip({ value, what }: { value: string; what: string }) {
   )
 }
 
-function SourceTag({ source, confidence }: { source: InfoSource; confidence?: number }) {
-  const title =
-    source === 'heuristic'
-      ? 'Estimado por los colores de la imagen (baja confianza)'
-      : source === 'vision'
-        ? `Detectado por IA${confidence !== undefined ? ` (${Math.round(confidence * 100)}%)` : ''}`
-        : source === 'manual'
-          ? 'Asignado manualmente'
-          : 'Leído del F3'
+function SourceTag({
+  source,
+  confidence,
+  vision
+}: {
+  source: InfoSource
+  confidence?: number
+  vision?: VisionResult | null
+}) {
+  const info = SOURCE_INFO[source]
+  const pct =
+    confidence !== undefined && source !== 'f3' && source !== 'manual'
+      ? ` · ${Math.round(confidence * 100)}%`
+      : ''
+  const who = source === 'vision' && vision?.provider ? ` (${PROVIDER_LABEL[vision.provider]})` : ''
   return (
-    <span className={`source-tag ${source}`} title={title}>
-      {SOURCE_LABEL[source]}
+    <span className={`source-tag ${source}`} title={`${info.label}${who}${pct}. ${info.hint}`}>
+      {source === 'vision' && vision?.provider
+        ? `IA · ${PROVIDER_LABEL[vision.provider]}`
+        : info.tag}
     </span>
   )
 }

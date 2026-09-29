@@ -27,6 +27,10 @@ function shot(
       dimension: null,
       biome: null,
       mobs: [],
+      structures: [],
+      heuristic: { dimension: null, biome: null },
+      local: null,
+      manualBiome: null,
       vision: null,
       averageColor: '#000',
       ...a

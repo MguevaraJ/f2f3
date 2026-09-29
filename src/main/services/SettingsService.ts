@@ -1,11 +1,23 @@
 import { EventEmitter } from 'node:events'
 import { join } from 'node:path'
-import type { AppSettings, SettingsView } from '@shared/types'
+import type { AppSettings, SettingsView, VisionProviderId } from '@shared/types'
 import { JsonStore } from './JsonStore'
 import type { MinecraftLocator } from './MinecraftLocator'
 import type { SecretStore } from './SecretStore'
 
-const API_KEY = 'anthropicApiKey'
+const KEY_NAMES: Record<VisionProviderId, string | null> = {
+  anthropic: 'anthropicApiKey',
+  openai: 'openaiApiKey',
+  gemini: 'geminiApiKey',
+  ollama: null
+}
+const ENV_KEYS: Record<VisionProviderId, string | null> = {
+  anthropic: 'ANTHROPIC_API_KEY',
+  openai: 'OPENAI_API_KEY',
+  gemini: 'GEMINI_API_KEY',
+  ollama: null
+}
+const PROVIDERS: VisionProviderId[] = ['anthropic', 'openai', 'gemini', 'ollama']
 
 export const DEFAULT_VISION_MODEL = 'claude-opus-5-5'
 
@@ -26,7 +38,13 @@ export class SettingsService extends EventEmitter<{ changed: [AppSettings, AppSe
       fontSource: '',
       autoAnalyze: true,
       visionEnabled: false,
-      visionModel: DEFAULT_VISION_MODEL,
+      visionProvider: 'anthropic',
+      visionModels: { anthropic: DEFAULT_VISION_MODEL, openai: '', gemini: '', ollama: '' },
+      openaiBaseUrl: '',
+      ollamaUrl: '',
+      localModelEnabled: false,
+      onboardingDone: false,
+      dismissedTips: [],
       visionAuto: false,
       thumbnailSize: 220,
       confirmDelete: true,
@@ -47,8 +65,13 @@ export class SettingsService extends EventEmitter<{ changed: [AppSettings, AppSe
   view(): SettingsView {
     return {
       ...this.store.value,
-      hasApiKey: !!this.getApiKey(),
-      apiKeyEncrypted: this.secrets.isEncrypted(API_KEY)
+      apiKeys: Object.fromEntries(PROVIDERS.map((p) => [p, !!this.getProviderKey(p)])) as Record<
+        VisionProviderId,
+        boolean
+      >,
+      apiKeyEncrypted: PROVIDERS.some(
+        (p) => KEY_NAMES[p] && this.secrets.isEncrypted(KEY_NAMES[p]!)
+      )
     }
   }
 
@@ -59,12 +82,15 @@ export class SettingsService extends EventEmitter<{ changed: [AppSettings, AppSe
     return this.view()
   }
 
-  getApiKey(): string | null {
-    return this.secrets.get(API_KEY) ?? process.env.ANTHROPIC_API_KEY ?? null
+  getProviderKey(provider: VisionProviderId): string | null {
+    const name = KEY_NAMES[provider]
+    const env = ENV_KEYS[provider]
+    return (name && this.secrets.get(name)) || (env && process.env[env]) || null
   }
 
-  setApiKey(key: string | null): SettingsView {
-    this.secrets.set(API_KEY, key?.trim() || null)
+  setProviderKey(provider: VisionProviderId, key: string | null): SettingsView {
+    const name = KEY_NAMES[provider]
+    if (name) this.secrets.set(name, key?.trim() || null)
     return this.view()
   }
 
@@ -79,6 +105,20 @@ function sanitize(patch: Partial<AppSettings>): Partial<AppSettings> {
     out.thumbnailSize = Math.min(420, Math.max(140, out.thumbnailSize))
   if (out.closeAction !== undefined && !['ask', 'background', 'quit'].includes(out.closeAction))
     delete out.closeAction
-  if (out.visionModel !== undefined && !/^[\w.-]+$/.test(out.visionModel)) delete out.visionModel
+  if (out.visionProvider !== undefined && !PROVIDERS.includes(out.visionProvider))
+    delete out.visionProvider
+  if (out.visionModels !== undefined)
+    out.visionModels = Object.fromEntries(
+      PROVIDERS.map((p) => [
+        p,
+        String(out.visionModels?.[p] ?? '')
+          .trim()
+          .slice(0, 200)
+      ])
+    ) as Record<VisionProviderId, string>
+  for (const k of ['openaiBaseUrl', 'ollamaUrl'] as const)
+    if (out[k] !== undefined && out[k] !== '' && !/^https?:\/\/[^\s]+$/.test(out[k]!)) delete out[k]
+  if (out.dismissedTips !== undefined)
+    out.dismissedTips = out.dismissedTips.filter((t) => typeof t === 'string').slice(0, 50)
   return out
 }

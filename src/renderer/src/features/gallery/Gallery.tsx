@@ -1,3 +1,4 @@
+import type { Facets } from '../../lib/query'
 import {
   useCallback,
   useEffect,
@@ -8,6 +9,8 @@ import {
   type MouseEvent
 } from 'react'
 import type { ScreenshotEntry } from '@shared/types'
+import { biomeHiddenInF3 } from '@shared/f3Tips'
+import { useSettings } from '../../store/settings'
 import { thumbUrl } from '@shared/ipc'
 import { Icon } from '../../components/icons'
 import { isEditable } from '../../lib/dom'
@@ -35,7 +38,7 @@ import { Toolbar } from './Toolbar'
 
 interface Props {
   shots: ScreenshotEntry[]
-  facets: { dimensions: string[]; biomes: string[]; mobs: string[] }
+  facets: Facets
 }
 
 export function Gallery({ shots, facets }: Props) {
@@ -267,6 +270,7 @@ export function Gallery({ shots, facets }: Props) {
           </div>
         </div>
 
+        <F3BiomeBanner shots={shots} />
         <Toolbar visibleIds={ids} facets={facets} />
 
         <div
@@ -362,6 +366,41 @@ export function Gallery({ shots, facets }: Props) {
           )}
         </aside>
       )}
+    </div>
+  )
+}
+
+const TIP_F3_BIOME = 'f3-biome'
+
+/** One-off tip: the player's F3 hides the biome (1.21.9+), here is how to show it. */
+function F3BiomeBanner({ shots }: { shots: ScreenshotEntry[] }) {
+  const settings = useSettings((s) => s.settings)
+  const update = useSettings((s) => s.update)
+  const affected = useMemo(() => shots.filter((s) => biomeHiddenInF3(s.analysis)).length, [shots])
+  if (!settings || !affected || settings.dismissedTips.includes(TIP_F3_BIOME)) return null
+  return (
+    <div className="tip-banner">
+      <span className="f3-badge">F3</span>
+      <div className="tip-banner-text">
+        <strong>
+          {affected === 1
+            ? '1 captura con F3 no muestra'
+            : `${affected} capturas con F3 no muestran`}{' '}
+          el bioma
+        </strong>
+        <span>
+          Tu versión de Minecraft lo oculta por defecto. En el juego pulsa{' '}
+          <span className="kbd">F3</span> + <span className="kbd">F6</span>, busca la línea del{' '}
+          <b>bioma</b> (Biome) y actívala: desde tu próxima captura Craftshot lo leerá exacto.
+        </span>
+      </div>
+      <button
+        className="icon-btn"
+        title="Entendido"
+        onClick={() => void update({ dismissedTips: [...settings.dismissedTips, TIP_F3_BIOME] })}
+      >
+        <Icon name="close" size={16} />
+      </button>
     </div>
   )
 }

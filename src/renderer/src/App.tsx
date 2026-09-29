@@ -1,6 +1,7 @@
 import { useEffect, useMemo } from 'react'
 import { BottomBar } from './components/BottomBar'
 import { CloseDialog } from './components/CloseDialog'
+import { Onboarding } from './components/Onboarding'
 import { Header } from './components/Header'
 import { ContextMenu, Dialog, Toasts } from './components/Overlays'
 import { Sidebar } from './components/Sidebar'
@@ -13,6 +14,7 @@ import { api } from './lib/api'
 import { applyQuery, facets as computeFacets } from './lib/query'
 import { connectLibrary, useLibrary } from './store/library'
 import { connectBackup } from './store/backup'
+import { connectLocalModel } from './store/localModel'
 import { useSettings } from './store/settings'
 import { toast } from './store/toasts'
 import { useUi } from './store/ui'
@@ -29,6 +31,7 @@ export function App() {
     void loadSettings()
     const disconnect = connectLibrary()
     const disconnectBackup = connectBackup()
+    const disconnectLocal = connectLocalModel()
     const offNotice = api.system.onNotice((n) => toast[n.level](n.message))
     // "Ver" in the new-capture popup.
     const offOpen = api.library.onOpenRequest((id) => {
@@ -40,6 +43,7 @@ export function App() {
     return () => {
       disconnect()
       disconnectBackup()
+      disconnectLocal()
       offNotice()
       offOpen()
     }
@@ -76,6 +80,7 @@ export function App() {
       {viewerId && <Viewer shots={viewerList} />}
       <ContextMenu />
       <Dialog />
+      <Onboarding />
       <CloseDialog />
       <Toasts />
     </div>

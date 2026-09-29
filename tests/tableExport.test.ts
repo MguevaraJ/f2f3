@@ -72,6 +72,10 @@ describe('coordinates table', () => {
       dimension: { id: 'minecraft:the_nether', source: 'f3' },
       biome: { id: 'minecraft:nether_wastes', source: 'heuristic', confidence: 0.3 },
       mobs: [{ id: 'minecraft:ghast', count: 2, source: 'vision' }],
+      structures: [{ id: 'minecraft:fortress', source: 'vision' }],
+      heuristic: { dimension: null, biome: null },
+      local: null,
+      manualBiome: null,
       f3: {
         position: { x: 1473.278, y: 44, z: -83.598 },
         block: { x: 1473, y: 44, z: -84 },
@@ -96,11 +100,12 @@ describe('coordinates table', () => {
       Z: -84,
       'Distancia a 0,0': 1475,
       Bioma: 'Desiertos del Nether',
-      'Origen del bioma': 'Estimado',
+      'Origen del bioma': 'Colores (aproximado)',
       'X exacta': 1473.278,
       Región: 'r.2.-1.mca',
       Orientación: 'Norte',
       Mobs: 'Ghast ×2',
+      Estructuras: 'Fortaleza del Nether',
       Nota: 'portal'
     })
     expect(String(row['Comando /tp'])).toContain(

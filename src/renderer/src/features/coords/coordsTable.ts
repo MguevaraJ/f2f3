@@ -1,13 +1,15 @@
 import { biomeName, dimensionName } from '@shared/catalog/biomes'
 import { mobName } from '@shared/catalog/mobs'
+import { structureName } from '@shared/catalog/structures'
 import type { DataTable, TableCell } from '@shared/ipc'
 import type { InfoSource, ScreenshotEntry, Vec3 } from '@shared/types'
 import { blockString, convertDimension, DIRECTION_ES, distance, tpCommand } from '../../lib/coords'
 
 const SOURCE: Record<InfoSource, string> = {
-  f3: 'F3',
-  vision: 'IA',
-  heuristic: 'Estimado',
+  f3: 'F3 (exacto)',
+  vision: 'IA avanzada',
+  local: 'Modelo local (estimado)',
+  heuristic: 'Colores (aproximado)',
   manual: 'Manual'
 }
 
@@ -55,6 +57,7 @@ export function buildCoordsTable(rows: ScreenshotEntry[], opts: CoordsTableOptio
     { header: 'Yaw', width: 8 },
     { header: 'Pitch', width: 8 },
     { header: 'Mobs', width: 24 },
+    { header: 'Estructuras', width: 26 },
     { header: 'Versión', width: 10 },
     { header: 'Nota', width: 30 },
     { header: 'Comando /tp', width: 48 }
@@ -90,6 +93,7 @@ export function buildCoordsTable(rows: ScreenshotEntry[], opts: CoordsTableOptio
       a.mobs
         .map((m) => (m.count > 1 ? `${mobName(m.id)} ×${m.count}` : mobName(m.id)))
         .join(', ') || null,
+      a.structures.map((x) => structureName(x.id)).join(', ') || null,
       f3.version ?? null,
       s.meta.note ?? null,
       tpCommand(f3)

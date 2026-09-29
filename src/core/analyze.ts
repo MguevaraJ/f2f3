@@ -1,4 +1,11 @@
-import type { MobInfo, ScreenshotAnalysis, VisionResult } from '@shared/types'
+import type {
+  BiomeInfo,
+  LocalVisionResult,
+  MobInfo,
+  ScreenshotAnalysis,
+  StructureInfo,
+  VisionResult
+} from '@shared/types'
 import { mobById } from '@shared/catalog/mobs'
 import { normalizeId } from '@shared/catalog/biomes'
 import type { MinecraftFont } from './font/minecraftFont'
@@ -7,11 +14,12 @@ import { looksLikeDebugScreen, parseF3 } from './f3/parseF3'
 import { estimateScene } from './vision/sceneHeuristics'
 
 /** Bump when the local pipeline changes so cached analyses get recomputed. */
-export const ANALYSIS_SCHEMA = 4
+export const ANALYSIS_SCHEMA = 5
 
 /**
- * Local (offline) analysis of one screenshot: F3 OCR + parsing, plus the colour
- * heuristics as a fallback for dimension/biome. Pure function — no I/O.
+ * Offline analysis of one screenshot: F3 OCR + parsing and the colour estimate.
+ * The on-device model and the advanced AI are added later as extra sources.
+ * Pure function — no I/O.
  */
 export function analyzeImage(
   img: RgbaImage,
@@ -24,17 +32,7 @@ export function analyzeImage(
   const f3 = hasF3 && ocr ? parseF3(ocr.lines) : null
   const scene = estimateScene(img, f3?.dimension)
 
-  const mobs: MobInfo[] = []
-  if (f3?.targetedEntity) {
-    mobs.push({
-      id: normalizeId(f3.targetedEntity),
-      count: 1,
-      source: 'f3',
-      category: mobById(f3.targetedEntity)?.category ?? 'other'
-    })
-  }
-
-  return {
+  return resolveAnalysis({
     schema: ANALYSIS_SCHEMA,
     fingerprint,
     analyzedAt: Date.now(),
@@ -50,61 +48,105 @@ export function analyzeImage(
             durationMs: Math.round(performance.now() - started)
           }
         : null,
-    dimension: f3?.dimension
-      ? { id: f3.dimension, source: 'f3' }
-      : scene.dimension
-        ? { id: scene.dimension.id, source: 'heuristic' }
-        : null,
-    biome: f3?.biome
-      ? { id: normalizeId(f3.biome), source: 'f3', confidence: 1 }
-      : scene.biome
-        ? { id: scene.biome.id, source: 'heuristic', confidence: scene.biome.confidence }
-        : null,
-    mobs,
+    heuristic: {
+      dimension: scene.dimension?.id ?? null,
+      biome: scene.biome
+    },
+    local: null,
     vision: null,
+    manualBiome: null,
+    dimension: null,
+    biome: null,
+    mobs: [],
+    structures: [],
     averageColor: scene.averageColor
-  }
+  })
 }
 
+const category = (id: string): MobInfo['category'] => mobById(id)?.category ?? 'other'
+
 /**
- * Folds a Claude vision result into an analysis. Precedence: F3 > vision > heuristic,
- * since the overlay states facts while the others infer them.
+ * Derives the displayed values from every source, most reliable first:
+ * manual > F3 (exact) > advanced AI > on-device model > colour estimate.
  */
-export function mergeVision(
-  analysis: ScreenshotAnalysis,
-  vision: VisionResult
-): ScreenshotAnalysis {
-  const next: ScreenshotAnalysis = { ...analysis, vision }
-  if (vision.biome && analysis.biome?.source !== 'f3' && analysis.biome?.source !== 'manual')
-    next.biome = {
+export function resolveAnalysis(a: ScreenshotAnalysis): ScreenshotAnalysis {
+  const { f3, vision, local, heuristic } = a
+
+  const dimension: ScreenshotAnalysis['dimension'] = f3?.dimension
+    ? { id: f3.dimension, source: 'f3' }
+    : vision?.dimension
+      ? { id: normalizeId(vision.dimension), source: 'vision' }
+      : heuristic.dimension
+        ? { id: heuristic.dimension, source: 'heuristic' }
+        : null
+
+  let biome: BiomeInfo | null = null
+  if (a.manualBiome) biome = { id: normalizeId(a.manualBiome), source: 'manual', confidence: 1 }
+  else if (f3?.biome) biome = { id: normalizeId(f3.biome), source: 'f3', confidence: 1 }
+  else if (vision?.biome)
+    biome = {
       id: normalizeId(vision.biome.id),
       source: 'vision',
       confidence: vision.biome.confidence
     }
-  if (vision.dimension && analysis.dimension?.source !== 'f3')
-    next.dimension = { id: normalizeId(vision.dimension), source: 'vision' }
+  else if (local?.biome)
+    biome = { id: local.biome.id, source: 'local', confidence: local.biome.confidence }
+  else if (heuristic.biome) biome = { ...heuristic.biome, source: 'heuristic' }
 
-  const mobs = analysis.mobs.filter((m) => m.source !== 'vision')
-  for (const v of vision.mobs) {
-    const id = normalizeId(v.id)
-    const existing = mobs.find((m) => m.id === id)
-    if (existing) existing.count = Math.max(existing.count, v.count)
-    else
-      mobs.push({
-        id,
-        count: v.count,
-        source: 'vision',
-        category: mobById(id)?.category ?? 'other'
-      })
+  const mobs: MobInfo[] = []
+  const add = (id: string, count: number, source: MobInfo['source']): void => {
+    const nid = normalizeId(id)
+    const existing = mobs.find((m) => m.id === nid)
+    if (existing) existing.count = Math.max(existing.count, count)
+    else mobs.push({ id: nid, count, source, category: category(nid) })
   }
-  next.mobs = mobs
-  return next
+  if (f3?.targetedEntity) add(f3.targetedEntity, 1, 'f3')
+  if (vision) for (const m of vision.mobs) if (m.count > 0) add(m.id, m.count, 'vision')
+  // The on-device guess only when nothing better looked at the image.
+  if (!vision && local?.targetedMob && !f3?.targetedEntity) add(local.targetedMob.id, 1, 'local')
+
+  const structures: StructureInfo[] = (vision?.structures ?? []).map((id) => ({
+    id: normalizeId(id),
+    source: 'vision'
+  }))
+
+  return { ...a, dimension, biome, mobs, structures }
 }
 
-/** Re-applies a previous vision result after a local re-analysis. */
-export function withPreviousVision(
+export function withVision(a: ScreenshotAnalysis, vision: VisionResult): ScreenshotAnalysis {
+  return resolveAnalysis({ ...a, vision })
+}
+
+export function withLocal(a: ScreenshotAnalysis, local: LocalVisionResult): ScreenshotAnalysis {
+  return resolveAnalysis({ ...a, local })
+}
+
+export function withManualBiome(a: ScreenshotAnalysis, biome: string | null): ScreenshotAnalysis {
+  return resolveAnalysis({ ...a, manualBiome: biome })
+}
+
+/**
+ * Carries the slow/paid sources (AI, on-device model, manual choice) over to a fresh
+ * offline re-analysis of the same image.
+ */
+export function carryOver(
   fresh: ScreenshotAnalysis,
   previous: ScreenshotAnalysis | null | undefined
 ): ScreenshotAnalysis {
-  return previous?.vision ? mergeVision(fresh, previous.vision) : fresh
+  if (!previous) return fresh
+  return resolveAnalysis({
+    ...fresh,
+    vision: previous.vision ? normalizeVision(previous.vision) : null,
+    local: previous.local ?? null,
+    manualBiome:
+      previous.manualBiome ?? (previous.biome?.source === 'manual' ? previous.biome.id : null)
+  })
+}
+
+/** Older cached AI results stored free-text structure names. */
+function normalizeVision(v: VisionResult): VisionResult {
+  return {
+    ...v,
+    structures: (v.structures ?? []).filter((s) => /^[a-z0-9_.-]+:[a-z0-9_/.-]+$/.test(s))
+  }
 }

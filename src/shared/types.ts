@@ -68,7 +68,14 @@ export interface OcrStats {
   durationMs: number
 }
 
-export type InfoSource = 'f3' | 'vision' | 'heuristic' | 'manual'
+/**
+ * Where a piece of information comes from, from most to least reliable:
+ * manual (the user), f3 (read from the overlay: exact), vision (advanced AI),
+ * local (on-device model: estimate), heuristic (colours: rough estimate).
+ */
+export type InfoSource = 'f3' | 'vision' | 'local' | 'heuristic' | 'manual'
+
+export type VisionProviderId = 'anthropic' | 'openai' | 'gemini' | 'ollama'
 
 export interface BiomeInfo {
   id: string
@@ -86,6 +93,7 @@ export interface MobInfo {
 }
 
 export interface VisionResult {
+  provider?: VisionProviderId
   model: string
   analyzedAt: number
   description: string
@@ -94,7 +102,21 @@ export interface VisionResult {
   timeOfDay?: string
   weather?: string
   mobs: { id: string; count: number }[]
+  /** Structure ids from the catalog (minecraft:desert_pyramid…). */
   structures: string[]
+}
+
+/** On-device model output (basic: biome and the mob at the crosshair). */
+export interface LocalVisionResult {
+  model: string
+  analyzedAt: number
+  biome: { id: string; confidence: number } | null
+  targetedMob: { id: string; confidence: number } | null
+}
+
+export interface StructureInfo {
+  id: string
+  source: InfoSource
 }
 
 export interface ScreenshotAnalysis {
@@ -105,10 +127,17 @@ export interface ScreenshotAnalysis {
   hasF3: boolean
   f3: F3Data | null
   ocr: OcrStats | null
+  /** Colour-statistics estimate, kept as the last-resort source. */
+  heuristic: { dimension: string | null; biome: { id: string; confidence: number } | null }
+  local: LocalVisionResult | null
+  vision: VisionResult | null
+  /** Biome chosen by the user (overrides everything). */
+  manualBiome: string | null
+  // ── Resolved values (derived from the sources above by resolveAnalysis) ──
   dimension: { id: DimensionId; source: InfoSource } | null
   biome: BiomeInfo | null
   mobs: MobInfo[]
-  vision: VisionResult | null
+  structures: StructureInfo[]
   /** Average colour, handy for placeholders while the thumbnail loads. */
   averageColor: string
   error?: string
@@ -165,7 +194,18 @@ export interface AppSettings {
   fontSource: string
   autoAnalyze: boolean
   visionEnabled: boolean
-  visionModel: string
+  /** Advanced-AI provider and the model chosen for each one. */
+  visionProvider: VisionProviderId
+  visionModels: Record<VisionProviderId, string>
+  /** OpenAI-compatible endpoint (OpenAI, OpenRouter, LM Studio…). */
+  openaiBaseUrl: string
+  ollamaUrl: string
+  /** Level 2: on-device model for basic biome/mob recognition. */
+  localModelEnabled: boolean
+  /** First-run introduction was completed. */
+  onboardingDone: boolean
+  /** One-off tips the user dismissed (e.g. "enable the biome line in F3"). */
+  dismissedTips: string[]
   /** Analyse new screenshots with Claude automatically (costs API credits). */
   visionAuto: boolean
   thumbnailSize: number
@@ -185,7 +225,8 @@ export interface AppSettings {
 }
 
 export interface SettingsView extends AppSettings {
-  hasApiKey: boolean
+  /** Which providers have a stored key (keys themselves never leave the main process). */
+  apiKeys: Record<VisionProviderId, boolean>
   apiKeyEncrypted: boolean
 }
 
@@ -253,4 +294,16 @@ export interface CapturePopupPayload {
   shortcut: string | null
   /** Coordinates were copied automatically (auto-copy setting). */
   autoCopied: boolean
+}
+
+/** State of the on-device model (level 2). */
+export interface LocalModelStatus {
+  state: 'absent' | 'downloading' | 'loading' | 'ready' | 'error'
+  /** 0..1 while downloading. */
+  progress: number
+  /** Approximate download size, for the consent prompt. */
+  sizeMB: number
+  /** Screenshots waiting for the local analysis. */
+  pending: number
+  error?: string
 }

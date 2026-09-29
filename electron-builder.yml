@@ -7,8 +7,15 @@ files:
   - out/**
   - resources/**
   - package.json
+  # Browser build of the ONNX runtime is not used in Node.
+  - '!node_modules/onnxruntime-web/**'
+afterPack: build/afterPack.cjs
 asarUnpack:
   - resources/**
+  # Native runtime of the on-device model (shared libraries can't load from inside asar).
+  - node_modules/onnxruntime-node/**
+  - node_modules/sharp/**
+  - node_modules/@img/**
 linux:
   target: [AppImage, deb]
   category: Graphics

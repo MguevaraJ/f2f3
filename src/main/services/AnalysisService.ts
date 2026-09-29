@@ -1,13 +1,17 @@
 import { EventEmitter } from 'node:events'
 import { existsSync } from 'node:fs'
-import { ANALYSIS_SCHEMA, mergeVision, withPreviousVision } from '@core/analyze'
-import { normalizeId } from '@shared/catalog/biomes'
-import type { AnalysisProgress, ScreenshotAnalysis, ScreenshotEntry } from '@shared/types'
+import { ANALYSIS_SCHEMA, carryOver, withLocal, withManualBiome, withVision } from '@core/analyze'
+import type {
+  AnalysisProgress,
+  LocalVisionResult,
+  ScreenshotAnalysis,
+  ScreenshotEntry
+} from '@shared/types'
 import { fingerprintOf, type LibraryService } from './LibraryService'
 import type { MetadataStore } from './MetadataStore'
 import type { SettingsService } from './SettingsService'
 import type { ThumbnailService } from './ThumbnailService'
-import type { VisionService } from './VisionService'
+import type { VisionService } from '../vision/VisionService'
 import type { WorkerPool } from './WorkerPool'
 
 interface Events {
@@ -54,7 +58,7 @@ export class AnalysisService extends EventEmitter<Events> {
     if (
       this.settings.value.visionEnabled &&
       this.settings.value.visionAuto &&
-      this.settings.getApiKey()
+      this.vision.isReady()
     ) {
       const noVision = entries.filter((e) => e.analysis && !e.analysis.vision && !e.analysis.error)
       this.enqueueVision(noVision.map((e) => e.id))
@@ -82,21 +86,14 @@ export class AnalysisService extends EventEmitter<Events> {
   async setBiome(id: string, biomeId: string | null): Promise<void> {
     const abs = this.library.resolveId(id)
     const current = this.metadata.analysis(abs)
-    if (!current) return
-    let next: ScreenshotAnalysis
-    if (biomeId)
-      next = { ...current, biome: { id: normalizeId(biomeId), source: 'manual', confidence: 1 } }
-    else {
-      const reset: ScreenshotAnalysis = { ...current, biome: null }
-      next = current.vision ? mergeVision(reset, current.vision) : reset
-      if (current.f3?.biome)
-        next.biome = { id: normalizeId(current.f3.biome), source: 'f3', confidence: 1 }
-      if (!next.biome) {
-        this.enqueueLocal([id]) // recompute the heuristic estimate
-        return
-      }
-    }
-    this.save(id, abs, next)
+    if (current) this.save(id, abs, withManualBiome(current, biomeId))
+  }
+
+  /** Result of the on-device model for one screenshot. */
+  applyLocal(id: string, local: LocalVisionResult): void {
+    const abs = this.library.resolveId(id)
+    const current = this.metadata.analysis(abs)
+    if (current) this.save(id, abs, withLocal(current, local))
   }
 
   private pumpLocal(): void {
@@ -141,7 +138,7 @@ export class AnalysisService extends EventEmitter<Events> {
     const previous = this.metadata.analysis(abs)
     const analysis: ScreenshotAnalysis =
       reply.ok && reply.analysis
-        ? withPreviousVision(reply.analysis, previous)
+        ? carryOver(reply.analysis, previous)
         : {
             schema: ANALYSIS_SCHEMA,
             fingerprint,
@@ -149,14 +146,17 @@ export class AnalysisService extends EventEmitter<Events> {
             hasF3: false,
             f3: null,
             ocr: null,
+            heuristic: { dimension: null, biome: null },
+            local: null,
+            vision: null,
+            manualBiome: null,
             dimension: null,
             biome: null,
             mobs: [],
-            vision: null,
+            structures: [],
             averageColor: '#333333',
             error: reply.error ?? 'Error desconocido'
           }
-    if (previous?.biome?.source === 'manual') analysis.biome = previous.biome
     this.save(id, abs, analysis)
   }
 
@@ -190,12 +190,10 @@ export class AnalysisService extends EventEmitter<Events> {
       await this.runLocal(id)
       base = this.metadata.analysis(abs)
     }
-    const result = await this.vision.analyze(abs, this.settings.value.visionModel, base)
+    const result = await this.vision.analyze(abs, base)
     const current = this.metadata.analysis(abs) ?? base
     if (!current) return
-    const merged = mergeVision(current, result)
-    if (current.biome?.source === 'manual') merged.biome = current.biome
-    this.save(id, abs, merged)
+    this.save(id, abs, withVision(current, result))
   }
 
   private save(id: string, abs: string, analysis: ScreenshotAnalysis): void {

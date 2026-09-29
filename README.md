@@ -14,9 +14,16 @@ completo y gestión de archivos.
   Precisión 100 % en capturas vanilla (ver tests).
 - **Datos organizados** y botones de copiar: bloque, XYZ exacto, comando `/tp` (con `execute in` de la
   dimensión), equivalente Nether ⇄ Overworld (÷8 / ×8), chunk, archivo de región, bioma, texto completo.
-- **Bioma y dimensión**: del F3 cuando aparece; si no, estimación offline por colores (marcada como
-  "Estimado"); opcionalmente **visión con Claude** para bioma, **mobs**, estructuras, clima y hora.
-  El bioma también se puede fijar a mano.
+- **Tres niveles de información**, siempre etiquetados en la interfaz (y explicados en el onboarding):
+  1. **F3 · Exacto** — leído del overlay. Si tu versión oculta el bioma (1.21.9+), la app lo detecta y
+     explica cómo activarlo (F3+F6).
+  2. **Modelo local · Estimado** — CLIP en tu equipo (descarga única ~170 MB, opcional): bioma básico y
+     mob en la mira. Conservador: solo responde con confianza alta (calibrado con `npm run eval:local`).
+     Sin él se usa una aproximación por colores (etiqueta *Colores*).
+  3. **IA avanzada · Opcional** — Claude, Gemini, OpenAI (o compatible: OpenRouter, LM Studio…) u
+     **Ollama** local y gratis: bioma preciso, todos los mobs, **estructuras** (aldeas, templos,
+     fortalezas…), clima y hora.
+  El bioma también se puede fijar a mano. Prioridad: manual > F3 > IA > local > colores.
 - **Visor**: zoom con rueda anclado al cursor (5 %–3200 %), arrastrar, ajustar/1:1, rotar, voltear,
   píxeles nítidos al ampliar, cuentagotas (coordenada + color del píxel), pantalla completa,
   tira de miniaturas y panel de información.
@@ -60,6 +67,8 @@ npm start            # ejecuta el build
 npm run dist:linux   # AppImage (también `npm run dist` según la plataforma)
 npm test             # tests (el OCR usa el .jar de ~/.minecraft; se omiten si no hay)
 npm run ocr -- ~/.minecraft/screenshots/*.png   # OCR desde la terminal
+npm run eval:local -- ~/.minecraft/screenshots/*.png   # evalúa el modelo local
+npm run build:labels   # regenera las etiquetas del modelo local (tras cambiar prompts)
 ```
 
 Para la visión IA: Ajustes → *Visión con IA* → pega tu API key de Anthropic (se guarda cifrada con el
@@ -94,6 +103,7 @@ src/
     ocr/         OCR del overlay F3 (escala GUI, grilla de líneas, decodificación por glifos)
     f3/          Parser de líneas → F3Data estructurado
     vision/      Estimación de bioma/dimensión por colores
+    localvision/ Clasificador local (CLIP): preprocesado, etiquetas precalculadas y reglas de decisión
     backup/      Planificador del respaldo (subir / actualizar / mover / omitir), puro y testeado
     analyze.ts   Pipeline local + fusión con resultados de visión (precedencia F3 > IA > estimado)
   shared/      Tipos, contrato IPC tipado y catálogos (biomas y mobs con nombres en español)
@@ -101,6 +111,7 @@ src/
     services/    Settings, Library (escaneo, watch, operaciones de archivo), Metadata (caché JSON
                  atómica), WorkerPool, Thumbnail, Analysis (colas OCR/IA), Vision (Claude),
                  Backup (Google Drive), SecretStore (credenciales cifradas)
+    vision/      IA avanzada: prompt/esquema comunes y proveedores (Claude SDK, OpenAI, Gemini, Ollama)
     google/      OAuth (loopback + PKCE) y cliente REST de Drive con reintentos y backoff
     workers/     Worker thread: decodifica PNG, OCR y miniatura fuera del hilo principal
     protocol.ts  Esquema craftshot:// para imágenes y miniaturas (sin exponer file://)

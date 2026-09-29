@@ -2,6 +2,7 @@ import type { ClipboardMode } from '@shared/types'
 import type { DataTable, ExportFormat, TableFormat } from '@shared/ipc'
 import { api } from '../../lib/api'
 import { formatBytes, plural } from '../../lib/format'
+import { PROVIDER_LABEL } from '../../lib/sources'
 import { useLibrary } from '../../store/library'
 import { useSettings } from '../../store/settings'
 import { toast } from '../../store/toasts'
@@ -184,24 +185,33 @@ export async function reanalyze(ids: string[]): Promise<void> {
 
 export async function analyzeWithAi(ids: string[]): Promise<void> {
   const s = useSettings.getState().settings
-  if (!s?.visionEnabled || !s.hasApiKey) {
-    toast.error('Activa la visión IA y configura tu API key en Ajustes')
+  const provider = s?.visionProvider ?? 'anthropic'
+  const ready =
+    !!s?.visionEnabled &&
+    !!s.visionModels[provider] &&
+    (provider === 'ollama' || s.apiKeys[provider])
+  if (!ready) {
+    toast.info(
+      'La IA avanzada es opcional: actívala y configúrala en Ajustes › Análisis de capturas'
+    )
     useUi.getState().setTab('settings')
     return
   }
   const run = async (): Promise<void> => {
     await api.analysis.vision(ids)
-    toast.info(`Analizando ${plural(ids.length, 'captura', 'capturas')} con IA…`)
+    toast.info(
+      `Analizando ${plural(ids.length, 'captura', 'capturas')} con ${PROVIDER_LABEL[provider]}…`
+    )
   }
-  if (ids.length <= 3) {
+  if (ids.length <= 3 || provider === 'ollama') {
     await guard(run)
     return
   }
-  // Each screenshot is one paid API request: make bulk runs explicit.
+  // Cloud providers bill per request: make bulk runs explicit.
   useUi.getState().openDialog({
     kind: 'confirm',
-    title: 'Analizar con IA',
-    message: `Se enviarán ${ids.length} capturas a la API de Anthropic (${s.visionModel}). Cada captura es una petición con coste en tu cuenta.`,
+    title: 'Analizar con IA avanzada',
+    message: `Se enviarán ${ids.length} capturas a ${PROVIDER_LABEL[provider]} (${s.visionModels[provider]}). Cada captura es una petición que puede tener coste en tu cuenta.`,
     confirm: `Analizar ${ids.length}`,
     onConfirm: run
   })

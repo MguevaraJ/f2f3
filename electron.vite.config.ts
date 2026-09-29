@@ -15,7 +15,8 @@ export default defineConfig({
       rollupOptions: {
         input: {
           index: resolve('src/main/index.ts'),
-          'analysis.worker': resolve('src/main/workers/analysis.worker.ts')
+          'analysis.worker': resolve('src/main/workers/analysis.worker.ts'),
+          'localvision.worker': resolve('src/main/workers/localvision.worker.ts')
         }
       }
     }

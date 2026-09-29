@@ -12,6 +12,15 @@ export default tseslint.config(
     rules: { ...reactHooks.configs.recommended.rules }
   },
   {
+    // electron-builder hooks (CommonJS, run by Node)
+    files: ['build/**/*.cjs'],
+    languageOptions: {
+      sourceType: 'commonjs',
+      globals: { require: 'readonly', exports: 'writable', module: 'writable', __dirname: 'readonly' }
+    },
+    rules: { '@typescript-eslint/no-require-imports': 'off' }
+  },
+  {
     // Node build scripts
     files: ['scripts/**/*.mjs'],
     languageOptions: { globals: { console: 'readonly', process: 'readonly' } }

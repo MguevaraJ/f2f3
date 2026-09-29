@@ -1,20 +1,23 @@
+import type { Facets } from '../../lib/query'
 import { useEffect, useRef } from 'react'
 import { biomeById, biomeName, DIMENSIONS, dimensionName } from '@shared/catalog/biomes'
 import { mobName } from '@shared/catalog/mobs'
+import { structureName } from '@shared/catalog/structures'
 import type { InfoSource } from '@shared/types'
 import { Icon } from '../../components/icons'
 import { type Filters } from '../../lib/query'
 import { useUi } from '../../store/ui'
 
 const SOURCES: { id: InfoSource; label: string }[] = [
-  { id: 'f3', label: 'F3' },
-  { id: 'vision', label: 'IA' },
-  { id: 'heuristic', label: 'Estimado' },
+  { id: 'f3', label: 'F3 (exacto)' },
+  { id: 'local', label: 'Modelo local' },
+  { id: 'vision', label: 'IA avanzada' },
+  { id: 'heuristic', label: 'Colores' },
   { id: 'manual', label: 'Manual' }
 ]
 
 interface Props {
-  facets: { dimensions: string[]; biomes: string[]; mobs: string[] }
+  facets: Facets
   onClose(): void
 }
 
@@ -44,7 +47,7 @@ export function FilterPopover({ facets, onClose }: Props) {
     }
   }, [onClose])
 
-  const toggle = <K extends 'dimensions' | 'biomes' | 'mobs' | 'biomeSources'>(
+  const toggle = <K extends 'dimensions' | 'biomes' | 'mobs' | 'structures' | 'biomeSources'>(
     key: K,
     value: Filters[K][number]
   ): void => {
@@ -145,7 +148,26 @@ export function FilterPopover({ facets, onClose }: Props) {
             ))}
           </div>
         ) : (
-          <p className="muted small">Sin mobs detectados. Usa el análisis IA para encontrarlos.</p>
+          <p className="muted small">Sin mobs detectados todavía.</p>
+        )}
+      </div>
+
+      <div className="filter-group">
+        <div className="filter-label">Estructuras</div>
+        {facets.structures.length ? (
+          <div className="chip-row scroll">
+            {facets.structures.map((st) => (
+              <button
+                key={st}
+                className={`chip ${filters.structures.includes(st) ? 'on' : ''}`}
+                onClick={() => toggle('structures', st)}
+              >
+                {structureName(st)}
+              </button>
+            ))}
+          </div>
+        ) : (
+          <p className="muted small">Las estructuras las detecta la IA avanzada (opcional).</p>
         )}
       </div>
 

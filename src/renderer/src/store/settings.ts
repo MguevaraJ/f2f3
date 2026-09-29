@@ -1,12 +1,12 @@
 import { create } from 'zustand'
-import type { AppSettings, SettingsView } from '@shared/types'
+import type { AppSettings, SettingsView, VisionProviderId } from '@shared/types'
 import { api } from '../lib/api'
 
 interface SettingsState {
   settings: SettingsView | null
   load(): Promise<void>
   update(patch: Partial<AppSettings>): Promise<void>
-  setApiKey(key: string | null): Promise<void>
+  setApiKey(provider: VisionProviderId, key: string | null): Promise<void>
 }
 
 export const useSettings = create<SettingsState>((set) => ({
@@ -16,5 +16,5 @@ export const useSettings = create<SettingsState>((set) => ({
     set((s) => (s.settings ? { settings: { ...s.settings, ...patch } } : s)) // optimistic
     set({ settings: await api.settings.update(patch) })
   },
-  setApiKey: async (key) => set({ settings: await api.settings.setApiKey(key) })
+  setApiKey: async (provider, key) => set({ settings: await api.settings.setApiKey(provider, key) })
 }))
