@@ -20,6 +20,7 @@ import {
   analyzeWithAi,
   copyImage,
   deleteItems,
+  exportZip,
   importFiles,
   openExternal,
   paste,
@@ -142,6 +143,11 @@ export function Gallery({ shots, facets }: Props) {
       { separator: true, label: '' },
       { label: 'Reanalizar F3', icon: 'refresh', action: () => void reanalyze(targets) },
       { label: 'Analizar con IA', icon: 'sparkles', action: () => void analyzeWithAi(targets) },
+      {
+        label: one ? 'Guardar en ZIP' : `Guardar ${targets.length} en ZIP`,
+        icon: 'download',
+        action: () => void exportZip(targets)
+      },
       { separator: true, label: '' },
       {
         label: 'Mostrar en carpeta',

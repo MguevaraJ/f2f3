@@ -27,7 +27,9 @@ export const IPC = {
     openExternal: 'library:open-external',
     setMeta: 'library:set-meta',
     copyImage: 'library:copy-image',
-    exportData: 'library:export'
+    exportData: 'library:export',
+    exportZip: 'library:export-zip',
+    exportTable: 'library:export-table'
   },
   analysis: {
     reanalyze: 'analysis:reanalyze',
@@ -75,6 +77,24 @@ export interface SystemInfo {
 
 export type ExportFormat = 'csv' | 'json'
 
+export type TableFormat = 'xlsx' | 'csv'
+export type TableCell = string | number | null
+
+/** A table exactly as shown in the UI, ready to be written as CSV or Excel. */
+export interface DataTable {
+  sheetName: string
+  /** Suggested file name without extension. */
+  fileName: string
+  columns: { header: string; width?: number }[]
+  rows: TableCell[][]
+}
+
+export interface ZipExportResult {
+  path: string
+  files: number
+  bytes: number
+}
+
 /** Minecraft font glyphs for the renderer's pixel-text component: char → [advance, ...column masks]. */
 export interface FontGlyphs {
   space: number
@@ -97,6 +117,10 @@ export interface CraftshotApi {
     setMeta(id: string, meta: Partial<UserMeta>): Promise<void>
     copyImage(id: string): Promise<void>
     exportData(ids: string[], format: ExportFormat): Promise<string | null>
+    /** Asks where to save, then zips the screenshots. Resolves null if the user cancels. */
+    exportZip(ids: string[]): Promise<ZipExportResult | null>
+    /** Asks where to save and writes the table. Resolves the path, or null if cancelled. */
+    exportTable(table: DataTable, format: TableFormat): Promise<string | null>
     /** Absolute path of a file dropped from the OS (File objects lose it under context isolation). */
     pathForFile(file: File): string
     onChanged(cb: (snapshot: LibrarySnapshot) => void): Unsubscribe

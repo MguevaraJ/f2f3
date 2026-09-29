@@ -6,7 +6,8 @@ import { Icon } from '../../components/icons'
 import { blockString, convertDimension, distance, parseVec, tpCommand } from '../../lib/coords'
 import { formatDateTime, plural } from '../../lib/format'
 import { useUi } from '../../store/ui'
-import { copyText, exportData } from '../library/actions'
+import { copyText, exportTable } from '../library/actions'
+import { buildCoordsTable } from './coordsTable'
 
 type Col = 'date' | 'name' | 'x' | 'y' | 'z' | 'dist' | 'biome' | 'dimension'
 
@@ -17,6 +18,7 @@ type Col = 'date' | 'name' | 'x' | 'y' | 'z' | 'dist' | 'biome' | 'dimension'
 export function CoordsView({ shots }: { shots: ScreenshotEntry[] }) {
   const openViewer = useUi((s) => s.openViewer)
   const select = useUi((s) => s.select)
+  const openMenu = useUi((s) => s.openMenu)
   const [ref, setRef] = useState('')
   const [dimFilter, setDimFilter] = useState<string>('')
   const [nether, setNether] = useState(false)
@@ -142,15 +144,27 @@ export function CoordsView({ shots }: { shots: ScreenshotEntry[] }) {
         <div className="toolbar-spacer" />
         <button
           className="btn small"
-          onClick={() =>
-            void exportData(
-              rows.map((r) => r.id),
-              'csv'
-            )
-          }
           disabled={!rows.length}
+          title="Exporta la tabla tal como se ve: filtros, orden, conversión y distancia"
+          onClick={(e) => {
+            const r = e.currentTarget.getBoundingClientRect()
+            const table = () => buildCoordsTable(rows, { convert: nether, reference: refPoint })
+            openMenu(r.left, r.bottom + 4, [
+              {
+                label: `Excel (.xlsx) · ${rows.length} filas`,
+                icon: 'download',
+                action: () => void exportTable(table(), 'xlsx')
+              },
+              {
+                label: 'CSV (.csv)',
+                icon: 'download',
+                action: () => void exportTable(table(), 'csv')
+              }
+            ])
+          }}
         >
-          <Icon name="download" size={15} /> Exportar CSV
+          <Icon name="download" size={15} /> Exportar tabla
+          <Icon name="chevronDown" size={14} />
         </button>
       </div>
 

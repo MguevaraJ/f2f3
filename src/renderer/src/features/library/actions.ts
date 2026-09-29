@@ -1,7 +1,7 @@
 import type { ClipboardMode } from '@shared/types'
-import type { ExportFormat } from '@shared/ipc'
+import type { DataTable, ExportFormat, TableFormat } from '@shared/ipc'
 import { api } from '../../lib/api'
-import { plural } from '../../lib/format'
+import { formatBytes, plural } from '../../lib/format'
 import { useLibrary } from '../../store/library'
 import { useSettings } from '../../store/settings'
 import { toast } from '../../store/toasts'
@@ -211,6 +211,26 @@ export async function exportData(ids: string[], format: ExportFormat): Promise<v
   await guard(async () => {
     const path = await api.library.exportData(ids, format)
     if (path) toast.success(`Exportado a ${path}`)
+  })
+}
+
+export async function exportZip(ids: string[]): Promise<void> {
+  if (!ids.length) return
+  await guard(async () => {
+    const res = await api.library.exportZip(ids)
+    if (res)
+      toast.success(
+        `${plural(res.files, 'captura guardada', 'capturas guardadas')} en ${res.path} (${formatBytes(res.bytes)})`
+      )
+  })
+}
+
+export async function exportTable(table: DataTable, format: TableFormat): Promise<void> {
+  if (!table.rows.length) return
+  await guard(async () => {
+    const path = await api.library.exportTable(table, format)
+    if (path)
+      toast.success(`${plural(table.rows.length, 'fila exportada', 'filas exportadas')} a ${path}`)
   })
 }
 

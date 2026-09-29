@@ -8,6 +8,7 @@ import {
   analyzeWithAi,
   deleteItems,
   exportData,
+  exportZip,
   newFolder,
   paste,
   toClipboard,
@@ -106,12 +107,18 @@ export function Toolbar({ visibleIds, facets }: Props) {
             const r = e.currentTarget.getBoundingClientRect()
             openMenu(r.left, r.bottom + 4, [
               {
-                label: 'Exportar CSV (Excel)',
+                label: `Capturas en ZIP (${selection.length})`,
+                icon: 'download',
+                action: () => void exportZip(selection)
+              },
+              { separator: true, label: '' },
+              {
+                label: 'Datos en CSV (Excel)',
                 icon: 'download',
                 action: () => void exportData(selection, 'csv')
               },
               {
-                label: 'Exportar JSON',
+                label: 'Datos en JSON',
                 icon: 'download',
                 action: () => void exportData(selection, 'json')
               }

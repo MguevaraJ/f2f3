@@ -21,10 +21,14 @@ completo y gestión de archivos.
   píxeles nítidos al ampliar, cuentagotas (coordenada + color del píxel), pantalla completa,
   tira de miniaturas y panel de información.
 - **Archivos**: carpetas, copiar/cortar/pegar, arrastrar a carpetas, renombrar, eliminar (a la papelera),
-  importar arrastrando desde el sistema, copiar imagen al portapapeles, exportar CSV/JSON.
+  importar arrastrando desde el sistema, copiar imagen al portapapeles.
+- **Exportar selección**: las capturas seleccionadas a un **ZIP** (conserva subcarpetas; eliges dónde
+  guardarlo), o sus datos a CSV/JSON.
 - **Buscar, filtrar y ordenar** por fecha, nombre, tamaño, X/Y/Z, distancia, bioma, dimensión, mobs,
   favoritas y origen del dato. La búsqueda admite predicados de coordenadas: `x>1000 y<0`.
-- **Pestaña Coordenadas**: tabla tipo waypoints con distancia a un punto de referencia.
+- **Pestaña Coordenadas**: tabla tipo waypoints con distancia a un punto de referencia, exportable a
+  **Excel (.xlsx)** o **CSV** tal como se ve (filtro, orden, conversión Nether ⇄ Overworld, distancia),
+  con columnas extra: XYZ exacto, chunk, región, orientación, mobs, nota y comando `/tp`.
 
 ## Uso
 

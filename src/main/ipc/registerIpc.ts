@@ -1,4 +1,5 @@
 import { readFile, writeFile } from 'node:fs/promises'
+import { join } from 'node:path'
 import {
   app,
   BrowserWindow,
@@ -13,8 +14,10 @@ import {
 import { IPC, type ExportFormat } from '@shared/ipc'
 import type { AppSettings, ClipboardMode, UserMeta } from '@shared/types'
 import { loadFontFrom, ROW_OFFSET } from '@core/font/minecraftFont'
-import type { FontGlyphs } from '@shared/ipc'
+import type { DataTable, FontGlyphs } from '@shared/ipc'
 import { toCsv, toJson } from '../export'
+import { tableToCsv, tableToXlsx } from '../tableExport'
+import { writeZip, zipNames } from '../zipExport'
 import type { Services } from '../services'
 
 /** Validates that an argument is a string (the renderer is treated as untrusted). */
@@ -104,6 +107,63 @@ export function registerIpc(services: Services): void {
     return res.filePath
   })
 
+  handle(IPC.library.exportZip, async (e, ids) => {
+    const list = strArray(ids)
+    if (!list.length) throw new Error('No hay capturas seleccionadas')
+    const paths = list.map((id) => library.resolveId(id))
+    const parent = win(e)
+    const date = new Date().toISOString().slice(0, 10)
+    const options = {
+      title: 'Guardar capturas en un ZIP',
+      defaultPath: join(app.getPath('downloads'), `craftshot-${date}-${list.length}-capturas.zip`),
+      buttonLabel: 'Guardar ZIP',
+      filters: [{ name: 'Archivo ZIP', extensions: ['zip'] }],
+      properties: ['showOverwriteConfirmation', 'createDirectory'] as (
+        'showOverwriteConfirmation' | 'createDirectory'
+      )[]
+    }
+    const res = parent
+      ? await dialog.showSaveDialog(parent, options)
+      : await dialog.showSaveDialog(options)
+    if (res.canceled || !res.filePath) return null
+    const out = /\.zip$/i.test(res.filePath) ? res.filePath : `${res.filePath}.zip`
+    const names = zipNames(list)
+    const { files, bytes } = await writeZip(
+      paths.map((path, i) => ({ path, name: names[i] })),
+      out
+    )
+    return { path: out, files, bytes }
+  })
+
+  handle(IPC.library.exportTable, async (e, raw, format) => {
+    const table = validTable(raw)
+    const fmt = format === 'csv' ? 'csv' : 'xlsx'
+    const parent = win(e)
+    const safeName = table.fileName.replace(/[\\/:*?"<>|]/g, '-')
+    const options = {
+      title: fmt === 'xlsx' ? 'Exportar tabla a Excel' : 'Exportar tabla a CSV',
+      defaultPath: join(app.getPath('downloads'), `${safeName}.${fmt}`),
+      buttonLabel: 'Exportar',
+      filters: [
+        fmt === 'xlsx'
+          ? { name: 'Libro de Excel', extensions: ['xlsx'] }
+          : { name: 'CSV (separado por comas)', extensions: ['csv'] }
+      ],
+      properties: ['showOverwriteConfirmation', 'createDirectory'] as (
+        'showOverwriteConfirmation' | 'createDirectory'
+      )[]
+    }
+    const res = parent
+      ? await dialog.showSaveDialog(parent, options)
+      : await dialog.showSaveDialog(options)
+    if (res.canceled || !res.filePath) return null
+    const out = res.filePath.toLowerCase().endsWith(`.${fmt}`)
+      ? res.filePath
+      : `${res.filePath}.${fmt}`
+    await writeFile(out, fmt === 'xlsx' ? tableToXlsx(table) : tableToCsv(table))
+    return out
+  })
+
   // Analysis
   handle(IPC.analysis.reanalyze, (_e, ids) => analysis.enqueueLocal(strArray(ids)))
   handle(IPC.analysis.vision, (_e, ids) => {
@@ -182,4 +242,21 @@ export function registerIpc(services: Services): void {
     else w?.maximize()
   })
   handle(IPC.system.close, (e) => win(e)?.close())
+}
+
+/** Structural validation of a table sent by the renderer. */
+function validTable(raw: unknown): DataTable {
+  const t = raw as DataTable
+  const cell = (v: unknown): boolean => v === null || typeof v === 'string' || typeof v === 'number'
+  if (
+    !t ||
+    typeof t.sheetName !== 'string' ||
+    typeof t.fileName !== 'string' ||
+    !Array.isArray(t.columns) ||
+    !t.columns.every((c) => typeof c?.header === 'string') ||
+    !Array.isArray(t.rows) ||
+    !t.rows.every((r) => Array.isArray(r) && r.length === t.columns.length && r.every(cell))
+  )
+    throw new TypeError('Tabla inválida')
+  return t
 }
