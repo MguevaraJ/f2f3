@@ -41,6 +41,7 @@ app.whenReady().then(() => {
   analysis.on('updated', (id, a) => broadcast(IPC.events.analysisUpdated, id, a))
   analysis.on('progress', (p) => broadcast(IPC.events.analysisProgress, p))
   analysis.on('error', (message) => broadcast(IPC.events.notice, { level: 'error', message }))
+  services.backup.on('status', (s) => broadcast(IPC.events.backupStatus, s))
 
   library.startWatching()
   void library.refresh()

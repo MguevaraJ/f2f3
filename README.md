@@ -30,6 +30,12 @@ completo y gestión de archivos.
   **Excel (.xlsx)** o **CSV** tal como se ve (filtro, orden, conversión Nether ⇄ Overworld, distancia),
   con columnas extra: XYZ exacto, chunk, región, orientación, mobs, nota y comando `/tp`.
 
+- **Copia de seguridad en Google Drive**: conecta tu cuenta y Craftshot sube tus capturas a
+  *Mi unidad › Craftshot › minecraft* con tus mismas carpetas, más `craftshot-datos.json` (notas,
+  favoritas, datos del F3). Es incremental (compara MD5), verifica cada subida, detecta renombres y
+  movimientos (mueve el archivo en Drive en vez de volver a subirlo), nunca borra nada de Drive, puede
+  respaldar automáticamente cada captura nueva y **restaurar** las que falten en tu equipo.
+
 ## Uso
 
 ```bash
@@ -46,6 +52,21 @@ Para la visión IA: Ajustes → *Visión con IA* → pega tu API key de Anthropi
 llavero del sistema vía `safeStorage`) o define `ANTHROPIC_API_KEY`. Cada captura analizada es una
 petición a la API con coste; los lotes de más de 3 piden confirmación.
 
+### Google Drive: credenciales
+
+Google exige que cada app tenga su propio cliente OAuth (gratis):
+
+1. [Google Cloud Console › Credenciales](https://console.cloud.google.com/apis/credentials): crea un
+   proyecto y activa la **Google Drive API**.
+2. Configura la pantalla de consentimiento (*Externo*) y agrégate como usuario de prueba.
+3. Crea un **ID de cliente de OAuth** de tipo **App de escritorio**.
+4. Pega el ID y el secreto en *Ajustes › Copia de seguridad en Google Drive*, o incrústalos en el
+   build copiando `.env.example` a `.env`.
+
+La app solo pide el permiso `drive.file` (ve únicamente los archivos que ella crea). El inicio de sesión
+usa el navegador del sistema con redirección a `127.0.0.1` y PKCE; el token se guarda cifrado con el
+llavero del sistema y nunca llega al renderer.
+
 ## Arquitectura
 
 ```
@@ -55,11 +76,14 @@ src/
     ocr/         OCR del overlay F3 (escala GUI, grilla de líneas, decodificación por glifos)
     f3/          Parser de líneas → F3Data estructurado
     vision/      Estimación de bioma/dimensión por colores
+    backup/      Planificador del respaldo (subir / actualizar / mover / omitir), puro y testeado
     analyze.ts   Pipeline local + fusión con resultados de visión (precedencia F3 > IA > estimado)
   shared/      Tipos, contrato IPC tipado y catálogos (biomas y mobs con nombres en español)
   main/        Proceso principal
     services/    Settings, Library (escaneo, watch, operaciones de archivo), Metadata (caché JSON
-                 atómica), WorkerPool, Thumbnail, Analysis (colas OCR/IA), Vision (Claude)
+                 atómica), WorkerPool, Thumbnail, Analysis (colas OCR/IA), Vision (Claude),
+                 Backup (Google Drive), SecretStore (credenciales cifradas)
+    google/      OAuth (loopback + PKCE) y cliente REST de Drive con reintentos y backoff
     workers/     Worker thread: decodifica PNG, OCR y miniatura fuera del hilo principal
     protocol.ts  Esquema craftshot:// para imágenes y miniaturas (sin exponer file://)
     ipc/         Handlers con validación de argumentos

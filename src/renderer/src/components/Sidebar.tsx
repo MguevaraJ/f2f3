@@ -11,7 +11,9 @@ import {
 import { api } from '../lib/api'
 import type { LibraryView } from '../lib/query'
 import { useLibrary } from '../store/library'
+import { useBackup } from '../store/backup'
 import { useUi } from '../store/ui'
+import { formatRelative } from '../lib/format'
 import { CreeperFace, GrassBlock, Icon } from './icons'
 
 export const DRAG_MIME = 'application/x-craftshot-ids'
@@ -103,6 +105,7 @@ export function Sidebar() {
       </nav>
 
       <div className="side-footer">
+        <BackupBadge onClick={() => setTab('settings')} />
         <button
           className={`side-link ${tab === 'settings' ? 'active' : ''}`}
           onClick={() => setTab('settings')}
@@ -201,4 +204,44 @@ function FolderTree({ node, depth }: { node: FolderNode; depth: number }) {
 
 function countDeep(n: FolderNode): number {
   return n.count + n.children.reduce((a, c) => a + countDeep(c), 0)
+}
+
+/** Google Drive backup state, like the launcher's account line. */
+function BackupBadge({ onClick }: { onClick(): void }) {
+  const status = useBackup((s) => s.status)
+  if (!status?.account) return null
+  const running = status.state === 'running'
+  const label = running
+    ? status.phase === 'uploading'
+      ? `Respaldando ${status.done}/${status.total}`
+      : status.phase === 'restoring'
+        ? `Restaurando ${status.done}/${status.total}`
+        : 'Preparando respaldo…'
+    : status.state === 'error'
+      ? 'Error en el respaldo'
+      : status.lastRun
+        ? `Respaldado ${formatRelative(status.lastRun.finishedAt)}`
+        : 'Drive conectado'
+  return (
+    <button
+      className={`side-backup ${status.state}`}
+      onClick={onClick}
+      title={`Google Drive · ${status.account.email}${status.error ? `\n${status.error}` : ''}`}
+    >
+      <Icon
+        name={status.state === 'error' ? 'cloudOff' : running ? 'cloudUp' : 'cloud'}
+        size={17}
+      />
+      <span className="side-backup-text">
+        <span>{label}</span>
+        <small>{status.account.email}</small>
+      </span>
+      {running && status.total > 0 && (
+        <span
+          className="side-backup-bar"
+          style={{ width: `${(status.done / status.total) * 100}%` }}
+        />
+      )}
+    </button>
+  )
 }

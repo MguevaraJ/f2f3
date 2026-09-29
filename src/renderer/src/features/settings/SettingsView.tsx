@@ -2,6 +2,7 @@ import { useEffect, useState, type ReactNode } from 'react'
 import type { MinecraftSource } from '@shared/types'
 import type { SystemInfo } from '@shared/ipc'
 import { Icon } from '../../components/icons'
+import { BackupSettings } from './BackupSettings'
 import { api } from '../../lib/api'
 import { useSettings } from '../../store/settings'
 import { toast } from '../../store/toasts'
@@ -177,6 +178,13 @@ export function SettingsView() {
               onChange={(v) => void update({ visionAuto: v })}
             />
           </div>
+        </Group>
+
+        <Group
+          title="Copia de seguridad en Google Drive"
+          desc="Respalda tus capturas en tu propia cuenta de Google Drive para no perderlas nunca."
+        >
+          <BackupSettings />
         </Group>
 
         <Group title="General">

@@ -1,8 +1,16 @@
 {
   "extends": "./tsconfig.base.json",
   "compilerOptions": {
-    "lib": ["ES2023", "DOM"],
-    "types": ["node", "vitest/globals"]
+    "lib": [
+      "ES2023",
+      "DOM"
+    ],
+    "types": [
+      "node",
+      "vitest/globals",
+      "vite/client"
+    ],
+    "jsx": "react-jsx"
   },
   "include": [
     "tests/**/*",
@@ -10,6 +18,7 @@
     "src/shared/**/*",
     "src/main/**/*",
     "src/renderer/src/lib/**/*",
-    "src/preload/api.d.ts"
+    "src/preload/api.d.ts",
+    "src/renderer/src/**/*"
   ]
 }

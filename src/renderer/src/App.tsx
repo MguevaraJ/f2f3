@@ -11,6 +11,7 @@ import { Viewer } from './features/viewer/Viewer'
 import { api } from './lib/api'
 import { applyQuery, facets as computeFacets } from './lib/query'
 import { connectLibrary, useLibrary } from './store/library'
+import { connectBackup } from './store/backup'
 import { useSettings } from './store/settings'
 import { toast } from './store/toasts'
 import { useUi } from './store/ui'
@@ -26,9 +27,11 @@ export function App() {
   useEffect(() => {
     void loadSettings()
     const disconnect = connectLibrary()
+    const disconnectBackup = connectBackup()
     const offNotice = api.system.onNotice((n) => toast[n.level](n.message))
     return () => {
       disconnect()
+      disconnectBackup()
       offNotice()
     }
   }, [loadSettings])

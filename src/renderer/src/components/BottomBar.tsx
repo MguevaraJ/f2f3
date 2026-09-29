@@ -2,6 +2,7 @@ import type { FolderNode } from '@shared/types'
 import { analyzeWithAi, reanalyze } from '../features/library/actions'
 import { api } from '../lib/api'
 import { plural } from '../lib/format'
+import { useBackup } from '../store/backup'
 import { useLibrary } from '../store/library'
 import { useUi } from '../store/ui'
 import { GrassBlock, Icon } from './icons'
@@ -23,7 +24,17 @@ export function BottomBar({ visibleIds }: { visibleIds: string[] }) {
   const folders = snapshot ? flatten(snapshot.folders) : []
   const current = view.kind === 'folder' ? view.path : '*'
   const targetIds = selection.length ? selection : visibleIds
-  const busy = progress.ocr ?? progress.vision
+  const backup = useBackup((s) => s.status)
+  const backupBusy =
+    backup?.state === 'running' && backup.total > 0
+      ? {
+          kind: 'backup' as const,
+          done: backup.done,
+          total: backup.total,
+          current: backup.current
+        }
+      : null
+  const busy = progress.ocr ?? progress.vision ?? backupBusy
 
   return (
     <footer className="playbar">
@@ -72,8 +83,16 @@ export function BottomBar({ visibleIds }: { visibleIds: string[] }) {
         {busy ? (
           <div className="playbar-progress" title={busy.current}>
             <span>
-              {busy.kind === 'vision' ? 'Analizando con IA' : 'Leyendo F3'} · {busy.done}/
-              {busy.total}
+              {busy.kind === 'vision'
+                ? 'Analizando con IA'
+                : busy.kind === 'backup'
+                  ? backup?.phase === 'restoring'
+                    ? 'Restaurando desde Drive'
+                    : backup?.phase === 'scanning'
+                      ? 'Preparando respaldo'
+                      : 'Respaldando en Drive'
+                  : 'Leyendo F3'}{' '}
+              · {busy.done}/{busy.total}
             </span>
             <div className="progress">
               <div

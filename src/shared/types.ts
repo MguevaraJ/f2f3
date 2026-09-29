@@ -168,6 +168,11 @@ export interface AppSettings {
   visionAuto: boolean
   thumbnailSize: number
   confirmDelete: boolean
+  /** OAuth "Desktop app" client from Google Cloud (can also be baked in at build time). */
+  googleClientId: string
+  googleClientSecret: string
+  /** Back up new screenshots to Google Drive automatically while connected. */
+  backupAuto: boolean
 }
 
 export interface SettingsView extends AppSettings {
@@ -191,4 +196,39 @@ export interface FileOpResult {
   /** Ids (relative paths) produced or affected by the operation. */
   ids: string[]
   errors: string[]
+}
+
+export interface BackupAccount {
+  email: string
+  name: string
+}
+
+export interface BackupSummary {
+  uploaded: number
+  updated: number
+  moved: number
+  skipped: number
+  failed: number
+  /** Files that exist in Drive but not locally (never deleted by a backup). */
+  remoteOnly: number
+  bytes: number
+  finishedAt: number
+  errors: string[]
+}
+
+export interface BackupStatus {
+  /** A Google OAuth client is configured (settings or build-time). */
+  configured: boolean
+  account: BackupAccount | null
+  state: 'idle' | 'connecting' | 'running' | 'error'
+  phase?: 'scanning' | 'listing' | 'uploading' | 'restoring'
+  done: number
+  total: number
+  bytesDone: number
+  bytesTotal: number
+  current?: string
+  lastRun: BackupSummary | null
+  error?: string
+  /** Web link of the backup folder in Drive, once it exists. */
+  folderUrl?: string
 }

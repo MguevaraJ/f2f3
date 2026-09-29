@@ -1,15 +1,11 @@
 import { EventEmitter } from 'node:events'
 import { join } from 'node:path'
-import { safeStorage } from 'electron'
 import type { AppSettings, SettingsView } from '@shared/types'
 import { JsonStore } from './JsonStore'
 import type { MinecraftLocator } from './MinecraftLocator'
+import type { SecretStore } from './SecretStore'
 
-interface Secrets {
-  /** base64; encrypted with the OS keychain when available. */
-  apiKey?: string
-  encrypted?: boolean
-}
+const API_KEY = 'anthropicApiKey'
 
 export const DEFAULT_VISION_MODEL = 'claude-opus-5-5'
 
@@ -19,9 +15,11 @@ export const DEFAULT_VISION_MODEL = 'claude-opus-5-5'
  */
 export class SettingsService extends EventEmitter<{ changed: [AppSettings, AppSettings] }> {
   private readonly store: JsonStore<AppSettings>
-  private readonly secrets: JsonStore<Secrets>
-
-  constructor(userDataDir: string, locator: MinecraftLocator) {
+  constructor(
+    userDataDir: string,
+    locator: MinecraftLocator,
+    private readonly secrets: SecretStore
+  ) {
     super()
     this.store = new JsonStore<AppSettings>(join(userDataDir, 'settings.json'), {
       screenshotsDir: locator.defaultScreenshotsDir(),
@@ -31,9 +29,11 @@ export class SettingsService extends EventEmitter<{ changed: [AppSettings, AppSe
       visionModel: DEFAULT_VISION_MODEL,
       visionAuto: false,
       thumbnailSize: 220,
-      confirmDelete: true
+      confirmDelete: true,
+      googleClientId: '',
+      googleClientSecret: '',
+      backupAuto: true
     })
-    this.secrets = new JsonStore<Secrets>(join(userDataDir, 'secrets.json'), {}, 0)
   }
 
   get value(): AppSettings {
@@ -44,7 +44,7 @@ export class SettingsService extends EventEmitter<{ changed: [AppSettings, AppSe
     return {
       ...this.store.value,
       hasApiKey: !!this.getApiKey(),
-      apiKeyEncrypted: !!this.secrets.value.encrypted
+      apiKeyEncrypted: this.secrets.isEncrypted(API_KEY)
     }
   }
 
@@ -56,33 +56,11 @@ export class SettingsService extends EventEmitter<{ changed: [AppSettings, AppSe
   }
 
   getApiKey(): string | null {
-    const { apiKey, encrypted } = this.secrets.value
-    if (apiKey) {
-      try {
-        const buf = Buffer.from(apiKey, 'base64')
-        return encrypted ? safeStorage.decryptString(buf) : buf.toString('utf8')
-      } catch {
-        return null
-      }
-    }
-    return process.env.ANTHROPIC_API_KEY ?? null
+    return this.secrets.get(API_KEY) ?? process.env.ANTHROPIC_API_KEY ?? null
   }
 
   setApiKey(key: string | null): SettingsView {
-    const trimmed = key?.trim()
-    this.secrets.update((s) => {
-      if (!trimmed) {
-        delete s.apiKey
-        delete s.encrypted
-        return
-      }
-      const canEncrypt = safeStorage.isEncryptionAvailable()
-      s.apiKey = (canEncrypt ? safeStorage.encryptString(trimmed) : Buffer.from(trimmed)).toString(
-        'base64'
-      )
-      s.encrypted = canEncrypt
-    })
-    this.secrets.flush()
+    this.secrets.set(API_KEY, key?.trim() || null)
     return this.view()
   }
 
@@ -95,6 +73,8 @@ function sanitize(patch: Partial<AppSettings>): Partial<AppSettings> {
   const out: Partial<AppSettings> = { ...patch }
   if (out.thumbnailSize !== undefined)
     out.thumbnailSize = Math.min(420, Math.max(140, out.thumbnailSize))
+  if (out.googleClientId !== undefined) out.googleClientId = out.googleClientId.trim()
+  if (out.googleClientSecret !== undefined) out.googleClientSecret = out.googleClientSecret.trim()
   if (out.visionModel !== undefined && !/^[\w.-]+$/.test(out.visionModel)) delete out.visionModel
   return out
 }

@@ -1,5 +1,7 @@
 import type {
   AnalysisProgress,
+  BackupStatus,
+  BackupSummary,
   AppSettings,
   ClipboardMode,
   FileOpResult,
@@ -31,6 +33,16 @@ export const IPC = {
     exportZip: 'library:export-zip',
     exportTable: 'library:export-table'
   },
+  backup: {
+    status: 'backup:status',
+    connect: 'backup:connect',
+    cancelConnect: 'backup:cancel-connect',
+    disconnect: 'backup:disconnect',
+    run: 'backup:run',
+    cancel: 'backup:cancel',
+    restore: 'backup:restore',
+    openFolder: 'backup:open-folder'
+  },
   analysis: {
     reanalyze: 'analysis:reanalyze',
     vision: 'analysis:vision',
@@ -57,7 +69,8 @@ export const IPC = {
     libraryChanged: 'event:library-changed',
     analysisUpdated: 'event:analysis-updated',
     analysisProgress: 'event:analysis-progress',
-    notice: 'event:notice'
+    notice: 'event:notice',
+    backupStatus: 'event:backup-status'
   }
 } as const
 
@@ -131,6 +144,19 @@ export interface CraftshotApi {
     setBiome(id: string, biomeId: string | null): Promise<void>
     onUpdated(cb: (id: string, analysis: ScreenshotAnalysis) => void): Unsubscribe
     onProgress(cb: (progress: AnalysisProgress) => void): Unsubscribe
+  }
+  backup: {
+    status(): Promise<BackupStatus>
+    /** Opens Google's consent screen in the browser; resolves when the account is linked (or fails). */
+    connect(): Promise<BackupStatus>
+    cancelConnect(): Promise<void>
+    disconnect(): Promise<BackupStatus>
+    /** Starts a backup; resolves when it finishes (null if it could not start). */
+    run(): Promise<BackupSummary | null>
+    cancel(): Promise<void>
+    restore(): Promise<{ restored: number; failed: number }>
+    openFolder(): Promise<void>
+    onStatus(cb: (status: BackupStatus) => void): Unsubscribe
   }
   settings: {
     get(): Promise<SettingsView>

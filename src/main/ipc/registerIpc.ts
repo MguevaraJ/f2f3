@@ -164,6 +164,21 @@ export function registerIpc(services: Services): void {
     return out
   })
 
+  // Google Drive backup
+  const { backup } = services
+  handle(IPC.backup.status, () => backup.current)
+  handle(IPC.backup.connect, () => backup.connect())
+  handle(IPC.backup.cancelConnect, () => backup.cancelConnect())
+  handle(IPC.backup.disconnect, () => backup.disconnect())
+  handle(IPC.backup.run, () => backup.run())
+  handle(IPC.backup.cancel, () => backup.cancel())
+  handle(IPC.backup.restore, () => backup.restoreMissing())
+  handle(IPC.backup.openFolder, async () => {
+    const url = backup.current.folderUrl
+    if (!url) throw new Error('Aún no hay ningún respaldo en Drive')
+    await shell.openExternal(url)
+  })
+
   // Analysis
   handle(IPC.analysis.reanalyze, (_e, ids) => analysis.enqueueLocal(strArray(ids)))
   handle(IPC.analysis.vision, (_e, ids) => {

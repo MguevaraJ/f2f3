@@ -42,6 +42,17 @@ const api: CraftshotApi = {
     onUpdated: (cb) => subscribe(IPC.events.analysisUpdated, cb),
     onProgress: (cb) => subscribe(IPC.events.analysisProgress, cb)
   },
+  backup: {
+    status: invoke(IPC.backup.status),
+    connect: invoke(IPC.backup.connect),
+    cancelConnect: invoke(IPC.backup.cancelConnect),
+    disconnect: invoke(IPC.backup.disconnect),
+    run: invoke(IPC.backup.run),
+    cancel: invoke(IPC.backup.cancel),
+    restore: invoke(IPC.backup.restore),
+    openFolder: invoke(IPC.backup.openFolder),
+    onStatus: (cb) => subscribe(IPC.events.backupStatus, cb)
+  },
   settings: {
     get: invoke(IPC.settings.get),
     update: invoke(IPC.settings.update),
