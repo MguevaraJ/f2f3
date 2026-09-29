@@ -168,9 +168,6 @@ export interface AppSettings {
   visionAuto: boolean
   thumbnailSize: number
   confirmDelete: boolean
-  /** OAuth "Desktop app" client from Google Cloud (can also be baked in at build time). */
-  googleClientId: string
-  googleClientSecret: string
   /** Back up new screenshots to Google Drive automatically while connected. */
   backupAuto: boolean
 }

@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { GoogleButton } from '../../components/GoogleButton'
 import { Icon } from '../../components/icons'
 import { api } from '../../lib/api'
 import { formatBytes, formatDateTime, formatRelative, plural } from '../../lib/format'
@@ -6,8 +6,6 @@ import { useBackup } from '../../store/backup'
 import { useSettings } from '../../store/settings'
 import { toast } from '../../store/toasts'
 import { useUi } from '../../store/ui'
-
-const CONSOLE_URL = 'https://console.cloud.google.com/apis/credentials'
 
 const errorText = (e: unknown): string =>
   e instanceof Error
@@ -20,9 +18,6 @@ export function BackupSettings() {
   const settings = useSettings((s) => s.settings)
   const update = useSettings((s) => s.update)
   const openDialog = useUi((s) => s.openDialog)
-  const [showClient, setShowClient] = useState(false)
-  const [clientId, setClientId] = useState(settings?.googleClientId ?? '')
-  const [clientSecret, setClientSecret] = useState(settings?.googleClientSecret ?? '')
 
   if (!status || !settings) return null
   const running = status.state === 'running'
@@ -31,7 +26,7 @@ export function BackupSettings() {
 
   const connect = async (): Promise<void> => {
     const s = await api.backup.connect()
-    if (s.account) toast.success(`Google Drive conectado: ${s.account.email}`)
+    if (s.account) toast.success(`Sesión iniciada como ${s.account.email}. Empezando el respaldo…`)
     else if (s.error) toast.error(s.error)
   }
   const runNow = async (): Promise<void> => {
@@ -76,12 +71,6 @@ export function BackupSettings() {
         toast.info('Google Drive desconectado')
       }
     })
-  const saveClient = async (): Promise<void> => {
-    await update({ googleClientId: clientId, googleClientSecret: clientSecret })
-    toast.success('Credenciales de Google guardadas')
-    setShowClient(false)
-    void useBackup.setState({ status: await api.backup.status() })
-  }
 
   return (
     <div className="backup">
@@ -220,94 +209,41 @@ export function BackupSettings() {
           </p>
         </>
       ) : (
-        <div className="backup-connect">
-          <div className="backup-connect-text">
-            <strong>Guarda una copia de tus capturas en la nube</strong>
+        <div className="backup-signin">
+          <div className="backup-signin-art">
+            <Icon name="cloud" size={30} />
+          </div>
+          <div className="backup-signin-text">
+            <strong>Guarda tus capturas en la nube</strong>
             <span className="muted">
-              Sube tus capturas a una carpeta "Craftshot" en tu Google Drive y mantenla al día
-              automáticamente.
+              Inicia sesión con tu cuenta de Google y Craftshot guardará una copia de todas tus
+              capturas en tu Google Drive, y la mantendrá al día cada vez que hagas una nueva.
             </span>
           </div>
           {connecting ? (
             <div className="backup-waiting">
-              <span className="spinner" /> Confirma el acceso en tu navegador…
+              <span className="spinner" />
+              <span>
+                Termina de iniciar sesión en la ventana de Google que se abrió en tu navegador…
+              </span>
               <button className="btn small ghost" onClick={() => void api.backup.cancelConnect()}>
                 Cancelar
               </button>
             </div>
+          ) : status.configured ? (
+            <GoogleButton onClick={() => void connect()} />
           ) : (
-            <button
-              className="btn primary"
-              disabled={!status.configured}
-              onClick={() => void connect()}
-            >
-              <Icon name="cloud" size={17} /> Conectar con Google
-            </button>
+            <p className="muted small">
+              El inicio de sesión con Google no está disponible en esta versión de Craftshot.
+            </p>
           )}
           {status.error && <div className="details-error">{status.error}</div>}
+          <p className="backup-privacy muted small">
+            Craftshot solo podrá ver y administrar los archivos que él mismo guarde en tu Drive;
+            nunca el resto de tus archivos. Puedes desconectarlo cuando quieras.
+          </p>
         </div>
       )}
-
-      <div className="backup-client">
-        <button className="link-btn" onClick={() => setShowClient(!showClient)}>
-          <Icon name="gear" size={14} />
-          {status.configured
-            ? 'Credenciales de Google Cloud'
-            : 'Configurar credenciales de Google Cloud (necesario)'}
-          <Icon
-            name="chevronDown"
-            size={14}
-            className={`dsec-caret ${showClient || !status.configured ? 'open' : ''}`}
-          />
-        </button>
-        {(showClient || !status.configured) && (
-          <div className="backup-client-body">
-            <ol className="steps">
-              <li>
-                En{' '}
-                <button className="link-btn inline" onClick={() => window.open(CONSOLE_URL)}>
-                  Google Cloud Console › Credenciales
-                </button>{' '}
-                crea un proyecto y activa la <b>Google Drive API</b>.
-              </li>
-              <li>
-                Configura la pantalla de consentimiento (tipo <i>Externo</i>) y agrégate como
-                usuario de prueba.
-              </li>
-              <li>
-                Crea un <b>ID de cliente de OAuth</b> de tipo <b>App de escritorio</b> y pega aquí
-                su ID y secreto.
-              </li>
-            </ol>
-            <label className="field">
-              <span>Client ID</span>
-              <input
-                className="input"
-                placeholder="123456789-abc.apps.googleusercontent.com"
-                value={clientId}
-                onChange={(e) => setClientId(e.target.value)}
-                spellCheck={false}
-              />
-            </label>
-            <label className="field">
-              <span>Client secret</span>
-              <input
-                className="input"
-                type="password"
-                placeholder="GOCSPX-…"
-                value={clientSecret}
-                onChange={(e) => setClientSecret(e.target.value)}
-                autoComplete="off"
-              />
-            </label>
-            <div>
-              <button className="btn" disabled={!clientId.trim()} onClick={() => void saveClient()}>
-                Guardar credenciales
-              </button>
-            </div>
-          </div>
-        )}
-      </div>
     </div>
   )
 }

@@ -12,6 +12,8 @@ import { api } from '../lib/api'
 import type { LibraryView } from '../lib/query'
 import { useLibrary } from '../store/library'
 import { useBackup } from '../store/backup'
+import { toast } from '../store/toasts'
+import { GoogleButton } from './GoogleButton'
 import { useUi } from '../store/ui'
 import { formatRelative } from '../lib/format'
 import { CreeperFace, GrassBlock, Icon } from './icons'
@@ -209,7 +211,35 @@ function countDeep(n: FolderNode): number {
 /** Google Drive backup state, like the launcher's account line. */
 function BackupBadge({ onClick }: { onClick(): void }) {
   const status = useBackup((s) => s.status)
-  if (!status?.account) return null
+  if (!status) return null
+  if (!status.account) {
+    if (!status.configured) return null
+    if (status.state === 'connecting')
+      return (
+        <div className="side-backup running">
+          <span className="spinner" />
+          <span className="side-backup-text">
+            <span>Iniciando sesión…</span>
+            <small>Continúa en tu navegador</small>
+          </span>
+        </div>
+      )
+    return (
+      <GoogleButton
+        className="google-btn compact side-google"
+        title="Guarda una copia de tus capturas en Google Drive"
+        onClick={() =>
+          void api.backup.connect().then((s) => {
+            if (s.account)
+              toast.success(`Sesión iniciada como ${s.account.email}. Empezando el respaldo…`)
+            else if (s.error) toast.error(s.error)
+          })
+        }
+      >
+        Respaldar con Google
+      </GoogleButton>
+    )
+  }
   const running = status.state === 'running'
   const label = running
     ? status.phase === 'uploading'

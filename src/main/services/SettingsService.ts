@@ -30,8 +30,6 @@ export class SettingsService extends EventEmitter<{ changed: [AppSettings, AppSe
       visionAuto: false,
       thumbnailSize: 220,
       confirmDelete: true,
-      googleClientId: '',
-      googleClientSecret: '',
       backupAuto: true
     })
   }
@@ -73,8 +71,6 @@ function sanitize(patch: Partial<AppSettings>): Partial<AppSettings> {
   const out: Partial<AppSettings> = { ...patch }
   if (out.thumbnailSize !== undefined)
     out.thumbnailSize = Math.min(420, Math.max(140, out.thumbnailSize))
-  if (out.googleClientId !== undefined) out.googleClientId = out.googleClientId.trim()
-  if (out.googleClientSecret !== undefined) out.googleClientSecret = out.googleClientSecret.trim()
   if (out.visionModel !== undefined && !/^[\w.-]+$/.test(out.visionModel)) delete out.visionModel
   return out
 }

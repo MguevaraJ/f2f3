@@ -31,7 +31,7 @@ const base: BackupStatus = {
   folderUrl: 'https://drive.google.com/drive/folders/x'
 }
 useSettings.setState({
-  settings: { backupAuto: true, googleClientId: 'id', googleClientSecret: 's' } as SettingsView
+  settings: { backupAuto: true } as SettingsView
 })
 const render = (status: BackupStatus): string => {
   useBackup.setState({ status })
@@ -64,13 +64,13 @@ describe('BackupSettings UI', () => {
     expect(html).toContain('Cancelar')
   })
 
-  it('offers to connect, and asks for credentials when none are configured', () => {
-    expect(render({ ...base, account: null })).toContain('Conectar con Google')
-    expect(render({ ...base, account: null, configured: false })).toContain(
-      'Configurar credenciales de Google Cloud (necesario)'
-    )
+  it('offers a plain "Continuar con Google" sign-in, with no technical setup', () => {
+    const html = render({ ...base, account: null })
+    expect(html).toContain('Continuar con Google')
+    expect(html).not.toMatch(/Client ID|secret|Cloud Console/i)
     expect(render({ ...base, account: null, state: 'connecting' })).toContain(
-      'Confirma el acceso en tu navegador'
+      'Termina de iniciar sesión'
     )
+    expect(render({ ...base, account: null, configured: false })).toContain('no está disponible')
   })
 })

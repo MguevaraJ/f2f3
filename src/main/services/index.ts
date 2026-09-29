@@ -65,13 +65,12 @@ export function createServices(userDataDir: string, workerEntry: URL): Services 
     fontSource
   )
 
-  // Google Drive backup. The OAuth client comes from Ajustes, or is baked in at build time.
+  // The app's own Google OAuth client, registered once by the publisher and baked in at
+  // build time (.env). End users only ever see "Continuar con Google".
   const googleClient = (): OAuthClient | null => {
-    const { googleClientId, googleClientSecret } = settings.value
-    if (googleClientId) return { clientId: googleClientId, clientSecret: googleClientSecret }
-    const id = import.meta.env.MAIN_VITE_GOOGLE_CLIENT_ID ?? process.env.CRAFTSHOT_GOOGLE_CLIENT_ID
+    const id = import.meta.env.MAIN_VITE_GOOGLE_CLIENT_ID || process.env.CRAFTSHOT_GOOGLE_CLIENT_ID
     const secret =
-      import.meta.env.MAIN_VITE_GOOGLE_CLIENT_SECRET ?? process.env.CRAFTSHOT_GOOGLE_CLIENT_SECRET
+      import.meta.env.MAIN_VITE_GOOGLE_CLIENT_SECRET || process.env.CRAFTSHOT_GOOGLE_CLIENT_SECRET
     return id ? { clientId: id, clientSecret: secret ?? '' } : null
   }
   const http = (input: string | URL | Request, init?: RequestInit): Promise<Response> =>

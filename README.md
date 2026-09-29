@@ -52,20 +52,24 @@ Para la visión IA: Ajustes → *Visión con IA* → pega tu API key de Anthropi
 llavero del sistema vía `safeStorage`) o define `ANTHROPIC_API_KEY`. Cada captura analizada es una
 petición a la API con coste; los lotes de más de 3 piden confirmación.
 
-### Google Drive: credenciales
+### Google Drive: registro de la app (una sola vez, lo hace quien publica Craftshot)
 
-Google exige que cada app tenga su propio cliente OAuth (gratis):
+Los usuarios solo ven **"Continuar con Google"**. Para que ese botón funcione, la app debe estar
+registrada ante Google una vez, igual que cualquier app con "Iniciar sesión con Google":
 
-1. [Google Cloud Console › Credenciales](https://console.cloud.google.com/apis/credentials): crea un
-   proyecto y activa la **Google Drive API**.
-2. Configura la pantalla de consentimiento (*Externo*) y agrégate como usuario de prueba.
+1. [Google Cloud Console](https://console.cloud.google.com/apis/credentials): crea un proyecto y
+   activa la **Google Drive API**.
+2. *Pantalla de consentimiento*: tipo **Externo**, nombre "Craftshot", logo y correo de soporte;
+   agrega el permiso `…/auth/drive.file`. Mientras esté en modo *Prueba* solo pueden entrar los
+   usuarios de prueba que agregues (y la sesión caduca a los 7 días); para uso público pulsa
+   **Publicar app**.
 3. Crea un **ID de cliente de OAuth** de tipo **App de escritorio**.
-4. Pega el ID y el secreto en *Ajustes › Copia de seguridad en Google Drive*, o incrústalos en el
-   build copiando `.env.example` a `.env`.
+4. Copia `.env.example` a `.env` con el ID y el secreto, y compila (`npm run dist`). En apps de
+   escritorio Google no considera confidencial ese secreto; va dentro del instalable.
 
-La app solo pide el permiso `drive.file` (ve únicamente los archivos que ella crea). El inicio de sesión
-usa el navegador del sistema con redirección a `127.0.0.1` y PKCE; el token se guarda cifrado con el
-llavero del sistema y nunca llega al renderer.
+La app solo pide `drive.file` (ve únicamente los archivos que ella crea). El inicio de sesión usa el
+navegador del sistema con redirección a `127.0.0.1` y PKCE; el token se guarda cifrado con el llavero
+del sistema y nunca llega al renderer.
 
 ## Arquitectura
 
