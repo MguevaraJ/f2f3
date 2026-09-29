@@ -1,0 +1,238 @@
+/* ───────── Coordinates tab ───────── */
+.coords-view {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+.coords-toolbar {
+  flex: none;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 24px;
+  border-bottom: 1px solid #2a2a2a;
+}
+.coords-toolbar .search {
+  width: 260px;
+}
+.ref-input {
+  width: 300px;
+}
+.table-wrap {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  padding: 0 24px 24px;
+}
+.coords-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: 13px;
+}
+.coords-table th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  padding: 12px 10px;
+  background: var(--bg-app);
+  border-bottom: 1px solid #3a3a3a;
+  text-align: left;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--text-3);
+  cursor: pointer;
+  white-space: nowrap;
+}
+.coords-table th:hover,
+.coords-table th.sorted {
+  color: #fff;
+}
+.sort-arrow {
+  margin-left: 4px;
+  font-size: 9px;
+  color: var(--green-text);
+}
+.coords-table td {
+  padding: 6px 10px;
+  border-bottom: 1px solid #2b2b2b;
+  vertical-align: middle;
+}
+.coords-table tbody tr:hover td {
+  background: #262626;
+}
+.num {
+  text-align: right;
+}
+.mono {
+  font-family: var(--mono);
+}
+.nowrap {
+  white-space: nowrap;
+}
+.col-thumb {
+  width: 92px;
+}
+.col-thumb img {
+  width: 80px;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+  border-radius: 3px;
+  display: block;
+  cursor: zoom-in;
+}
+.col-actions {
+  width: 110px;
+  white-space: nowrap;
+  text-align: right;
+}
+.cell-name {
+  font-weight: 600;
+}
+.cell-note {
+  font-size: 12px;
+  color: var(--text-3);
+}
+.cell-dim {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+.table-foot {
+  padding: 12px 10px;
+  font-size: 12px;
+}
+
+/* ───────── Settings tab ───────── */
+.settings {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+}
+.settings-inner {
+  max-width: 860px;
+  padding: 24px 32px 48px;
+}
+.sgroup {
+  padding: 22px 0;
+  border-bottom: 1px solid #2c2c2c;
+}
+.sgroup h2 {
+  margin: 0 0 4px;
+  font-size: 17px;
+}
+.sgroup > p {
+  margin: 0 0 14px;
+  font-size: 13px;
+}
+.sgroup-body {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.path-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.path {
+  flex: 1;
+  min-width: 0;
+  padding: 9px 12px;
+  border-radius: var(--radius);
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  font: 12.5px var(--mono);
+  color: var(--text-2);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  user-select: text;
+}
+.sources {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.source {
+  display: grid;
+  grid-template-columns: 18px 180px 1fr auto;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border: 1px solid transparent;
+  border-radius: var(--radius);
+  background: var(--bg-panel);
+  text-align: left;
+  font-size: 13px;
+}
+.source:hover {
+  border-color: var(--border-strong);
+}
+.source.active {
+  border-color: var(--green);
+  background: #243a1d;
+}
+.source-label {
+  font-weight: 700;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.source-path {
+  font: 12px var(--mono);
+  color: var(--text-3);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.source-count {
+  font-size: 12px;
+  color: var(--text-3);
+}
+.toggle-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 10px 14px;
+  border-radius: var(--radius);
+  background: var(--bg-panel);
+  cursor: pointer;
+}
+.toggle-row > span:first-child {
+  display: flex;
+  flex-direction: column;
+}
+.toggle-label {
+  font-weight: 600;
+}
+.disabled-block {
+  opacity: 0.45;
+  pointer-events: none;
+}
+.vision-options {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.shortcuts {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 8px 20px;
+}
+.shortcut {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 13px;
+  color: var(--text-2);
+}
+.about {
+  margin-top: 20px;
+}

@@ -1,0 +1,215 @@
+.viewer {
+  position: fixed;
+  inset: var(--titlebar-h) 0 0 0;
+  z-index: 60;
+  display: flex;
+  flex-direction: column;
+  background: #121212;
+  animation: fade 0.14s;
+}
+:fullscreen .viewer {
+  inset: 0;
+}
+.viewer-top {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  height: 52px;
+  padding: 0 12px;
+  background: #1b1b1b;
+  border-bottom: 1px solid #0d0d0d;
+}
+.viewer-title {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  flex: 1;
+  line-height: 1.25;
+}
+.viewer-title strong {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.viewer-title .muted {
+  font-size: 12px;
+}
+.viewer-tools {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+.viewer-tools .icon-btn {
+  width: 34px;
+  height: 34px;
+}
+.tool-sep {
+  width: 1px;
+  height: 22px;
+  margin: 0 6px;
+  background: #3a3a3a;
+}
+.zoom-readout {
+  min-width: 58px;
+  height: 30px;
+  border: 1px solid #3a3a3a;
+  border-radius: var(--radius);
+  background: #111;
+  font: 600 12px var(--mono);
+  color: var(--text-2);
+}
+.zoom-readout:hover {
+  border-color: #fff;
+}
+.viewer-body {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+}
+.viewer-center {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+.viewer-stage {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+  cursor: grab;
+  background-color: #151515;
+  background-image:
+    linear-gradient(45deg, #1a1a1a 25%, transparent 25%),
+    linear-gradient(-45deg, #1a1a1a 25%, transparent 25%),
+    linear-gradient(45deg, transparent 75%, #1a1a1a 75%),
+    linear-gradient(-45deg, transparent 75%, #1a1a1a 75%);
+  background-size: 24px 24px;
+  background-position:
+    0 0,
+    0 12px,
+    12px -12px,
+    -12px 0;
+  touch-action: none;
+}
+.viewer-stage:active,
+.viewer-stage.grabbing {
+  cursor: grabbing;
+}
+.viewer-stage.picking {
+  cursor: crosshair;
+}
+.viewer-img,
+.viewer-placeholder {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  max-width: none;
+  translate: -50% -50%;
+  transform-origin: center;
+  will-change: transform;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6);
+  transition: opacity 0.15s;
+}
+.viewer-placeholder {
+  width: 1920px;
+  filter: blur(6px);
+  opacity: 0.8;
+}
+.viewer-img.pixelated {
+  image-rendering: pixelated;
+}
+.viewer-nav {
+  position: absolute;
+  top: 50%;
+  translate: 0 -50%;
+  width: 48px;
+  height: 88px;
+  display: grid;
+  place-items: center;
+  border: 0;
+  border-radius: var(--radius);
+  background: rgba(0, 0, 0, 0.35);
+  color: #fff;
+  opacity: 0;
+  transition:
+    opacity 0.15s,
+    background 0.15s;
+}
+.viewer-stage:hover .viewer-nav {
+  opacity: 1;
+}
+.viewer-nav:hover {
+  background: rgba(0, 0, 0, 0.7);
+}
+.viewer-nav.prev {
+  left: 12px;
+}
+.viewer-nav.next {
+  right: 12px;
+}
+.pixel-readout {
+  position: absolute;
+  left: 50%;
+  bottom: 14px;
+  translate: -50% 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 12px;
+  border-radius: var(--radius);
+  background: rgba(20, 20, 20, 0.92);
+  border: 1px solid #3a3a3a;
+  font: 12px var(--mono);
+  pointer-events: none;
+}
+.swatch {
+  width: 18px;
+  height: 18px;
+  border-radius: 3px;
+  border: 1px solid #fff;
+}
+.filmstrip {
+  flex: none;
+  display: flex;
+  gap: 6px;
+  height: 84px;
+  padding: 8px 12px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  background: #1b1b1b;
+  border-top: 1px solid #0d0d0d;
+}
+.strip-item {
+  flex: none;
+  height: 100%;
+  aspect-ratio: 16 / 9;
+  padding: 0;
+  border: 2px solid transparent;
+  border-radius: 3px;
+  background: #2a2a2a;
+  overflow: hidden;
+  opacity: 0.6;
+  transition: opacity 0.12s;
+}
+.strip-item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.strip-item:hover {
+  opacity: 1;
+}
+.strip-item.current {
+  opacity: 1;
+  border-color: var(--green-text);
+}
+.viewer-info {
+  width: 380px;
+  flex: none;
+  overflow-y: auto;
+  background: var(--bg-sidebar);
+  border-left: 1px solid #0d0d0d;
+}

@@ -1,0 +1,19 @@
+appId: dev.mguevara.craftshot
+productName: Craftshot
+directories:
+  buildResources: build
+  output: dist
+files:
+  - out/**
+  - package.json
+asarUnpack:
+  - resources/**
+linux:
+  target: [AppImage, deb]
+  category: Graphics
+  icon: build/icon.png
+win:
+  target: nsis
+mac:
+  target: dmg
+  category: public.app-category.graphics-design
