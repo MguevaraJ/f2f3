@@ -24,6 +24,8 @@ interface Events {
  */
 export class AnalysisService extends EventEmitter<Events> {
   private readonly localQueue = new Set<string>()
+  /** Fresh captures the user is waiting for (notification popup): processed first. */
+  private readonly urgent = new Set<string>()
   private localRunning = 0
   private localDone = 0
   private readonly visionQueue: string[] = []
@@ -59,8 +61,15 @@ export class AnalysisService extends EventEmitter<Events> {
     }
   }
 
-  enqueueLocal(ids: string[]): void {
-    for (const id of ids) if (/\.png$/i.test(id)) this.localQueue.add(id)
+  enqueueLocal(ids: string[], urgent = false): void {
+    const wanted = ids.filter((id) => /\.png$/i.test(id))
+    if (urgent) {
+      // Re-insert in front of everything already queued.
+      const rest = [...this.localQueue].filter((id) => !wanted.includes(id))
+      this.localQueue.clear()
+      for (const id of [...wanted, ...rest]) this.localQueue.add(id)
+      for (const id of wanted) this.urgent.add(id)
+    } else for (const id of wanted) this.localQueue.add(id)
     this.pumpLocal()
   }
 
@@ -117,14 +126,18 @@ export class AnalysisService extends EventEmitter<Events> {
     if (!entry || !existsSync(abs)) return
     const fingerprint = fingerprintOf(entry.size, entry.mtimeMs)
     const thumbPath = await this.thumbs.pathFor(abs)
-    const reply = await this.pool.run({
-      file: abs,
-      fingerprint,
-      fontSource: this.fontSource(),
-      analyze: true,
-      // Generate the thumbnail in the same decode when it is missing.
-      thumb: existsSync(thumbPath) ? null : { path: thumbPath, width: this.thumbs.targetWidth() }
-    })
+    const priority = this.urgent.delete(id) ? 'high' : 'low'
+    const reply = await this.pool.run(
+      {
+        file: abs,
+        fingerprint,
+        fontSource: this.fontSource(),
+        analyze: true,
+        // Generate the thumbnail in the same decode when it is missing.
+        thumb: existsSync(thumbPath) ? null : { path: thumbPath, width: this.thumbs.targetWidth() }
+      },
+      priority
+    )
     const previous = this.metadata.analysis(abs)
     const analysis: ScreenshotAnalysis =
       reply.ok && reply.analysis

@@ -36,6 +36,12 @@ completo y gestión de archivos.
   movimientos (mueve el archivo en Drive en vez de volver a subirlo), nunca borra nada de Drive, puede
   respaldar automáticamente cada captura nueva y **restaurar** las que falten en tu equipo.
 
+- **Aviso de captura nueva**: al pulsar F2 en Minecraft aparece un aviso en la esquina inferior
+  derecha de la pantalla (siempre encima y sin quitarle el foco al juego) con la miniatura y las
+  coordenadas del F3, y botones para copiar `X Y Z`, el `/tp` o abrir la captura. Mientras está
+  visible, **Ctrl+Shift+C** copia las coordenadas sin salir del juego. Opcionalmente, las coordenadas
+  se copian solas.
+
 ## Uso
 
 ```bash

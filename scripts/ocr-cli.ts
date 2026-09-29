@@ -30,10 +30,21 @@ for (const file of files) {
     console.log('  (no F3)')
     continue
   }
-  console.log(`  scale=${out.guiScale} conf=${out.confidence.toFixed(3)} exact=${out.exact} fuzzy=${out.fuzzy} failed=${out.failed}`)
+  console.log(
+    `  scale=${out.guiScale} conf=${out.confidence.toFixed(3)} exact=${out.exact} fuzzy=${out.fuzzy} failed=${out.failed}`
+  )
   if (json) {
     const { f3, biome, dimension, mobs } = analyzeImage(png, font, 'cli')
-    console.log(JSON.stringify({ f3: { ...f3, lines: undefined, fields: undefined }, biome, dimension, mobs }, null, 2))
-  }
-  else for (const l of out.lines) console.log(`  ${String(l.index).padStart(2)} ${l.side === 'left' ? 'L' : 'R'} ${l.color} ${l.text}`)
+    console.log(
+      JSON.stringify(
+        { f3: { ...f3, lines: undefined, fields: undefined }, biome, dimension, mobs },
+        null,
+        2
+      )
+    )
+  } else
+    for (const l of out.lines)
+      console.log(
+        `  ${String(l.index).padStart(2)} ${l.side === 'left' ? 'L' : 'R'} ${l.color} ${l.text}`
+      )
 }

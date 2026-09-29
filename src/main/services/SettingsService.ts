@@ -30,7 +30,9 @@ export class SettingsService extends EventEmitter<{ changed: [AppSettings, AppSe
       visionAuto: false,
       thumbnailSize: 220,
       confirmDelete: true,
-      backupAuto: true
+      backupAuto: true,
+      notifyNewShots: true,
+      notifyAutoCopy: false
     })
   }
 

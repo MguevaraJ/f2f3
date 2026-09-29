@@ -33,7 +33,8 @@ const api: CraftshotApi = {
     exportZip: invoke(IPC.library.exportZip),
     exportTable: invoke(IPC.library.exportTable),
     pathForFile: (file) => webUtils.getPathForFile(file),
-    onChanged: (cb) => subscribe(IPC.events.libraryChanged, cb)
+    onChanged: (cb) => subscribe(IPC.events.libraryChanged, cb),
+    onOpenRequest: (cb) => subscribe(IPC.events.openScreenshot, cb)
   },
   analysis: {
     reanalyze: invoke(IPC.analysis.reanalyze),
@@ -60,7 +61,8 @@ const api: CraftshotApi = {
     testApiKey: invoke(IPC.settings.testApiKey),
     chooseDirectory: invoke(IPC.settings.chooseDirectory),
     chooseFontSource: invoke(IPC.settings.chooseFontSource),
-    detectSources: invoke(IPC.settings.detectSources)
+    detectSources: invoke(IPC.settings.detectSources),
+    testNotification: invoke(IPC.settings.testNotification)
   },
   system: {
     copyText: invoke(IPC.system.copyText),

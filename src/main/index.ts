@@ -1,6 +1,8 @@
-import { app, BrowserWindow, session } from 'electron'
+import { app, BrowserWindow, clipboard, globalShortcut, ipcMain, session } from 'electron'
 import { IPC } from '@shared/ipc'
+import { copyImageToClipboard } from './clipboardImage'
 import { registerIpc } from './ipc/registerIpc'
+import { CapturePopup } from './notifier/CapturePopup'
 import { registerSchemeHandler, registerSchemePrivileges } from './protocol'
 import { createServices, type Services } from './services'
 import { createMainWindow } from './window'
@@ -11,16 +13,32 @@ if (!app.requestSingleInstanceLock()) app.quit()
 
 let services: Services | null = null
 let mainWindow: BrowserWindow | null = null
+let popup: CapturePopup | null = null
 
+/** Events for the main UI (the capture popup has its own channel). */
 function broadcast(channel: string, ...args: unknown[]): void {
-  for (const w of BrowserWindow.getAllWindows())
-    if (!w.isDestroyed()) w.webContents.send(channel, ...args)
+  if (mainWindow && !mainWindow.isDestroyed()) mainWindow.webContents.send(channel, ...args)
+}
+
+function showMainWindow(): BrowserWindow {
+  if (!mainWindow || mainWindow.isDestroyed()) {
+    mainWindow = createMainWindow()
+    mainWindow.on('closed', onMainClosed)
+  }
+  if (mainWindow.isMinimized()) mainWindow.restore()
+  mainWindow.show()
+  mainWindow.focus()
+  return mainWindow
+}
+
+function onMainClosed(): void {
+  mainWindow = null
+  // The hidden popup window would otherwise keep the app alive.
+  if (process.platform !== 'darwin') app.quit()
 }
 
 app.on('second-instance', () => {
-  if (!mainWindow) return
-  if (mainWindow.isMinimized()) mainWindow.restore()
-  mainWindow.focus()
+  if (mainWindow) showMainWindow()
 })
 
 app.whenReady().then(() => {
@@ -43,15 +61,45 @@ app.whenReady().then(() => {
   analysis.on('error', (message) => broadcast(IPC.events.notice, { level: 'error', message }))
   services.backup.on('status', (s) => broadcast(IPC.events.backupStatus, s))
 
+  // New-capture popup.
+  const { settings, captures } = services
+  popup = new CapturePopup({
+    openInApp: (id) => {
+      const win = showMainWindow()
+      const send = (): void => win.webContents.send(IPC.events.openScreenshot, id)
+      if (win.webContents.isLoading()) win.webContents.once('did-finish-load', send)
+      else send()
+    },
+    copyImage: (id) => copyImageToClipboard(library.resolveId(id)),
+    autoCopy: () => settings.value.notifyAutoCopy
+  })
+  ipcMain.handle(IPC.settings.testNotification, async (e) => {
+    if (e.sender !== mainWindow?.webContents) return
+    const latest = (await library.snapshot()).screenshots[0]
+    if (!latest) throw new Error('No hay capturas para mostrar')
+    await popup?.showCapture({ ...latest, analysis: null })
+    setTimeout(() => void popup?.showAnalyzed(latest), 700)
+  })
+  captures.on('capture', (entry) => {
+    if (settings.value.notifyNewShots) void popup?.showCapture(entry)
+  })
+  captures.on('analyzed', (entry) => {
+    if (settings.value.notifyNewShots) void popup?.showAnalyzed(entry)
+    else if (settings.value.notifyAutoCopy && entry.analysis?.f3?.block) {
+      const b = entry.analysis.f3.block
+      clipboard.writeText(`${b.x} ${b.y} ${b.z}`)
+    }
+  })
+
   library.startWatching()
   void library.refresh()
 
   mainWindow = createMainWindow()
-  mainWindow.on('closed', () => (mainWindow = null))
+  mainWindow.on('closed', onMainClosed)
   if (process.env.CRAFTSHOT_CAPTURE) void captureForDebug(mainWindow, process.env.CRAFTSHOT_CAPTURE)
 
   app.on('activate', () => {
-    if (BrowserWindow.getAllWindows().length === 0) mainWindow = createMainWindow()
+    if (!mainWindow) showMainWindow()
   })
 })
 
@@ -83,5 +131,8 @@ app.on('before-quit', (e) => {
   if (quitting || !services) return
   e.preventDefault()
   quitting = true
+  popup?.destroy()
   void services.dispose().finally(() => app.quit())
 })
+
+app.on('will-quit', () => globalShortcut.unregisterAll())

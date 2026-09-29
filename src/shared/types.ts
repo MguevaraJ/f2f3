@@ -170,6 +170,10 @@ export interface AppSettings {
   confirmDelete: boolean
   /** Back up new screenshots to Google Drive automatically while connected. */
   backupAuto: boolean
+  /** Desktop popup when Minecraft saves a new screenshot. */
+  notifyNewShots: boolean
+  /** Put the coordinates of a new F3 screenshot on the clipboard automatically. */
+  notifyAutoCopy: boolean
 }
 
 export interface SettingsView extends AppSettings {
@@ -228,4 +232,17 @@ export interface BackupStatus {
   error?: string
   /** Web link of the backup folder in Drive, once it exists. */
   folderUrl?: string
+}
+
+/** What the new-capture popup shows. */
+export interface CapturePopupPayload {
+  entry: ScreenshotEntry
+  /** The F3 is still being read. */
+  reading: boolean
+  /** Captures that arrived while this popup was already on screen. */
+  more: number
+  /** Global shortcut that copies the coordinates while the popup is visible. */
+  shortcut: string | null
+  /** Coordinates were copied automatically (auto-copy setting). */
+  autoCopied: boolean
 }

@@ -181,6 +181,38 @@ export function SettingsView() {
         </Group>
 
         <Group
+          title="Notificaciones"
+          desc="Mientras Craftshot esté abierto, te avisa en la esquina de la pantalla cada vez que haces una captura en Minecraft (F2), sin sacarte del juego."
+        >
+          <Toggle
+            label="Avisar de capturas nuevas"
+            hint="Muestra un aviso con la miniatura y las coordenadas del F3."
+            checked={settings.notifyNewShots}
+            onChange={(v) => void update({ notifyNewShots: v })}
+          />
+          <Toggle
+            label="Copiar las coordenadas automáticamente"
+            hint="Si la captura tiene el F3 abierto, sus coordenadas quedan listas para pegar (X Y Z)."
+            checked={settings.notifyAutoCopy}
+            onChange={(v) => void update({ notifyAutoCopy: v })}
+          />
+          <p className="muted small">
+            Con el aviso en pantalla, <span className="kbd">Ctrl+Shift+C</span> copia las
+            coordenadas sin salir del juego.
+          </p>
+          <div>
+            <button
+              className="btn"
+              onClick={() =>
+                void api.settings.testNotification().catch((e) => toast.error(String(e)))
+              }
+            >
+              <Icon name="eye" size={16} /> Probar aviso
+            </button>
+          </div>
+        </Group>
+
+        <Group
           title="Copia de seguridad en Google Drive"
           desc="Respalda tus capturas en tu propia cuenta de Google Drive para no perderlas nunca."
         >

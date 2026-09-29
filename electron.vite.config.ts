@@ -24,7 +24,9 @@ export default defineConfig({
     plugins: [externalizeDepsPlugin()],
     resolve: { alias },
     build: {
+
       rollupOptions: {
+        input: { index: resolve('src/preload/index.ts'), popup: resolve('src/preload/popup.ts') },
         output: { format: 'cjs', entryFileNames: '[name].cjs' }
       }
     }
@@ -33,6 +35,11 @@ export default defineConfig({
     resolve: {
       alias: { ...alias, '@renderer': resolve('src/renderer/src') }
     },
-    plugins: [react()]
+    plugins: [react()],
+    build: {
+      rollupOptions: {
+        input: { index: resolve('src/renderer/index.html'), popup: resolve('src/renderer/popup.html') }
+      }
+    }
   }
 })

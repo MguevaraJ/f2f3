@@ -29,10 +29,18 @@ export function App() {
     const disconnect = connectLibrary()
     const disconnectBackup = connectBackup()
     const offNotice = api.system.onNotice((n) => toast[n.level](n.message))
+    // "Ver" in the new-capture popup.
+    const offOpen = api.library.onOpenRequest((id) => {
+      const ui = useUi.getState()
+      ui.setTab('gallery')
+      ui.select([id], id)
+      ui.openViewer(id)
+    })
     return () => {
       disconnect()
       disconnectBackup()
       offNotice()
+      offOpen()
     }
   }, [loadSettings])
 

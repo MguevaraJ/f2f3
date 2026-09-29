@@ -12,6 +12,11 @@ export default tseslint.config(
     rules: { ...reactHooks.configs.recommended.rules }
   },
   {
+    // Node build scripts
+    files: ['scripts/**/*.mjs'],
+    languageOptions: { globals: { console: 'readonly', process: 'readonly' } }
+  },
+  {
     rules: {
       '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }]
     }

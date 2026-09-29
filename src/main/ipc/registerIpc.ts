@@ -1,13 +1,11 @@
-import { readFile, writeFile } from 'node:fs/promises'
+import { writeFile } from 'node:fs/promises'
 import { join } from 'node:path'
 import {
   app,
   BrowserWindow,
   clipboard,
-  ClipboardItem,
   dialog,
   ipcMain,
-  nativeImage,
   shell,
   type IpcMainInvokeEvent
 } from 'electron'
@@ -15,6 +13,7 @@ import { IPC, type ExportFormat } from '@shared/ipc'
 import type { AppSettings, ClipboardMode, UserMeta } from '@shared/types'
 import { loadFontFrom, ROW_OFFSET } from '@core/font/minecraftFont'
 import type { DataTable, FontGlyphs } from '@shared/ipc'
+import { copyImageToClipboard } from '../clipboardImage'
 import { toCsv, toJson } from '../export'
 import { tableToCsv, tableToXlsx } from '../tableExport'
 import { writeZip, zipNames } from '../zipExport'
@@ -81,14 +80,7 @@ export function registerIpc(services: Services): void {
     const entry = library.entry(str(id))
     if (entry) entry.meta = next
   })
-  handle(IPC.library.copyImage, async (_e, id) => {
-    const abs = library.resolveId(str(id))
-    const png = /\.png$/i.test(abs) ? await readFile(abs) : nativeImage.createFromPath(abs).toPNG()
-    if (!png.length) throw new Error('No se pudo leer la imagen')
-    await clipboard.write([
-      new ClipboardItem({ 'image/png': new Blob([new Uint8Array(png)], { type: 'image/png' }) })
-    ])
-  })
+  handle(IPC.library.copyImage, (_e, id) => copyImageToClipboard(library.resolveId(str(id))))
   handle(IPC.library.exportData, async (e, ids, format) => {
     const fmt: ExportFormat = format === 'json' ? 'json' : 'csv'
     const wanted = new Set(strArray(ids))

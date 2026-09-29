@@ -1,5 +1,6 @@
 import type {
   AnalysisProgress,
+  CapturePopupPayload,
   BackupStatus,
   BackupSummary,
   AppSettings,
@@ -55,7 +56,8 @@ export const IPC = {
     testApiKey: 'settings:test-api-key',
     chooseDirectory: 'settings:choose-directory',
     chooseFontSource: 'settings:choose-font',
-    detectSources: 'settings:detect-sources'
+    detectSources: 'settings:detect-sources',
+    testNotification: 'settings:test-notification'
   },
   system: {
     copyText: 'system:copy-text',
@@ -70,7 +72,8 @@ export const IPC = {
     analysisUpdated: 'event:analysis-updated',
     analysisProgress: 'event:analysis-progress',
     notice: 'event:notice',
-    backupStatus: 'event:backup-status'
+    backupStatus: 'event:backup-status',
+    openScreenshot: 'event:open-screenshot'
   }
 } as const
 
@@ -137,6 +140,8 @@ export interface CraftshotApi {
     /** Absolute path of a file dropped from the OS (File objects lose it under context isolation). */
     pathForFile(file: File): string
     onChanged(cb: (snapshot: LibrarySnapshot) => void): Unsubscribe
+    /** The new-capture popup asked to show a screenshot in the main window. */
+    onOpenRequest(cb: (id: string) => void): Unsubscribe
   }
   analysis: {
     reanalyze(ids: string[]): Promise<void>
@@ -166,6 +171,8 @@ export interface CraftshotApi {
     chooseDirectory(): Promise<string | null>
     chooseFontSource(): Promise<string | null>
     detectSources(): Promise<MinecraftSource[]>
+    /** Shows the new-capture popup with the latest screenshot. */
+    testNotification(): Promise<void>
   }
   system: {
     copyText(text: string): Promise<void>
@@ -184,3 +191,16 @@ export const imageUrl = (id: string, version: number): string =>
   `${SCHEME}://image/${encodeURIComponent(id)}?v=${Math.round(version)}`
 export const thumbUrl = (id: string, version: number): string =>
   `${SCHEME}://thumb/${encodeURIComponent(id)}?v=${Math.round(version)}`
+
+/** API of the new-capture popup window (its own minimal preload). */
+export interface CapturePopupApi {
+  onShow(cb: (payload: CapturePopupPayload) => void): Unsubscribe
+  /** What is on screen right now (for when the page mounts after the first push). */
+  current(): Promise<CapturePopupPayload | null>
+  /** Coordinates were copied through the global shortcut. */
+  onCopied(cb: (what: string) => void): Unsubscribe
+  copy(text: string): Promise<void>
+  copyImage(id: string): Promise<void>
+  open(id: string): Promise<void>
+  dismiss(): Promise<void>
+}

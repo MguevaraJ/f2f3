@@ -3,6 +3,7 @@ import { net, shell } from 'electron'
 import { DriveClient } from '../google/drive'
 import { GoogleAuth, type OAuthClient } from '../google/oauth'
 import { BackupService } from './BackupService'
+import { CaptureWatcher } from './CaptureWatcher'
 import { SecretStore } from './SecretStore'
 import { join } from 'node:path'
 import { AnalysisService } from './AnalysisService'
@@ -24,6 +25,7 @@ export interface Services {
   vision: VisionService
   analysis: AnalysisService
   backup: BackupService
+  captures: CaptureWatcher
   fontSource(): string | null
   dispose(): Promise<void>
 }
@@ -86,7 +88,10 @@ export function createServices(userDataDir: string, workerEntry: URL): Services 
     () => !!googleClient()
   )
 
+  const captures = new CaptureWatcher(library, analysis)
+
   library.on('changed', (snap) => {
+    captures.onSnapshot(snap)
     analysis.scheduleMissing(snap.screenshots)
     backup.scheduleAuto()
   })
@@ -109,6 +114,7 @@ export function createServices(userDataDir: string, workerEntry: URL): Services 
     vision,
     analysis,
     backup,
+    captures,
     fontSource,
     async dispose() {
       library.dispose()
