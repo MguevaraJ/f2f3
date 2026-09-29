@@ -46,6 +46,9 @@ completo y gestión de archivos.
   (con avisos de capturas y respaldos activos). En Windows/macOS queda un icono en la bandeja; en Linux,
   sin bandeja por defecto: se vuelve a abrir ejecutando Craftshot otra vez (instancia única). La
   elección se puede recordar y cambiar en Ajustes.
+- **Iniciar con el sistema** (desactivado por defecto): arranca en segundo plano al iniciar sesión.
+  Windows/macOS usan los elementos de inicio del sistema; Linux, `~/.config/autostart/craftshot.desktop`
+  (GNOME, KDE, XFCE… y i3/sway con `dex -a`).
 
 ## Uso
 

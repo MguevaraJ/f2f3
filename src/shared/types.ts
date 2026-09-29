@@ -180,6 +180,8 @@ export interface AppSettings {
   closeAction: CloseAction
   /** Show an icon in the system tray while running in the background. */
   trayIcon: boolean
+  /** Start Craftshot (in the background) when the user logs in. Off by default. */
+  launchAtLogin: boolean
 }
 
 export interface SettingsView extends AppSettings {

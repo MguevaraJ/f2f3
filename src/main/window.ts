@@ -6,7 +6,7 @@ import appIcon from '../../resources/icon.png?asset'
 const here = fileURLToPath(new URL('.', import.meta.url))
 
 /** Frameless window styled like the Minecraft Launcher, locked down for security. */
-export function createMainWindow(): BrowserWindow {
+export function createMainWindow({ visible = true }: { visible?: boolean } = {}): BrowserWindow {
   const win = new BrowserWindow({
     width: 1360,
     height: 860,
@@ -27,7 +27,8 @@ export function createMainWindow(): BrowserWindow {
     }
   })
 
-  win.once('ready-to-show', () => win.show())
+  // Started at login: stay in the background until the user opens it.
+  if (visible) win.once('ready-to-show', () => win.show())
 
   // Never navigate away from the app or open popups inside it.
   win.webContents.setWindowOpenHandler(({ url }) => {

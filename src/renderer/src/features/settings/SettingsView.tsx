@@ -220,9 +220,15 @@ export function SettingsView() {
         </Group>
 
         <Group
-          title="Al cerrar la ventana"
+          title="Segundo plano e inicio"
           desc="En segundo plano, Craftshot sigue avisándote de las capturas nuevas y respaldando en Google Drive."
         >
+          <Toggle
+            label="Iniciar Craftshot al encender el equipo"
+            hint="Se abre en segundo plano, sin mostrar la ventana, para avisarte de tus capturas desde que empiezas a jugar."
+            checked={settings.launchAtLogin}
+            onChange={(v) => void update({ launchAtLogin: v })}
+          />
           <label className="field">
             <span>Cuando cierres la ventana</span>
             <select

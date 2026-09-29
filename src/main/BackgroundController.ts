@@ -102,7 +102,8 @@ export class BackgroundController {
     this.tray = null
   }
 
-  private syncTray(): void {
+  /** Shows/updates the tray icon according to settings (e.g. when starting hidden). */
+  syncTray(): void {
     const wanted = this.deps.settings.value.trayIcon
     if (!wanted) {
       this.destroy()

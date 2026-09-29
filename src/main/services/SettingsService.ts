@@ -35,7 +35,8 @@ export class SettingsService extends EventEmitter<{ changed: [AppSettings, AppSe
       notifyAutoCopy: false,
       closeAction: 'ask',
       // Windows/macOS always have a tray; many Linux setups (i3, GNOME) don't.
-      trayIcon: process.platform !== 'linux'
+      trayIcon: process.platform !== 'linux',
+      launchAtLogin: false
     })
   }
 

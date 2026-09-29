@@ -1,5 +1,6 @@
 import { app, BrowserWindow, clipboard, globalShortcut, ipcMain, session } from 'electron'
 import { IPC } from '@shared/ipc'
+import { LaunchAtLogin } from './autostart/LaunchAtLogin'
 import { BackgroundController } from './BackgroundController'
 import { copyImageToClipboard } from './clipboardImage'
 import { registerIpc } from './ipc/registerIpc'
@@ -107,9 +108,28 @@ app.whenReady().then(() => {
   library.startWatching()
   void library.refresh()
 
-  mainWindow = createMainWindow()
+  // "Iniciar con el sistema": keep the OS entry in sync, and start hidden when launched by it.
+  const autostart = new LaunchAtLogin()
+  const applyAutostart = (enabled: boolean): void => {
+    try {
+      autostart.apply(enabled)
+    } catch (err) {
+      broadcast(IPC.events.notice, {
+        level: 'error',
+        message: `No se pudo configurar el inicio automático: ${String(err)}`
+      })
+    }
+  }
+  applyAutostart(settings.value.launchAtLogin)
+  settings.on('changed', (next, prev) => {
+    if (next.launchAtLogin !== prev.launchAtLogin) applyAutostart(next.launchAtLogin)
+  })
+  const startHidden = autostart.startedAtLogin() && !process.env.CRAFTSHOT_CAPTURE
+
+  mainWindow = createMainWindow({ visible: !startHidden })
   mainWindow.on('closed', onMainClosed)
   background.attach(mainWindow)
+  if (startHidden) background.syncTray()
   if (process.env.CRAFTSHOT_CAPTURE) void captureForDebug(mainWindow, process.env.CRAFTSHOT_CAPTURE)
 
   app.on('activate', () => {
