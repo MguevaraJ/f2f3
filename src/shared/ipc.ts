@@ -65,7 +65,9 @@ export const IPC = {
     fontGlyphs: 'system:font-glyphs',
     minimize: 'window:minimize',
     toggleMaximize: 'window:toggle-maximize',
-    close: 'window:close'
+    close: 'window:close',
+    resolveClose: 'window:resolve-close',
+    quit: 'app:quit'
   },
   events: {
     libraryChanged: 'event:library-changed',
@@ -73,7 +75,8 @@ export const IPC = {
     analysisProgress: 'event:analysis-progress',
     notice: 'event:notice',
     backupStatus: 'event:backup-status',
-    openScreenshot: 'event:open-screenshot'
+    openScreenshot: 'event:open-screenshot',
+    confirmClose: 'event:confirm-close'
   }
 } as const
 
@@ -92,6 +95,8 @@ export interface SystemInfo {
 }
 
 export type ExportFormat = 'csv' | 'json'
+
+export type CloseChoice = 'quit' | 'background' | 'cancel'
 
 export type TableFormat = 'xlsx' | 'csv'
 export type TableCell = string | number | null
@@ -181,6 +186,11 @@ export interface CraftshotApi {
     minimize(): Promise<void>
     toggleMaximize(): Promise<void>
     close(): Promise<void>
+    /** Answer to the "close or keep in background?" question. */
+    resolveClose(choice: CloseChoice, remember: boolean): Promise<void>
+    onConfirmClose(cb: () => void): Unsubscribe
+    /** Quits the app for real (also when it would otherwise stay in the background). */
+    quit(): Promise<void>
     onNotice(cb: (notice: Notice) => void): Unsubscribe
   }
 }

@@ -602,3 +602,32 @@
     transform: rotate(360deg);
   }
 }
+
+.close-modal {
+  width: min(500px, calc(100vw - 32px));
+}
+.close-option {
+  display: flex;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: var(--radius);
+  background: #1f2a1c;
+  border: 1px solid #2f5424;
+  color: var(--green-text);
+}
+.close-option p {
+  margin: 0;
+  color: var(--text-2);
+  font-size: 13.5px;
+}
+.close-option b {
+  color: #fff;
+}
+.checkbox.remember {
+  margin-top: 14px;
+  font-size: 13px;
+}
+.close-option svg {
+  flex: none;
+  margin-top: 1px;
+}

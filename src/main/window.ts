@@ -1,6 +1,7 @@
 import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { BrowserWindow, shell } from 'electron'
+import appIcon from '../../resources/icon.png?asset'
 
 const here = fileURLToPath(new URL('.', import.meta.url))
 
@@ -15,7 +16,7 @@ export function createMainWindow(): BrowserWindow {
     frame: false,
     backgroundColor: '#1e1e1e',
     title: 'Craftshot',
-    icon: join(here, '../../build/icon.png'),
+    icon: appIcon,
     webPreferences: {
       preload: join(here, '../preload/index.cjs'),
       contextIsolation: true,

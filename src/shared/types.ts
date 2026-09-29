@@ -157,6 +157,8 @@ export interface MinecraftSource {
   count: number
 }
 
+export type CloseAction = 'ask' | 'background' | 'quit'
+
 export interface AppSettings {
   screenshotsDir: string
   /** Optional override for the font source (.jar or resource pack .zip). */
@@ -174,6 +176,10 @@ export interface AppSettings {
   notifyNewShots: boolean
   /** Put the coordinates of a new F3 screenshot on the clipboard automatically. */
   notifyAutoCopy: boolean
+  /** What closing the window does: ask every time, keep running in the background, or quit. */
+  closeAction: CloseAction
+  /** Show an icon in the system tray while running in the background. */
+  trayIcon: boolean
 }
 
 export interface SettingsView extends AppSettings {

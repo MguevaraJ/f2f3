@@ -42,6 +42,11 @@ completo y gestión de archivos.
   visible, **Ctrl+Shift+C** copia las coordenadas sin salir del juego. Opcionalmente, las coordenadas
   se copian solas.
 
+- **Segundo plano**: al cerrar la ventana, Craftshot pregunta si cerrarse o seguir en segundo plano
+  (con avisos de capturas y respaldos activos). En Windows/macOS queda un icono en la bandeja; en Linux,
+  sin bandeja por defecto: se vuelve a abrir ejecutando Craftshot otra vez (instancia única). La
+  elección se puede recordar y cambiar en Ajustes.
+
 ## Uso
 
 ```bash

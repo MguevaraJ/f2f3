@@ -71,6 +71,9 @@ const api: CraftshotApi = {
     minimize: invoke(IPC.system.minimize),
     toggleMaximize: invoke(IPC.system.toggleMaximize),
     close: invoke(IPC.system.close),
+    resolveClose: invoke(IPC.system.resolveClose),
+    quit: invoke(IPC.system.quit),
+    onConfirmClose: (cb) => subscribe(IPC.events.confirmClose, cb),
     onNotice: (cb) => subscribe(IPC.events.notice, cb)
   }
 }

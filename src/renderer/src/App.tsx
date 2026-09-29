@@ -1,5 +1,6 @@
 import { useEffect, useMemo } from 'react'
 import { BottomBar } from './components/BottomBar'
+import { CloseDialog } from './components/CloseDialog'
 import { Header } from './components/Header'
 import { ContextMenu, Dialog, Toasts } from './components/Overlays'
 import { Sidebar } from './components/Sidebar'
@@ -75,6 +76,7 @@ export function App() {
       {viewerId && <Viewer shots={viewerList} />}
       <ContextMenu />
       <Dialog />
+      <CloseDialog />
       <Toasts />
     </div>
   )

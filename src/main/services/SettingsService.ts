@@ -32,7 +32,10 @@ export class SettingsService extends EventEmitter<{ changed: [AppSettings, AppSe
       confirmDelete: true,
       backupAuto: true,
       notifyNewShots: true,
-      notifyAutoCopy: false
+      notifyAutoCopy: false,
+      closeAction: 'ask',
+      // Windows/macOS always have a tray; many Linux setups (i3, GNOME) don't.
+      trayIcon: process.platform !== 'linux'
     })
   }
 
@@ -73,6 +76,8 @@ function sanitize(patch: Partial<AppSettings>): Partial<AppSettings> {
   const out: Partial<AppSettings> = { ...patch }
   if (out.thumbnailSize !== undefined)
     out.thumbnailSize = Math.min(420, Math.max(140, out.thumbnailSize))
+  if (out.closeAction !== undefined && !['ask', 'background', 'quit'].includes(out.closeAction))
+    delete out.closeAction
   if (out.visionModel !== undefined && !/^[\w.-]+$/.test(out.visionModel)) delete out.visionModel
   return out
 }

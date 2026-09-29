@@ -1,5 +1,5 @@
 import { useEffect, useState, type ReactNode } from 'react'
-import type { MinecraftSource } from '@shared/types'
+import type { CloseAction, MinecraftSource } from '@shared/types'
 import type { SystemInfo } from '@shared/ipc'
 import { Icon } from '../../components/icons'
 import { BackupSettings } from './BackupSettings'
@@ -217,6 +217,39 @@ export function SettingsView() {
           desc="Respalda tus capturas en tu propia cuenta de Google Drive para no perderlas nunca."
         >
           <BackupSettings />
+        </Group>
+
+        <Group
+          title="Al cerrar la ventana"
+          desc="En segundo plano, Craftshot sigue avisándote de las capturas nuevas y respaldando en Google Drive."
+        >
+          <label className="field">
+            <span>Cuando cierres la ventana</span>
+            <select
+              className="input"
+              value={settings.closeAction}
+              onChange={(e) => void update({ closeAction: e.target.value as CloseAction })}
+            >
+              <option value="ask">Preguntar cada vez</option>
+              <option value="background">Dejar Craftshot en segundo plano</option>
+              <option value="quit">Cerrar Craftshot</option>
+            </select>
+          </label>
+          <Toggle
+            label="Mostrar icono en la bandeja del sistema"
+            hint={
+              info?.platform === 'linux'
+                ? 'Solo si tu escritorio tiene bandeja (KDE, Cinnamon, XFCE…). Sin ella, vuelve a abrir Craftshot ejecutándolo de nuevo.'
+                : 'Para abrir Craftshot o salir de él mientras está en segundo plano.'
+            }
+            checked={settings.trayIcon}
+            onChange={(v) => void update({ trayIcon: v })}
+          />
+          <div>
+            <button className="btn" onClick={() => void api.system.quit()}>
+              <Icon name="logout" size={16} /> Salir de Craftshot
+            </button>
+          </div>
         </Group>
 
         <Group title="General">

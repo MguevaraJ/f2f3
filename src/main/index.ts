@@ -1,5 +1,6 @@
 import { app, BrowserWindow, clipboard, globalShortcut, ipcMain, session } from 'electron'
 import { IPC } from '@shared/ipc'
+import { BackgroundController } from './BackgroundController'
 import { copyImageToClipboard } from './clipboardImage'
 import { registerIpc } from './ipc/registerIpc'
 import { CapturePopup } from './notifier/CapturePopup'
@@ -14,6 +15,7 @@ if (!app.requestSingleInstanceLock()) app.quit()
 let services: Services | null = null
 let mainWindow: BrowserWindow | null = null
 let popup: CapturePopup | null = null
+let background: BackgroundController | null = null
 
 /** Events for the main UI (the capture popup has its own channel). */
 function broadcast(channel: string, ...args: unknown[]): void {
@@ -24,6 +26,7 @@ function showMainWindow(): BrowserWindow {
   if (!mainWindow || mainWindow.isDestroyed()) {
     mainWindow = createMainWindow()
     mainWindow.on('closed', onMainClosed)
+    background?.attach(mainWindow)
   }
   if (mainWindow.isMinimized()) mainWindow.restore()
   mainWindow.show()
@@ -73,12 +76,22 @@ app.whenReady().then(() => {
     copyImage: (id) => copyImageToClipboard(library.resolveId(id)),
     autoCopy: () => settings.value.notifyAutoCopy
   })
-  ipcMain.handle(IPC.settings.testNotification, async (e) => {
-    if (e.sender !== mainWindow?.webContents) return
+  const testNotification = async (): Promise<void> => {
     const latest = (await library.snapshot()).screenshots[0]
     if (!latest) throw new Error('No hay capturas para mostrar')
     await popup?.showCapture({ ...latest, analysis: null })
     setTimeout(() => void popup?.showAnalyzed(latest), 700)
+  }
+  ipcMain.handle(IPC.settings.testNotification, (e) => {
+    if (e.sender === mainWindow?.webContents) return testNotification()
+  })
+
+  // Closing the window: quit, or keep running in the background (tray where available).
+  background = new BackgroundController({
+    settings,
+    getWindow: () => mainWindow,
+    showWindow: () => void showMainWindow(),
+    testNotification: () => void testNotification().catch(() => undefined)
   })
   captures.on('capture', (entry) => {
     if (settings.value.notifyNewShots) void popup?.showCapture(entry)
@@ -96,6 +109,7 @@ app.whenReady().then(() => {
 
   mainWindow = createMainWindow()
   mainWindow.on('closed', onMainClosed)
+  background.attach(mainWindow)
   if (process.env.CRAFTSHOT_CAPTURE) void captureForDebug(mainWindow, process.env.CRAFTSHOT_CAPTURE)
 
   app.on('activate', () => {
@@ -132,6 +146,7 @@ app.on('before-quit', (e) => {
   e.preventDefault()
   quitting = true
   popup?.destroy()
+  background?.destroy()
   void services.dispose().finally(() => app.quit())
 })
 
