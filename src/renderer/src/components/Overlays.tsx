@@ -45,7 +45,7 @@ function DialogForm({ dialog }: { dialog: DialogState }) {
     setBusy(true)
     try {
       if (dialog.kind === 'prompt') {
-        if (!value.trim()) throw new Error('Escribe un nombre')
+        if (!value.trim() && !dialog.allowEmpty) throw new Error('Escribe un nombre')
         await dialog.onSubmit(value.trim())
       } else await dialog.onConfirm()
       close()

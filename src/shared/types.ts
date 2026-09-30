@@ -252,6 +252,8 @@ export interface UserMeta {
   favorite?: boolean
   note?: string
   tags?: string[]
+  /** World assigned by the user (overrides the mod's world name and the folder). */
+  world?: string
 }
 
 export interface ScreenshotEntry {
@@ -329,6 +331,8 @@ export interface AppSettings {
   trayIcon: boolean
   /** Start Craftshot (in the background) when the user logs in. Off by default. */
   launchAtLogin: boolean
+  /** Seeds typed by the user, by world name (the mod fills them in singleplayer). */
+  worldSeeds: Record<string, string>
 }
 
 export interface SettingsView extends AppSettings {

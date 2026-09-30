@@ -129,8 +129,14 @@ dentro del campo de visión de la cámara (FOV vertical de opciones + aspecto de
    por chunks/289, TPS, `/setblock`). Fixture real: `tests/fixtures/f3-26.3-technical-scale2.png`.
    Formatos sacados del bytecode (`DebugEntry*`). Perfil del F3 del cliente de prueba: `companion-mod/run/debug-profile.json`
    (`{"custom": {"minecraft:tps": "inOverlay", …}}`).
-2. Mapa de capturas (por dimensión, capa Nether ×8, grilla de chunks/regiones) + chunks slime (semilla del mod o manual)
-   + exportar waypoints a Xaero's Minimap / JourneyMap.
+2. **Hecho** — Pestaña "Mapa" (`features/map/`: `view.ts` matemática pura, `drawMap.ts` canvas, `MapView.tsx`):
+   por mundo y dimensión, capa Nether⇄Overworld (×8), cuadrícula de chunks/regiones, chunks slime, medir, encuadrar.
+   Mundos (`src/shared/worlds.ts`): `meta.world` manual > nombre del mod > carpeta superior; asignable en detalles y en
+   el menú contextual ("Asignar mundo…"). Semillas: `settings.worldSeeds` (manual) > semilla del mod.
+   Chunks slime (`src/shared/slime.ts`, BigInt): validado bit a bit contra `WorldgenRandom.seedSlimeChunk` del jar
+   (sal 987234911, en `Slime`). Detalles: fila "Chunk slime" (el más cercano).
+   Waypoints: formato Xaero verificado en xaerominimap-fabric 26.5.3 (`WaypointIO`); `dim%0/-1/1/mw$default_1.txt`;
+   JourneyMap 6.0.9 los importa ("Importar Puntos de Ruta Externos"). IPC `library.exportWaypoints` → .zip + LEEME.
 3. Mod: mob caps reales, gamerules, mods cargados/brand/distancias de render y simulación, MSPT, entidades por tipo en el área,
    estado y contenido del bloque apuntado (tolvas, cofres, comparadores). Campos opcionales en schema 1.
 4. Calculadora de punto AFK (esferas 24–128 y distancia de simulación) y planificador de enlace de portales (128/16).

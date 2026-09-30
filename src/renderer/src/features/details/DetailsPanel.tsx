@@ -3,6 +3,8 @@ import { BIOMES, biomeById, biomeName, DIMENSIONS, dimensionName } from '@shared
 import { MOB_CATEGORY_LABEL, mobName } from '@shared/catalog/mobs'
 import { structureName } from '@shared/catalog/structures'
 import { biomeHiddenInF3 } from '@shared/f3Tips'
+import { nearestSlimeChunk, parseSeed } from '@shared/slime'
+import { listWorlds, NO_WORLD, seedOf, worldOf } from '@shared/worlds'
 import type {
   CompanionData,
   F3Data,
@@ -249,6 +251,7 @@ function SummaryChips({ shot }: { shot: ScreenshotEntry }) {
         </Fact>
         {a.biome && <CopyChip value={a.biome.id} what="ID del bioma" />}
       </div>
+      <WorldFact shot={shot} />
 
       <div className="mobs">
         <div className="mobs-head">
@@ -305,6 +308,96 @@ function SummaryChips({ shot }: { shot: ScreenshotEntry }) {
         )}
       </div>
     </Section>
+  )
+}
+
+const WORLD_SOURCE: Record<string, string> = {
+  manual: 'asignado por ti',
+  mod: 'del mod',
+  folder: 'por la carpeta',
+  none: ''
+}
+
+/** The world this screenshot belongs to (used by the map); editable. */
+function WorldFact({ shot }: { shot: ScreenshotEntry }) {
+  const [editing, setEditing] = useState(false)
+  const all = useLibrary((s) => s.snapshot?.screenshots)
+  const seeds = useSettings((s) => s.settings?.worldSeeds)
+  const setMeta = useLibrary((s) => s.setMeta)
+  const w = worldOf(shot)
+  const names = editing
+    ? listWorlds(all ?? [], seeds)
+        .map((x) => x.name)
+        .filter((n) => n !== NO_WORLD)
+    : []
+  const save = (value: string): void => {
+    setEditing(false)
+    if (value.trim() !== (shot.meta.world ?? '')) void setMeta(shot.id, { world: value.trim() })
+  }
+  return (
+    <div className="facts world-fact">
+      <Fact label="Mundo">
+        {editing ? (
+          <>
+            <input
+              className="input small-select"
+              list="craftshot-worlds"
+              autoFocus
+              defaultValue={shot.meta.world ?? ''}
+              placeholder={w.source !== 'manual' && w.name ? w.name : 'Nombre del mundo'}
+              onBlur={(e) => save(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') save(e.currentTarget.value)
+                if (e.key === 'Escape') setEditing(false)
+              }}
+            />
+            <datalist id="craftshot-worlds">
+              {names.map((n) => (
+                <option key={n} value={n} />
+              ))}
+            </datalist>
+          </>
+        ) : (
+          <button
+            className="fact-value link"
+            onClick={() => setEditing(true)}
+            title="Asignar esta captura a un mundo (vacío = automático)"
+          >
+            {w.name ? (
+              <>
+                {w.name} <span className="muted small">{WORLD_SOURCE[w.source]}</span>
+              </>
+            ) : (
+              <span className="muted">Sin asignar</span>
+            )}
+            <Icon name="pencil" size={12} />
+          </button>
+        )}
+      </Fact>
+    </div>
+  )
+}
+
+/** Slime chunk check for Overworld screenshots when the world's seed is known. */
+function SlimeRow({ shot, x, z }: { shot: ScreenshotEntry; x: number; z: number }) {
+  const all = useLibrary((s) => s.snapshot?.screenshots)
+  const seeds = useSettings((s) => s.settings?.worldSeeds)
+  const found = seedOf(worldOf(shot).name, all ?? [shot], seeds)
+  const seed = found ? parseSeed(found.seed) : null
+  if (seed === null) return null
+  const near = nearestSlimeChunk(seed, x, z)
+  return (
+    <Row
+      k="Chunk slime"
+      v={
+        near?.distance === 0
+          ? 'Sí, estás en un chunk slime'
+          : near
+            ? `No · el más cercano a ${Math.round(near.distance)} bloques (chunk ${near.x}, ${near.z})`
+            : 'No hay ninguno cerca'
+      }
+      hint="En los chunks slime aparecen slimes bajo Y=40 (salvo en biomas sin mobs, como el campo de champiñones)"
+    />
   )
 }
 
@@ -427,6 +520,9 @@ function LocationSections({
 
       <Section title="Posición" icon="layers">
         <Rows>
+          {block && loc.dimension === 'minecraft:overworld' && (
+            <SlimeRow shot={shot} x={block.x} z={block.z} />
+          )}
           {pos && <Row k="XYZ" v={exactString(pos)} />}
           {block && <Row k="Bloque" v={blockString(block)} />}
           {loc.chunk && (

@@ -48,6 +48,23 @@ export function newFolder(parent = currentFolder()): void {
   })
 }
 
+/** Assigns screenshots to a world (used by the map); empty = automatic (mod or folder). */
+export function assignWorld(ids: string[]): void {
+  const lib = useLibrary.getState()
+  const first = lib.byId.get(ids[0])
+  useUi.getState().openDialog({
+    kind: 'prompt',
+    title: ids.length > 1 ? `Asignar mundo a ${ids.length} capturas` : 'Asignar mundo',
+    label: 'Nombre del mundo (vacío = automático)',
+    value: first?.meta.world ?? '',
+    confirm: 'Asignar',
+    allowEmpty: true,
+    onSubmit: async (world) => {
+      for (const id of ids) await lib.setMeta(id, { world: world.trim() })
+    }
+  })
+}
+
 export function renameItem(id: string, isFolder = false): void {
   const name = id.split('/').pop() ?? id
   const dot = name.lastIndexOf('.')

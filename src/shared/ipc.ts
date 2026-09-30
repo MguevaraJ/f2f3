@@ -34,6 +34,7 @@ export const IPC = {
     copyImage: 'library:copy-image',
     exportData: 'library:export',
     exportZip: 'library:export-zip',
+    exportWaypoints: 'library:export-waypoints',
     exportTable: 'library:export-table'
   },
   backup: {
@@ -151,6 +152,8 @@ export interface CraftshotApi {
     exportData(ids: string[], format: ExportFormat): Promise<string | null>
     /** Asks where to save, then zips the screenshots. Resolves null if the user cancels. */
     exportZip(ids: string[]): Promise<ZipExportResult | null>
+    /** Saves the screenshots' positions as Xaero's Minimap waypoints (.zip); null if cancelled. */
+    exportWaypoints(ids: string[], world: string): Promise<{ path: string; count: number } | null>
     /** Asks where to save and writes the table. Resolves the path, or null if cancelled. */
     exportTable(table: DataTable, format: TableFormat): Promise<string | null>
     /** Absolute path of a file dropped from the OS (File objects lose it under context isolation). */

@@ -15,6 +15,9 @@ import { loadFontFrom, ROW_OFFSET } from '@core/font/minecraftFont'
 import type { DataTable, FontGlyphs } from '@shared/ipc'
 import modJar from '../../../resources/craftshot-companion.jar?asset'
 import { copyImageToClipboard } from '../clipboardImage'
+import { strToU8, zipSync } from 'fflate'
+import { xaeroFiles, XAERO_COLOR, XAERO_FILE } from '@core/export/xaero'
+import { mapPoint } from '@shared/worlds'
 import { toCsv, toJson } from '../export'
 import { tableToCsv, tableToXlsx } from '../tableExport'
 import { writeZip, zipNames } from '../zipExport'
@@ -72,6 +75,11 @@ export function registerIpc(services: Services): void {
     const clean: Partial<UserMeta> = {}
     if ('favorite' in m) clean.favorite = !!m.favorite
     if ('note' in m) clean.note = String(m.note ?? '').slice(0, 4000)
+    if ('world' in m)
+      clean.world =
+        String(m.world ?? '')
+          .trim()
+          .slice(0, 100) || undefined
     if ('tags' in m)
       clean.tags = strArray(m.tags ?? [])
         .map((t) => t.trim())
@@ -155,6 +163,66 @@ export function registerIpc(services: Services): void {
       : `${res.filePath}.${fmt}`
     await writeFile(out, fmt === 'xlsx' ? tableToXlsx(table) : tableToCsv(table))
     return out
+  })
+
+  // Waypoints for Xaero's Minimap (JourneyMap 6 imports them too)
+  handle(IPC.library.exportWaypoints, async (e, ids, world) => {
+    const wanted = new Set(strArray(ids))
+    const worldName = str(world).trim() || 'Mundo'
+    const waypoints = (await library.snapshot()).screenshots
+      .filter((s) => wanted.has(s.id))
+      .flatMap((s) => {
+        const p = mapPoint(s)
+        if (!p) return []
+        const note = s.meta.note?.split('\n')[0].trim().slice(0, 40)
+        return [
+          {
+            name: note || s.name.replace(/\.[^.]+$/, ''),
+            x: p.x,
+            y: p.y,
+            z: p.z,
+            dimension: p.dimension,
+            color: s.meta.favorite ? XAERO_COLOR.gold : XAERO_COLOR.aqua
+          }
+        ]
+      })
+    if (!waypoints.length) throw new Error('Ninguna captura seleccionada tiene coordenadas')
+    const safe = worldName.replace(/[^\p{L}\p{N} _-]+/gu, '_')
+    const parent = win(e)
+    const options = {
+      title: 'Exportar waypoints',
+      defaultPath: join(app.getPath('downloads'), `craftshot-waypoints-${safe}.zip`),
+      filters: [{ name: 'ZIP', extensions: ['zip'] }],
+      properties: ['showOverwriteConfirmation', 'createDirectory'] as (
+        'showOverwriteConfirmation' | 'createDirectory'
+      )[]
+    }
+    const res = parent
+      ? await dialog.showSaveDialog(parent, options)
+      : await dialog.showSaveDialog(options)
+    if (res.canceled || !res.filePath) return null
+    const readme = [
+      `Waypoints de Craftshot · ${worldName} · ${waypoints.length} capturas`,
+      '',
+      "Xaero's Minimap:",
+      `  Copia cada carpeta dim%… dentro de .minecraft/xaero/minimap/<tu mundo>/`,
+      `  Si ya tienes waypoints en ese mundo, no reemplaces ${XAERO_FILE}: abre el tuyo y pega`,
+      '  al final solo las líneas que empiezan por "waypoint:".',
+      '',
+      'JourneyMap 6:',
+      '  Coloca los archivos igual (carpeta xaero/minimap) y abre el gestor de waypoints de',
+      '  JourneyMap: ofrece "Importar Puntos de Ruta Externos" (Import External Waypoints).',
+      '',
+      'Carpetas: dim%0 = Overworld, dim%-1 = Nether, dim%1 = End.'
+    ].join('\n')
+    const files = Object.fromEntries(
+      Object.entries({ ...xaeroFiles(waypoints), 'LEEME.txt': readme }).map(([k, v]) => [
+        k,
+        strToU8(v)
+      ])
+    )
+    await writeFile(res.filePath, zipSync(files))
+    return { path: res.filePath, count: waypoints.length }
   })
 
   // Craftshot Companion mod: the .jar ships inside the app

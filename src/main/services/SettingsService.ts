@@ -54,7 +54,8 @@ export class SettingsService extends EventEmitter<{ changed: [AppSettings, AppSe
       closeAction: 'ask',
       // Windows/macOS always have a tray; many Linux setups (i3, GNOME) don't.
       trayIcon: process.platform !== 'linux',
-      launchAtLogin: false
+      launchAtLogin: false,
+      worldSeeds: {}
     })
   }
 
@@ -118,6 +119,13 @@ function sanitize(patch: Partial<AppSettings>): Partial<AppSettings> {
     ) as Record<VisionProviderId, string>
   for (const k of ['openaiBaseUrl', 'ollamaUrl'] as const)
     if (out[k] !== undefined && out[k] !== '' && !/^https?:\/\/[^\s]+$/.test(out[k]!)) delete out[k]
+  if (out.worldSeeds !== undefined)
+    out.worldSeeds = Object.fromEntries(
+      Object.entries(out.worldSeeds ?? {})
+        .map(([w, s]) => [String(w).trim().slice(0, 100), String(s).trim()] as const)
+        .filter(([w, s]) => w && /^-?\d{1,20}$/.test(s))
+        .slice(0, 200)
+    )
   if (out.dismissedTips !== undefined)
     out.dismissedTips = out.dismissedTips.filter((t) => typeof t === 'string').slice(0, 50)
   return out

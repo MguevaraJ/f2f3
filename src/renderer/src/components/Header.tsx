@@ -4,6 +4,7 @@ import { McText } from './McText'
 const TABS: { id: Tab; label: string }[] = [
   { id: 'gallery', label: 'Galería' },
   { id: 'coords', label: 'Coordenadas' },
+  { id: 'map', label: 'Mapa' },
   { id: 'settings', label: 'Ajustes' }
 ]
 

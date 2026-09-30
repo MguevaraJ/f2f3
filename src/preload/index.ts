@@ -31,6 +31,7 @@ const api: CraftshotApi = {
     copyImage: invoke(IPC.library.copyImage),
     exportData: invoke(IPC.library.exportData),
     exportZip: invoke(IPC.library.exportZip),
+    exportWaypoints: invoke(IPC.library.exportWaypoints),
     exportTable: invoke(IPC.library.exportTable),
     pathForFile: (file) => webUtils.getPathForFile(file),
     onChanged: (cb) => subscribe(IPC.events.libraryChanged, cb),

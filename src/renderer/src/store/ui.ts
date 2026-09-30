@@ -9,7 +9,7 @@ import {
   type SortKey
 } from '../lib/query'
 
-export type Tab = 'gallery' | 'coords' | 'settings'
+export type Tab = 'gallery' | 'coords' | 'map' | 'settings'
 
 export interface MenuItem {
   label: string
@@ -30,6 +30,8 @@ export type DialogState =
       confirm: string
       /** Characters to preselect (e.g. the name without extension). */
       selectLength?: number
+      /** Accept an empty value (e.g. "automatic"). */
+      allowEmpty?: boolean
       onSubmit: (value: string) => void | Promise<void>
     }
   | {

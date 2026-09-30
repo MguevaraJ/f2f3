@@ -28,6 +28,7 @@ import {
   openExternal,
   paste,
   reanalyze,
+  assignWorld,
   renameItem,
   reveal,
   toClipboard,
@@ -142,6 +143,11 @@ export function Gallery({ shots, facets }: Props) {
         icon: 'star',
         shortcut: 'F',
         action: () => toggleFavorite(targets)
+      },
+      {
+        label: one ? 'Asignar mundo…' : `Asignar mundo a ${targets.length}…`,
+        icon: 'compass',
+        action: () => assignWorld(targets)
       },
       { separator: true, label: '' },
       { label: 'Reanalizar F3', icon: 'refresh', action: () => void reanalyze(targets) },

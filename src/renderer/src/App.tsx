@@ -7,6 +7,7 @@ import { ContextMenu, Dialog, Toasts } from './components/Overlays'
 import { Sidebar } from './components/Sidebar'
 import { TitleBar } from './components/TitleBar'
 import { CoordsView } from './features/coords/CoordsView'
+import { MapView } from './features/map/MapView'
 import { Gallery } from './features/gallery/Gallery'
 import { SettingsView } from './features/settings/SettingsView'
 import { Viewer } from './features/viewer/Viewer'
@@ -72,6 +73,7 @@ export function App() {
           <div className="content">
             {tab === 'gallery' && <Gallery shots={visible} facets={facets} />}
             {tab === 'coords' && <CoordsView shots={all} />}
+            {tab === 'map' && <MapView shots={all} />}
             {tab === 'settings' && <SettingsView />}
           </div>
           <BottomBar visibleIds={visible.map((s) => s.id)} />

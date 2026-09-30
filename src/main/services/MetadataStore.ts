@@ -42,6 +42,7 @@ export class MetadataStore {
       if (!next.note) delete next.note
       if (!next.favorite) delete next.favorite
       if (!next.tags?.length) delete next.tags
+      if (!next.world) delete next.world
       if (Object.keys(next).length) d.meta[path] = next
       else delete d.meta[path]
     })
