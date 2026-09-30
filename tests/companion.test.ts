@@ -4,9 +4,11 @@ import { describe, expect, it } from 'vitest'
 import { resolveAnalysis } from '../src/core/analyze'
 import {
   catalogStructureId,
+  companionLocation,
   companionPathFor,
   parseCompanion
 } from '../src/core/companion/parseCompanion'
+import { companionTechnical } from '../src/shared/companion'
 import type { F3Data, ScreenshotAnalysis } from '../src/shared/types'
 
 const real = readFileSync(join(__dirname, 'fixtures/companion/real-26.3.craftshot.json'), 'utf8')
@@ -45,14 +47,17 @@ const village = {
 
 function base(over: Partial<ScreenshotAnalysis>): ScreenshotAnalysis {
   return {
-    schema: 6,
+    schema: 8,
     fingerprint: '',
     analyzedAt: 0,
     hasF3: false,
     f3: null,
     ocr: null,
     mod: null,
-    heuristic: { dimension: 'minecraft:overworld', biome: { id: 'minecraft:desert', confidence: 0.3 } },
+    heuristic: {
+      dimension: 'minecraft:overworld',
+      biome: { id: 'minecraft:desert', confidence: 0.3 }
+    },
     local: null,
     vision: null,
     manualBiome: null,
@@ -183,5 +188,55 @@ describe('resolveAnalysis with the mod', () => {
     const a = resolveAnalysis(old)
     expect(a.mod).toBeNull()
     expect(a.biome?.source).toBe('heuristic')
+  })
+})
+
+describe('Companion mod technical data (real 26.3 files)', () => {
+  const load = (name: string) =>
+    parseCompanion(readFileSync(join(__dirname, 'fixtures/companion', name), 'utf8'))!
+
+  it('reads tick, mob caps, game rules, mods and nearby entities', () => {
+    const c = load('chest-26.3.craftshot.json')
+    expect(c.game?.tick).toMatchObject({ rate: 30, state: 'normal' })
+    expect(c.game?.tick.mspt).toBeGreaterThan(0)
+    expect(c.spawn?.chunks).toBe(289)
+    expect(c.gamerules?.['minecraft:random_tick_speed']).toEqual({ value: 10, default: 3 })
+    expect(c.mods?.some((m) => m.id === 'craftshot_companion')).toBe(true)
+    expect(c.nearby?.[0].count).toBeGreaterThan(0)
+    expect(companionTechnical(c)).toMatchObject({
+      server: { targetMs: 1000 / 30, tickState: undefined },
+      spawnCounts: { chunks: 289 }
+    })
+  })
+
+  it('reads the targeted chest: state, contents and comparator signal', () => {
+    const b = load('chest-26.3.craftshot.json').target.block!
+    expect(b.state).toMatchObject({ facing: 'south', type: 'single' })
+    expect(b.container?.items).toEqual([
+      { id: 'minecraft:iron_ingot', count: 64, slot: 0 },
+      { id: 'minecraft:redstone', count: 12, slot: 5 }
+    ])
+    expect(b.signal).toMatchObject({ received: 0, containerSignal: 1 })
+    // The location keeps the block state for the UI.
+    expect(companionLocation(load('chest-26.3.craftshot.json')).targetedBlock?.state?.facing).toBe(
+      'south'
+    )
+  })
+
+  it("reads the targeted villager's trades with enchantments", () => {
+    const v = load('librarian-26.3.craftshot.json').target.entity!.villager!
+    expect(v.profession).toBe('minecraft:librarian')
+    expect(v.trades[0]).toMatchObject({
+      buy: [{ id: 'minecraft:emerald', count: 12 }],
+      sell: { id: 'minecraft:enchanted_book', enchantments: { 'minecraft:mending': 1 } }
+    })
+  })
+
+  it('drops a malformed optional section instead of the whole file', () => {
+    const c = parseCompanion(JSON.stringify({ ...village, game: { difficulty: 3 }, mods: 'x' }))!
+    expect(c).not.toBeNull()
+    expect(c.game).toBeUndefined()
+    expect(c.mods).toBeUndefined()
+    expect(c.biome).toBe('minecraft:plains')
   })
 })

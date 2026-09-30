@@ -17,7 +17,7 @@ import { estimateScene } from './vision/sceneHeuristics'
 import { companionLocation, companionStructures } from './companion/parseCompanion'
 
 /** Bump when the local pipeline changes so cached analyses get recomputed. */
-export const ANALYSIS_SCHEMA = 7
+export const ANALYSIS_SCHEMA = 8
 
 /**
  * Offline analysis of one screenshot: Companion mod sidecar, F3 OCR + parsing and the colour estimate.

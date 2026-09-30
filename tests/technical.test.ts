@@ -44,3 +44,14 @@ describe('technical helpers', () => {
     expect(setblockCommand({ pos: b.pos })).toBeNull()
   })
 })
+
+describe('villager catalog', () => {
+  it('names professions, levels and enchantments in Spanish', async () => {
+    const { enchantmentName, professionName, villagerLevelName } =
+      await import('../src/shared/catalog/villagers')
+    expect(professionName('minecraft:librarian')).toBe('Bibliotecario')
+    expect(villagerLevelName(5)).toBe('Maestro')
+    expect(enchantmentName('minecraft:mending', 1)).toBe('Reparación I')
+    expect(enchantmentName('mymod:zap', 12)).toBe('Zap 12')
+  })
+})

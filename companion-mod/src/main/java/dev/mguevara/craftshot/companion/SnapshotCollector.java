@@ -5,6 +5,8 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
+import net.fabricmc.loader.api.ModContainer;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.SharedConstants;
 import net.minecraft.client.Camera;
@@ -24,11 +26,14 @@ import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
+import net.minecraft.world.TickRateManager;
 
 /** Reads the game state on the client thread, at the moment of the screenshot. */
 public final class SnapshotCollector {
 	/** Farther than this a mob is a few pixels: not worth reporting as "in the picture". */
 	private static final double MAX_ENTITY_DISTANCE = 96;
+	/** The despawn sphere: what counts for lag and mob caps around the player. */
+	private static final double NEARBY_RADIUS = 128;
 
 	private SnapshotCollector() {}
 
@@ -71,14 +76,19 @@ public final class SnapshotCollector {
 		HitResult hit = mc.hitResult;
 		if (hit instanceof BlockHitResult bh && hit.getType() == HitResult.Type.BLOCK) {
 			BlockPos bp = bh.getBlockPos();
+			var blockState = level.getBlockState(bp);
+			Map<String, String> state = new TreeMap<>();
+			blockState.getValues().forEach(v -> state.put(v.property().getName(), v.valueName()));
 			targetBlock = new CaptureSnapshot.TargetBlock(
-				BuiltInRegistries.BLOCK.getKey(level.getBlockState(bp).getBlock()).toString(),
-				new CaptureSnapshot.BlockVec(bp.getX(), bp.getY(), bp.getZ())
+				BuiltInRegistries.BLOCK.getKey(blockState.getBlock()).toString(),
+				new CaptureSnapshot.BlockVec(bp.getX(), bp.getY(), bp.getZ()),
+				state
 			);
 		} else if (hit instanceof EntityHitResult eh) {
 			targetEntity = new CaptureSnapshot.TargetEntity(
 				EntityType.getKey(eh.getEntity().getType()).toString(),
-				eh.getEntity().distanceTo(player)
+				eh.getEntity().distanceTo(player),
+				eh.getEntity().getId()
 			);
 		}
 
@@ -93,8 +103,51 @@ public final class SnapshotCollector {
 			light,
 			targetBlock,
 			targetEntity,
-			visibleEntities(mc, level, player)
+			visibleEntities(mc, level, player),
+			game(mc, level),
+			mods(),
+			nearbyEntities(level, player)
 		);
+	}
+
+	private static CaptureSnapshot.Game game(Minecraft mc, ClientLevel level) {
+		TickRateManager tick = level.tickRateManager();
+		// Sprinting is server-side only: the integrated server fills it in singleplayer.
+		String state = tick.isFrozen() ? (tick.isSteppingForward() ? "stepping" : "frozen") : "normal";
+		return new CaptureSnapshot.Game(
+			level.getDifficulty().getSerializedName(),
+			level.getLevelData().isHardcore(),
+			mc.options.renderDistance().get(),
+			mc.options.simulationDistance().get(),
+			mc.getConnection() != null ? mc.getConnection().serverBrand() : null,
+			tick.tickrate(),
+			state
+		);
+	}
+
+	/** Mods the player installed (not the built-in ones nor the libraries nested in other jars). */
+	private static List<CaptureSnapshot.ModInfo> mods() {
+		List<CaptureSnapshot.ModInfo> out = new ArrayList<>();
+		for (ModContainer m : FabricLoader.getInstance().getAllMods()) {
+			var meta = m.getMetadata();
+			if ("builtin".equals(meta.getType()) || m.getContainingMod().isPresent()) continue;
+			out.add(new CaptureSnapshot.ModInfo(meta.getId(), meta.getName(), meta.getVersion().getFriendlyString()));
+		}
+		out.sort((a, b) -> a.id().compareTo(b.id()));
+		return out;
+	}
+
+	/** Every loaded entity near the player by type (items and XP orbs included: they cause lag). */
+	private static List<CaptureSnapshot.EntityGroup> nearbyEntities(ClientLevel level, LocalPlayer self) {
+		Map<String, Integer> counts = new LinkedHashMap<>();
+		for (Entity e : level.entitiesForRendering()) {
+			if (e == self || e.distanceTo(self) > NEARBY_RADIUS) continue;
+			counts.merge(EntityType.getKey(e.getType()).toString(), 1, Integer::sum);
+		}
+		return counts.entrySet().stream()
+			.sorted((a, b) -> b.getValue() - a.getValue())
+			.map(en -> new CaptureSnapshot.EntityGroup(en.getKey(), en.getValue(), 0))
+			.toList();
 	}
 
 	/**

@@ -1,4 +1,7 @@
 import { applyQuery, EMPTY_FILTERS, facets, type Query } from '../src/renderer/src/lib/query'
+import { readFileSync } from 'node:fs'
+import { join } from 'node:path'
+import { parseCompanion } from '../src/core/companion/parseCompanion'
 import type { ScreenshotAnalysis, ScreenshotEntry } from '../src/shared/types'
 
 function shot(
@@ -125,5 +128,18 @@ describe('library query', () => {
   it('computes facets from the library', () => {
     expect(facets(items).mobs).toEqual(['minecraft:ghast'])
     expect(facets(items).dimensions).toHaveLength(2)
+  })
+
+  it('finds villagers by profession and by the enchantment they sell, chests by content', () => {
+    const load = (f: string) =>
+      parseCompanion(readFileSync(join(__dirname, 'fixtures/companion', f), 'utf8'))
+    const shots = [
+      shot('librarian.png', 3, { mod: load('librarian-26.3.craftshot.json') }),
+      shot('chest.png', 2, { mod: load('chest-26.3.craftshot.json') }),
+      ...items
+    ]
+    expect(ids(applyQuery(shots, q({ search: 'reparacion' })))).toEqual(['librarian.png'])
+    expect(ids(applyQuery(shots, q({ search: 'bibliotecario' })))).toEqual(['librarian.png'])
+    expect(ids(applyQuery(shots, q({ search: 'iron_ingot' })))).toEqual(['chest.png'])
   })
 })

@@ -1,0 +1,682 @@
+{
+  "format": "craftshot-companion",
+  "schema": 1,
+  "mod": {
+    "name": "Craftshot Companion",
+    "version": "1.0.0+26.3",
+    "loader": "fabric",
+    "minecraft": "26.3"
+  },
+  "capturedAt": "2026-09-30T03:46:38.132191620Z",
+  "world": {
+    "type": "singleplayer",
+    "name": "New World",
+    "seed": "-1844849896984713791",
+    "dimension": "minecraft:overworld",
+    "day": 0,
+    "timeOfDay": 9899,
+    "weather": "clear"
+  },
+  "player": {
+    "position": {
+      "x": -1019.5,
+      "y": 101.9375,
+      "z": -699.5
+    },
+    "block": {
+      "x": -1020,
+      "y": 101,
+      "z": -700
+    },
+    "chunk": {
+      "x": -64,
+      "y": 6,
+      "z": -44
+    },
+    "facing": {
+      "direction": "north",
+      "yaw": -180.0,
+      "pitch": 30.0
+    },
+    "gameMode": "creative"
+  },
+  "biome": "minecraft:plains",
+  "light": {
+    "sky": 15,
+    "block": 5
+  },
+  "target": {
+    "block": {
+      "id": "minecraft:chest",
+      "pos": {
+        "x": -1020,
+        "y": 102,
+        "z": -702
+      },
+      "state": {
+        "facing": "south",
+        "type": "single",
+        "waterlogged": "false"
+      },
+      "container": {
+        "size": 27,
+        "items": [
+          {
+            "id": "minecraft:iron_ingot",
+            "count": 64,
+            "slot": 0
+          },
+          {
+            "id": "minecraft:redstone",
+            "count": 12,
+            "slot": 5
+          }
+        ]
+      },
+      "signal": {
+        "received": 0,
+        "containerSignal": 1
+      }
+    }
+  },
+  "entities": [
+    {
+      "id": "minecraft:sheep",
+      "count": 1,
+      "nearest": 73.4
+    }
+  ],
+  "nearby": [
+    {
+      "id": "minecraft:creeper",
+      "count": 21
+    },
+    {
+      "id": "minecraft:zombie",
+      "count": 17
+    },
+    {
+      "id": "minecraft:skeleton",
+      "count": 17
+    },
+    {
+      "id": "minecraft:bat",
+      "count": 12
+    },
+    {
+      "id": "minecraft:spider",
+      "count": 9
+    },
+    {
+      "id": "minecraft:squid",
+      "count": 8
+    },
+    {
+      "id": "minecraft:pig",
+      "count": 8
+    },
+    {
+      "id": "minecraft:enderman",
+      "count": 7
+    },
+    {
+      "id": "minecraft:rabbit",
+      "count": 7
+    },
+    {
+      "id": "minecraft:villager",
+      "count": 7
+    },
+    {
+      "id": "minecraft:sheep",
+      "count": 7
+    },
+    {
+      "id": "minecraft:glow_squid",
+      "count": 6
+    },
+    {
+      "id": "minecraft:cow",
+      "count": 5
+    },
+    {
+      "id": "minecraft:cat",
+      "count": 2
+    },
+    {
+      "id": "minecraft:item",
+      "count": 2
+    },
+    {
+      "id": "minecraft:witch",
+      "count": 1
+    },
+    {
+      "id": "minecraft:goat",
+      "count": 1
+    },
+    {
+      "id": "minecraft:iron_golem",
+      "count": 1
+    }
+  ],
+  "game": {
+    "difficulty": "hard",
+    "hardcore": false,
+    "renderDistance": 16,
+    "simulationDistance": 12,
+    "serverBrand": "fabric",
+    "tick": {
+      "rate": 30.0,
+      "state": "normal",
+      "mspt": 5.84
+    }
+  },
+  "mods": [
+    {
+      "id": "craftshot_companion",
+      "name": "Craftshot Companion",
+      "version": "1.0.0+26.3"
+    },
+    {
+      "id": "fabric-advancement-api-v1",
+      "name": "Fabric Advancement API (v1)",
+      "version": "1.0.0+38c7a2d55d"
+    },
+    {
+      "id": "fabric-api",
+      "name": "Fabric API",
+      "version": "0.161.0+26.3"
+    },
+    {
+      "id": "fabric-api-base",
+      "name": "Fabric API Base",
+      "version": "2.0.6+fcdff87f5d"
+    },
+    {
+      "id": "fabric-api-lookup-api-v1",
+      "name": "Fabric API Lookup API (v1)",
+      "version": "2.0.24+3434d6d95d"
+    },
+    {
+      "id": "fabric-biome-api-v1",
+      "name": "Fabric Biome API (v1)",
+      "version": "20.0.9+74ed1ea55d"
+    },
+    {
+      "id": "fabric-block-api-v1",
+      "name": "Fabric Block API (v1)",
+      "version": "3.1.0+0ae6f9115d"
+    },
+    {
+      "id": "fabric-block-getter-api-v2",
+      "name": "Fabric BlockGetter API (v2)",
+      "version": "2.0.9+3434d6d95d"
+    },
+    {
+      "id": "fabric-client-gametest-api-v1",
+      "name": "Fabric Client Game Test API (v1)",
+      "version": "6.0.7+4be74c3f5d"
+    },
+    {
+      "id": "fabric-command-api-v2",
+      "name": "Fabric Command API (v2)",
+      "version": "3.1.2+fcdff87f5d"
+    },
+    {
+      "id": "fabric-content-registries-v0",
+      "name": "Fabric Content Registries (v0)",
+      "version": "15.0.4+74ed1ea55d"
+    },
+    {
+      "id": "fabric-convention-tags-v2",
+      "name": "Fabric Convention Tags (v2)",
+      "version": "4.10.3+6b5b47fd5d"
+    },
+    {
+      "id": "fabric-crash-report-info-v1",
+      "name": "Fabric Crash Report Info (v1)",
+      "version": "1.0.7+fcdff87f5d"
+    },
+    {
+      "id": "fabric-creative-tab-api-v1",
+      "name": "Fabric Creative Tab API (v1)",
+      "version": "5.0.21+fcdff87f5d"
+    },
+    {
+      "id": "fabric-data-attachment-api-v1",
+      "name": "Fabric Data Attachment API (v1)",
+      "version": "2.2.30+3434d6d95d"
+    },
+    {
+      "id": "fabric-data-generation-api-v1",
+      "name": "Fabric Data Generation API (v1)",
+      "version": "27.2.4+427eab975d"
+    },
+    {
+      "id": "fabric-debug-api-v1",
+      "name": "Fabric Debug API (v1)",
+      "version": "1.0.4+3434d6d95d"
+    },
+    {
+      "id": "fabric-dimensions-v1",
+      "name": "Fabric Dimensions API (v1)",
+      "version": "5.1.19+47f74c985d"
+    },
+    {
+      "id": "fabric-entity-events-v1",
+      "name": "Fabric Entity Events (v1)",
+      "version": "6.0.4+3434d6d95d"
+    },
+    {
+      "id": "fabric-events-interaction-v0",
+      "name": "Fabric Events Interaction (v0)",
+      "version": "5.3.6+3434d6d95d"
+    },
+    {
+      "id": "fabric-game-rule-api-v1",
+      "name": "Fabric Game Rule API (v1)",
+      "version": "4.0.10+3434d6d95d"
+    },
+    {
+      "id": "fabric-gametest-api-v1",
+      "name": "Fabric Game Test API (v1)",
+      "version": "4.0.32+3434d6d95d"
+    },
+    {
+      "id": "fabric-item-api-v1",
+      "name": "Fabric Item API (v1)",
+      "version": "14.7.0+cf6bc2db5d"
+    },
+    {
+      "id": "fabric-key-mapping-api-v1",
+      "name": "Fabric Key Mapping API (v1)",
+      "version": "2.0.8+3434d6d95d"
+    },
+    {
+      "id": "fabric-lifecycle-events-v1",
+      "name": "Fabric Lifecycle Events (v1)",
+      "version": "4.1.9+ffef5f675d"
+    },
+    {
+      "id": "fabric-loot-api-v3",
+      "name": "Fabric Loot API (v3)",
+      "version": "4.0.8+4068fd645d"
+    },
+    {
+      "id": "fabric-menu-api-v1",
+      "name": "Fabric Menu API (v1)",
+      "version": "2.0.27+ed66f0a35d"
+    },
+    {
+      "id": "fabric-message-api-v1",
+      "name": "Fabric Message API (v1)",
+      "version": "7.0.10+3434d6d95d"
+    },
+    {
+      "id": "fabric-model-loading-api-v1",
+      "name": "Fabric Model Loading API (v1)",
+      "version": "8.0.35+fcdff87f5d"
+    },
+    {
+      "id": "fabric-networking-api-v1",
+      "name": "Fabric Networking API (v1)",
+      "version": "6.3.8+fcdff87f5d"
+    },
+    {
+      "id": "fabric-object-builder-api-v1",
+      "name": "Fabric Object Builder API (v1)",
+      "version": "24.1.9+3434d6d95d"
+    },
+    {
+      "id": "fabric-particles-v1",
+      "name": "Fabric Particles (v1)",
+      "version": "5.0.24+3434d6d95d"
+    },
+    {
+      "id": "fabric-permission-api-v1",
+      "name": "Fabric Permission API (v1)",
+      "version": "1.0.8+fcdff87f5d"
+    },
+    {
+      "id": "fabric-recipe-api-v1",
+      "name": "Fabric Recipe API (v1)",
+      "version": "10.0.8+fcdff87f5d"
+    },
+    {
+      "id": "fabric-registry-sync-v0",
+      "name": "Fabric Registry Sync (v0)",
+      "version": "8.0.1+fcdff87f5d"
+    },
+    {
+      "id": "fabric-renderer-api-v1",
+      "name": "Fabric Renderer API (v1)",
+      "version": "17.0.15+79385d0b5d"
+    },
+    {
+      "id": "fabric-renderer-indigo",
+      "name": "Fabric Renderer - Indigo",
+      "version": "9.1.23+b9d63e335d"
+    },
+    {
+      "id": "fabric-rendering-fluids-v1",
+      "name": "Fabric Rendering Fluids (v1)",
+      "version": "6.0.6+3434d6d95d"
+    },
+    {
+      "id": "fabric-rendering-v1",
+      "name": "Fabric Rendering (v1)",
+      "version": "27.0.14+901a437c5d"
+    },
+    {
+      "id": "fabric-resource-conditions-api-v1",
+      "name": "Fabric Resource Conditions API (v1)",
+      "version": "6.1.5+3434d6d95d"
+    },
+    {
+      "id": "fabric-resource-loader-v0",
+      "name": "Fabric Resource Loader (v0)",
+      "version": "3.3.26+4fc5413f5d"
+    },
+    {
+      "id": "fabric-resource-loader-v1",
+      "name": "Fabric Resource Loader (v1)",
+      "version": "3.0.4+fcdff87f5d"
+    },
+    {
+      "id": "fabric-screen-api-v1",
+      "name": "Fabric Screen API (v1)",
+      "version": "5.2.4+48607d035d"
+    },
+    {
+      "id": "fabric-serialization-api-v1",
+      "name": "Fabric Serialization API (v1)",
+      "version": "2.0.7+74ed1ea55d"
+    },
+    {
+      "id": "fabric-sound-api-v1",
+      "name": "Fabric Sound API (v1)",
+      "version": "2.0.7+3434d6d95d"
+    },
+    {
+      "id": "fabric-tag-api-v1",
+      "name": "Fabric Tag API (v1)",
+      "version": "2.1.10+fcdff87f5d"
+    },
+    {
+      "id": "fabric-transfer-api-v1",
+      "name": "Fabric Transfer API (v1)",
+      "version": "8.0.25+fcdff87f5d"
+    },
+    {
+      "id": "fabric-transitive-access-wideners-v1",
+      "name": "Fabric Transitive Access Wideners (v1)",
+      "version": "8.1.16+52268a0e5d"
+    },
+    {
+      "id": "fabricloader",
+      "name": "Fabric Loader",
+      "version": "0.19.5"
+    },
+    {
+      "id": "mixinextras",
+      "name": "MixinExtras",
+      "version": "0.5.5"
+    }
+  ],
+  "spawn": {
+    "chunks": 289,
+    "counts": {
+      "monster": 71,
+      "creature": 160,
+      "ambient": 15,
+      "axolotls": 0,
+      "underground_water_creature": 6,
+      "water_creature": 8,
+      "water_ambient": 0,
+      "misc": 0
+    }
+  },
+  "gamerules": {
+    "minecraft:max_command_sequence_length": {
+      "value": 65536,
+      "default": 65536
+    },
+    "minecraft:spawn_patrols": {
+      "value": true,
+      "default": true
+    },
+    "minecraft:universal_anger": {
+      "value": false,
+      "default": false
+    },
+    "minecraft:player_movement_check": {
+      "value": true,
+      "default": true
+    },
+    "minecraft:keep_inventory": {
+      "value": false,
+      "default": false
+    },
+    "minecraft:random_tick_speed": {
+      "value": 10,
+      "default": 3
+    },
+    "minecraft:block_explosion_drop_decay": {
+      "value": true,
+      "default": true
+    },
+    "minecraft:entity_drops": {
+      "value": true,
+      "default": true
+    },
+    "minecraft:command_blocks_work": {
+      "value": true,
+      "default": true
+    },
+    "minecraft:spawn_monsters": {
+      "value": true,
+      "default": true
+    },
+    "minecraft:forgive_dead_players": {
+      "value": true,
+      "default": true
+    },
+    "minecraft:fall_damage": {
+      "value": true,
+      "default": true
+    },
+    "minecraft:natural_health_regeneration": {
+      "value": true,
+      "default": true
+    },
+    "minecraft:spectators_generate_chunks": {
+      "value": true,
+      "default": true
+    },
+    "minecraft:allow_entering_nether_using_portals": {
+      "value": true,
+      "default": true
+    },
+    "minecraft:tnt_explosion_drop_decay": {
+      "value": false,
+      "default": false
+    },
+    "minecraft:respawn_radius": {
+      "value": 10,
+      "default": 10
+    },
+    "minecraft:spawn_wardens": {
+      "value": true,
+      "default": true
+    },
+    "minecraft:fire_damage": {
+      "value": true,
+      "default": true
+    },
+    "minecraft:mob_griefing": {
+      "value": true,
+      "default": true
+    },
+    "minecraft:block_drops": {
+      "value": true,
+      "default": true
+    },
+    "minecraft:players_nether_portal_creative_delay": {
+      "value": 0,
+      "default": 0
+    },
+    "minecraft:players_sleeping_percentage": {
+      "value": 100,
+      "default": 100
+    },
+    "minecraft:spawn_wandering_traders": {
+      "value": true,
+      "default": true
+    },
+    "minecraft:spawn_mobs": {
+      "value": true,
+      "default": true
+    },
+    "minecraft:mob_drops": {
+      "value": true,
+      "default": true
+    },
+    "minecraft:freeze_damage": {
+      "value": true,
+      "default": true
+    },
+    "minecraft:max_block_modifications": {
+      "value": 32768,
+      "default": 32768
+    },
+    "minecraft:max_command_forks": {
+      "value": 65536,
+      "default": 65536
+    },
+    "minecraft:ender_pearls_vanish_on_death": {
+      "value": true,
+      "default": true
+    },
+    "minecraft:players_nether_portal_default_delay": {
+      "value": 80,
+      "default": 80
+    },
+    "minecraft:drowning_damage": {
+      "value": true,
+      "default": true
+    },
+    "minecraft:show_advancement_messages": {
+      "value": true,
+      "default": true
+    },
+    "minecraft:pvp": {
+      "value": true,
+      "default": true
+    },
+    "minecraft:spawn_phantoms": {
+      "value": true,
+      "default": true
+    },
+    "minecraft:locator_bar": {
+      "value": true,
+      "default": true
+    },
+    "minecraft:projectiles_can_break_blocks": {
+      "value": true,
+      "default": true
+    },
+    "minecraft:mob_explosion_drop_decay": {
+      "value": true,
+      "default": true
+    },
+    "minecraft:spawner_blocks_work": {
+      "value": true,
+      "default": true
+    },
+    "minecraft:fire_spread_radius_around_player": {
+      "value": 128,
+      "default": 128
+    },
+    "minecraft:elytra_movement_check": {
+      "value": true,
+      "default": true
+    },
+    "minecraft:log_admin_commands": {
+      "value": true,
+      "default": true
+    },
+    "minecraft:raids": {
+      "value": true,
+      "default": true
+    },
+    "minecraft:max_snow_accumulation_height": {
+      "value": 1,
+      "default": 1
+    },
+    "minecraft:send_command_feedback": {
+      "value": true,
+      "default": true
+    },
+    "minecraft:command_block_output": {
+      "value": true,
+      "default": true
+    },
+    "minecraft:immediate_respawn": {
+      "value": false,
+      "default": false
+    },
+    "minecraft:spread_vines": {
+      "value": true,
+      "default": true
+    },
+    "minecraft:water_source_conversion": {
+      "value": true,
+      "default": true
+    },
+    "minecraft:tnt_explodes": {
+      "value": true,
+      "default": true
+    },
+    "minecraft:show_death_messages": {
+      "value": true,
+      "default": true
+    },
+    "minecraft:limited_crafting": {
+      "value": false,
+      "default": false
+    },
+    "minecraft:reduced_debug_info": {
+      "value": false,
+      "default": false
+    },
+    "minecraft:global_sound_events": {
+      "value": true,
+      "default": true
+    },
+    "minecraft:advance_time": {
+      "value": true,
+      "default": true
+    },
+    "minecraft:advance_weather": {
+      "value": true,
+      "default": true
+    },
+    "minecraft:lava_source_conversion": {
+      "value": false,
+      "default": false
+    },
+    "minecraft:max_entity_cramming": {
+      "value": 24,
+      "default": 24
+    }
+  },
+  "structures": {
+    "inside": [
+      "minecraft:village_plains"
+    ],
+    "target": [
+      "minecraft:village_plains"
+    ]
+  }
+}

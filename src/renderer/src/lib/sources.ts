@@ -59,7 +59,7 @@ export const MOD_LEVEL = {
   title: 'Mod Craftshot Companion',
   badge: 'Exacto · Opcional · Fabric 26.3',
   gives:
-    'Coordenadas, bioma, dimensión, orientación, mobs visibles, estructuras, semilla, hora y clima, sin abrir el F3.',
+    'Coordenadas, bioma, mobs visibles, estructuras, semilla, hora y clima sin abrir el F3; y para técnico: TPS, límite de mobs, reglas del juego, contenido de cofres y tolvas, señal de redstone y tratos de aldeanos.',
   needs:
     'Minecraft 26.3 con Fabric Loader. Guarda el mod y ponlo en la carpeta mods de ese perfil; al pulsar F2 deja un .craftshot.json junto a la captura.'
 } as const

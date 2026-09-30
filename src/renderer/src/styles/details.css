@@ -635,3 +635,27 @@ button.fact-value:hover svg {
   font-weight: 600;
   color: var(--text-2);
 }
+.trades {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 8px;
+}
+.trade {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr auto;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 8px;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.04);
+  font-size: 12px;
+}
+.trade.out {
+  opacity: 0.5;
+  text-decoration: line-through;
+}
+.rows.wrap dt {
+  white-space: normal;
+  overflow-wrap: anywhere;
+}

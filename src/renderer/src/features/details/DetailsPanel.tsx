@@ -1,4 +1,4 @@
-import { useState, type ReactNode } from 'react'
+import { useState } from 'react'
 import { BIOMES, biomeById, biomeName, DIMENSIONS, dimensionName } from '@shared/catalog/biomes'
 import { MOB_CATEGORY_LABEL, mobName } from '@shared/catalog/mobs'
 import { structureName } from '@shared/catalog/structures'
@@ -10,8 +10,7 @@ import type {
   F3Data,
   InfoSource,
   LocationData,
-  ScreenshotEntry,
-  VisionResult
+  ScreenshotEntry
 } from '@shared/types'
 import { CreeperFace, Icon } from '../../components/icons'
 import { McText } from '../../components/McText'
@@ -25,14 +24,9 @@ import {
 } from '../../lib/coords'
 import { formatBytes, formatDateTime, formatNumber, formatRelative } from '../../lib/format'
 import { PROVIDER_LABEL, SOURCE_INFO } from '../../lib/sources'
-import {
-  blockStateString,
-  capRows,
-  HEIGHTMAP_LABEL,
-  setblockCommand,
-  tickInfo
-} from '../../lib/technical'
 import { useLocalModel } from '../../store/localModel'
+import { GameRulesBlock, ModsBlock, TechnicalSection, VillagerSection } from './TechnicalPanels'
+import { Section, Rows, Row, Fact, Axis, CopyButton, CopyChip, SourceTag } from './parts'
 import { useSettings } from '../../store/settings'
 import { useLibrary } from '../../store/library'
 import { useUi } from '../../store/ui'
@@ -156,7 +150,14 @@ export function DetailsPanel({
           <SummaryChips shot={shot} />
           {a.mod && <GameSection mod={a.mod} />}
           {loc ? <LocationSections shot={shot} loc={loc} f3={a.f3} /> : <NoF3Notice />}
-          {a.f3 && <TechnicalSection f3={a.f3} target={loc?.targetedBlock ?? a.f3.targetedBlock} />}
+          {(a.f3 || a.mod) && (
+            <TechnicalSection
+              f3={a.f3}
+              mod={a.mod ?? null}
+              target={loc?.targetedBlock ?? a.f3?.targetedBlock}
+            />
+          )}
+          {a.mod?.target.entity?.villager && <VillagerSection v={a.mod.target.entity.villager} />}
           <VisionSection shot={shot} />
         </>
       )}
@@ -668,6 +669,13 @@ const GAME_MODE_ES: Record<string, string> = {
   spectator: 'Espectador'
 }
 
+const DIFFICULTY_ES: Record<string, string> = {
+  peaceful: 'Pacífico',
+  easy: 'Fácil',
+  normal: 'Normal',
+  hard: 'Difícil'
+}
+
 const WORLD_TYPE_ES: Record<CompanionData['world']['type'], string> = {
   singleplayer: 'Un jugador',
   multiplayer: 'Multijugador',
@@ -698,136 +706,29 @@ function GameSection({ mod }: { mod: CompanionData }) {
         />
         <Row k="Clima" v={WEATHER_ES[world.weather]} />
         <Row k="Modo de juego" v={GAME_MODE_ES[mod.player.gameMode] ?? mod.player.gameMode} />
+        {mod.game && (
+          <>
+            <Row
+              k="Dificultad"
+              v={`${DIFFICULTY_ES[mod.game.difficulty] ?? mod.game.difficulty}${mod.game.hardcore ? ' · Extremo' : ''}`}
+            />
+            <Row
+              k="Distancias"
+              v={`Renderizado ${mod.game.renderDistance} · simulación ${mod.game.simulationDistance} chunks`}
+              hint="La distancia de simulación decide qué chunks procesan entidades y granjas alrededor del jugador"
+            />
+            {mod.game.serverBrand && world.type !== 'singleplayer' && (
+              <Row k="Servidor" v={mod.game.serverBrand} />
+            )}
+          </>
+        )}
         <Row k="Versión" v={`${mod.minecraft} · mod ${mod.modVersion}`} />
       </Rows>
+      {mod.gamerules && <GameRulesBlock rules={mod.gamerules} />}
+      {mod.mods && mod.mods.length > 0 && <ModsBlock mods={mod.mods} />}
       {world.seed && (
         <div className="copy-grid">
           <CopyButton label="Semilla" value={world.seed} title={world.seed} />
-        </div>
-      )}
-    </Section>
-  )
-}
-
-/** Redstone, farms and lag: what the debug screen tells a technical player. */
-function TechnicalSection({ f3, target }: { f3: F3Data; target?: F3Data['targetedBlock'] }) {
-  const [showTags, setShowTags] = useState(false)
-  const tick = f3.server && tickInfo(f3.server)
-  const caps = f3.spawnCounts ? capRows(f3.spawnCounts) : []
-  const hasState = !!target && (!!target.state || !!target.tags)
-  const heights = f3.heightmaps?.server ?? f3.heightmaps?.client
-  if (
-    !f3.server &&
-    !caps.length &&
-    !hasState &&
-    f3.day === undefined &&
-    f3.speed === undefined &&
-    !heights
-  )
-    return null
-  const state = target && blockStateString(target)
-  const setblock = target && setblockCommand(target)
-
-  return (
-    <Section title="Técnico" icon="gauge">
-      <Rows>
-        {tick && (
-          <Row
-            k="Servidor"
-            v={`${formatNumber(f3.server!.mspt!, 1)} ms/tick · ${formatNumber(tick.tps, 1)} TPS · ${tick.label}`}
-            hint="MSPT: milisegundos por tick. Por encima de 50 ms el juego va a menos de 20 TPS."
-          />
-        )}
-        {f3.server?.brand && <Row k="Servidor" v={f3.server.brand} />}
-        {f3.day !== undefined && <Row k="Día del mundo" v={String(f3.day)} />}
-        {f3.speed !== undefined && (
-          <Row
-            k="Velocidad"
-            v={`${formatNumber(f3.speed, 3)} bloques/tick (${formatNumber(f3.speed * 20, 2)} m/s)`}
-          />
-        )}
-        {heights && (
-          <Row
-            k="Alturas"
-            v={Object.entries(heights)
-              .map(([k, y]) => `${HEIGHTMAP_LABEL[k] ?? k} ${y}`)
-              .join(' · ')}
-            hint="Heightmaps del servidor: el bloque más alto de cada tipo en esta columna"
-          />
-        )}
-      </Rows>
-
-      {caps.length > 0 && (
-        <div className="mob-caps">
-          <div className="mobs-head">
-            <CreeperFace size={16} /> Límite de mobs
-            <span className="muted small"> · {f3.spawnCounts!.chunks} chunks de spawn</span>
-          </div>
-          {caps.map((c) => (
-            <div key={c.id} className={`cap-row ${c.full ? 'full' : ''}`} title={c.hint}>
-              <span className="cap-label">{c.label}</span>
-              <span className="cap-bar">
-                <span
-                  style={{ width: `${Math.min(100, (c.count / Math.max(1, c.cap)) * 100)}%` }}
-                />
-              </span>
-              <span className="cap-value">
-                {c.count}/{c.cap}
-              </span>
-            </div>
-          ))}
-          {caps.find((c) => c.id === 'monster')?.full && (
-            <p className="muted small">
-              El límite de monstruos está lleno: no aparecerán más hostiles. Ilumina cuevas cercanas
-              o elimina mobs persistentes para que tu granja rinda.
-            </p>
-          )}
-        </div>
-      )}
-
-      {target && hasState && (
-        <div className="block-state">
-          <div className="mobs-head">
-            <Icon name="layers" size={15} /> {target.id ?? 'Bloque apuntado'}
-          </div>
-          {target.state && (
-            <div className="chip-row">
-              {Object.entries(target.state).map(([k, v]) => (
-                <span
-                  key={k}
-                  className={`chip state ${v === 'true' ? 'on' : v === 'false' ? 'off' : ''}`}
-                >
-                  {k} <b>{v}</b>
-                </span>
-              ))}
-            </div>
-          )}
-          <div className="copy-grid">
-            {state && <CopyButton label="Estado" value={state} />}
-            {setblock && <CopyButton label="/setblock" value={setblock} />}
-          </div>
-          {target.tags && (
-            <>
-              <button
-                className="f3-tip-toggle"
-                onClick={() => setShowTags(!showTags)}
-                aria-expanded={showTags}
-              >
-                <u>
-                  {showTags ? 'Ocultar' : 'Ver'} {target.tags.length} etiquetas
-                </u>
-              </button>
-              {showTags && (
-                <div className="chip-row">
-                  {target.tags.map((t) => (
-                    <span key={t} className="chip tag">
-                      #{t}
-                    </span>
-                  ))}
-                </div>
-              )}
-            </>
-          )}
         </div>
       )}
     </Section>
@@ -982,128 +883,3 @@ function Compass({ yaw }: { yaw?: number }) {
 }
 
 // ───────────── small building blocks ─────────────
-
-function Section({
-  title,
-  icon,
-  children,
-  collapsed = false,
-  accent = false,
-  action
-}: {
-  title: string
-  icon: string
-  children: ReactNode
-  collapsed?: boolean
-  accent?: boolean
-  /** Extra control shown in the header (kept outside the toggle button). */
-  action?: ReactNode
-}) {
-  const [open, setOpen] = useState(!collapsed)
-  return (
-    <section className={`dsec ${accent ? 'accent' : ''}`}>
-      <div className="dsec-headrow">
-        <button className="dsec-head" onClick={() => setOpen(!open)} aria-expanded={open}>
-          <Icon name={icon} size={16} />
-          <span>{title}</span>
-          <Icon name="chevronDown" size={16} className={`dsec-caret ${open ? 'open' : ''}`} />
-        </button>
-        {action}
-      </div>
-      {open && <div className="dsec-body">{children}</div>}
-    </section>
-  )
-}
-
-function Rows({ children }: { children: ReactNode }) {
-  return <dl className="rows">{children}</dl>
-}
-
-function Row({ k, v, hint, copy = true }: { k: string; v: string; hint?: string; copy?: boolean }) {
-  return (
-    <div className="row">
-      <dt title={hint}>{k}</dt>
-      <dd>
-        <span className="row-value">{v}</span>
-        {copy && (
-          <button className="row-copy" onClick={() => void copyText(v, k)} title={`Copiar ${k}`}>
-            <Icon name="copy" size={13} />
-          </button>
-        )}
-      </dd>
-    </div>
-  )
-}
-
-function Fact({ label, children }: { label: string; children: ReactNode }) {
-  return (
-    <div className="fact">
-      <div className="fact-label">{label}</div>
-      {children}
-    </div>
-  )
-}
-
-function Axis({ label, value }: { label: string; value: number }) {
-  return (
-    <button
-      className="axis"
-      onClick={() => void copyText(formatNumber(value), `Coordenada ${label}`)}
-      title={`Copiar ${label}`}
-    >
-      <span className="axis-label">{label}</span>
-      <span className="axis-value">{formatNumber(value)}</span>
-    </button>
-  )
-}
-
-function CopyButton({ label, value, title }: { label: string; value: string; title?: string }) {
-  const [done, setDone] = useState(false)
-  return (
-    <button
-      className={`copy-btn ${done ? 'done' : ''}`}
-      title={title ?? value}
-      onClick={() => {
-        void copyText(value, label)
-        setDone(true)
-        window.setTimeout(() => setDone(false), 1200)
-      }}
-    >
-      <Icon name={done ? 'check' : 'copy'} size={14} />
-      <span className="copy-label">{label}</span>
-      <span className="copy-value">{value}</span>
-    </button>
-  )
-}
-
-function CopyChip({ value, what }: { value: string; what: string }) {
-  return (
-    <button className="chip" onClick={() => void copyText(value, what)} title={`Copiar ${what}`}>
-      <Icon name="copy" size={12} /> {value}
-    </button>
-  )
-}
-
-function SourceTag({
-  source,
-  confidence,
-  vision
-}: {
-  source: InfoSource
-  confidence?: number
-  vision?: VisionResult | null
-}) {
-  const info = SOURCE_INFO[source]
-  const pct =
-    confidence !== undefined && source !== 'f3' && source !== 'manual'
-      ? ` · ${Math.round(confidence * 100)}%`
-      : ''
-  const who = source === 'vision' && vision?.provider ? ` (${PROVIDER_LABEL[vision.provider]})` : ''
-  return (
-    <span className={`source-tag ${source}`} title={`${info.label}${who}${pct}. ${info.hint}`}>
-      {source === 'vision' && vision?.provider
-        ? `IA · ${PROVIDER_LABEL[vision.provider]}`
-        : info.tag}
-    </span>
-  )
-}

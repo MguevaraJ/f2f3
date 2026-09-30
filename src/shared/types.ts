@@ -152,11 +152,58 @@ export interface CompanionData {
   }
   biome: string
   light?: { sky: number; block: number }
-  target: { block?: { id: string; pos: Vec3 }; entity?: { id: string; distance: number } }
+  target: {
+    block?: {
+      id: string
+      pos: Vec3
+      state?: Record<string, string>
+      /** Singleplayer: redstone signal around it and what a comparator would read. */
+      signal?: { received: number; comparatorOutput?: number; containerSignal?: number }
+      /** Singleplayer: contents of a chest, hopper, barrel… */
+      container?: { size: number; items: (CompanionItem & { slot: number })[] }
+    }
+    entity?: { id: string; distance: number; villager?: CompanionVillager }
+  }
   /** Living entities visible in the picture, grouped by type. */
   entities: { id: string; count: number; nearest: number }[]
   /** Raw structure ids; absent when unknown (multiplayer). */
   structures?: { inside: string[]; target: string[] }
+  /** Every loaded entity within 128 blocks by type (items and XP orbs included). */
+  nearby?: { id: string; count: number }[]
+  game?: {
+    difficulty: string
+    hardcore: boolean
+    renderDistance: number
+    simulationDistance: number
+    serverBrand?: string
+    /** Target tick rate (/tick rate), its state and, in singleplayer, the real MSPT. */
+    tick: { rate: number; state: 'normal' | 'frozen' | 'stepping' | 'sprinting'; mspt?: number }
+  }
+  /** Mods the player installed. */
+  mods?: { id: string; name: string; version: string }[]
+  /** Singleplayer: mob counts per category from the last spawning pass. */
+  spawn?: { chunks: number; counts: Partial<Record<SpawnCategory, number>> }
+  /** Singleplayer: every game rule with its default. */
+  gamerules?: Record<string, { value: boolean | number | string; default: boolean | number | string }>
+}
+
+export interface CompanionItem {
+  id: string
+  count: number
+  /** Enchantments (stored in books, or on tools), id → level. */
+  enchantments?: Record<string, number>
+}
+
+export interface CompanionVillager {
+  profession?: string
+  type?: string
+  level?: number
+  xp?: number
+  home?: Vec3 & { dimension: string }
+  jobSite?: Vec3 & { dimension: string }
+  meetingPoint?: Vec3 & { dimension: string }
+  golemDetectedRecently?: boolean
+  trades: { buy: CompanionItem[]; sell: CompanionItem; uses: number; maxUses: number }[]
 }
 
 /** Position data shown in the UI, from the mod (preferred) or the F3 overlay. */

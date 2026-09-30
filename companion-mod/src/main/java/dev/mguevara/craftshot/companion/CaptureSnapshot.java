@@ -3,6 +3,7 @@ package dev.mguevara.craftshot.companion;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Everything collected at the moment F2 was pressed. Serialised as the
@@ -18,7 +19,10 @@ public record CaptureSnapshot(
 	Light light,
 	TargetBlock targetBlock,
 	TargetEntity targetEntity,
-	List<EntityGroup> entities
+	List<EntityGroup> entities,
+	Game game,
+	List<ModInfo> mods,
+	List<EntityGroup> nearby
 ) {
 	public static final String FORMAT = "craftshot-companion";
 	public static final int SCHEMA = 1;
@@ -33,14 +37,26 @@ public record CaptureSnapshot(
 
 	public record Light(int sky, int block) {}
 
-	public record TargetBlock(String id, BlockVec pos) {}
+	/** state: block state properties, e.g. {delay=3, facing=south}. */
+	public record TargetBlock(String id, BlockVec pos, Map<String, String> state) {}
 
-	public record TargetEntity(String id, double distance) {}
+	/** networkId: the entity id shared with the integrated server (not serialised). */
+	public record TargetEntity(String id, double distance, int networkId) {}
+
+	/** Client-side settings and the tick rate the client was told about. */
+	public record Game(String difficulty, boolean hardcore, int renderDistance, int simulationDistance,
+			String serverBrand, float tickRate, String tickState) {}
+
+	public record ModInfo(String id, String name, String version) {}
 
 	public record EntityGroup(String id, int count, double nearest) {}
 
-	/** Structures are resolved later on the integrated server thread (singleplayer only). */
-	public JsonObject toJson(Structures structures) {
+	/**
+	 * The server part (structures, mob caps, game rules…) comes from the integrated server
+	 * in singleplayer; null in multiplayer, where the client is never told about it.
+	 */
+	public JsonObject toJson(ServerCollector.Result server) {
+		Structures structures = server != null ? server.structures() : null;
 		JsonObject root = new JsonObject();
 		root.addProperty("format", FORMAT);
 		root.addProperty("schema", SCHEMA);
@@ -89,12 +105,19 @@ public record CaptureSnapshot(
 			JsonObject b = new JsonObject();
 			b.addProperty("id", targetBlock.id());
 			b.add("pos", vec(targetBlock.pos()));
+			if (!targetBlock.state().isEmpty()) {
+				JsonObject st = new JsonObject();
+				targetBlock.state().forEach(st::addProperty);
+				b.add("state", st);
+			}
+			if (server != null && server.block() != null) server.block().entrySet().forEach(en -> b.add(en.getKey(), en.getValue()));
 			target.add("block", b);
 		}
 		if (targetEntity != null) {
 			JsonObject e = new JsonObject();
 			e.addProperty("id", targetEntity.id());
 			e.addProperty("distance", round(targetEntity.distance(), 2));
+			if (server != null && server.villager() != null) e.add("villager", server.villager());
 			target.add("entity", e);
 		}
 		root.add("target", target);
@@ -108,6 +131,41 @@ public record CaptureSnapshot(
 			ents.add(e);
 		}
 		root.add("entities", ents);
+
+		JsonArray near = new JsonArray();
+		for (EntityGroup g : nearby) {
+			JsonObject e = new JsonObject();
+			e.addProperty("id", g.id());
+			e.addProperty("count", g.count());
+			near.add(e);
+		}
+		root.add("nearby", near);
+
+		JsonObject gm = new JsonObject();
+		gm.addProperty("difficulty", game.difficulty());
+		gm.addProperty("hardcore", game.hardcore());
+		gm.addProperty("renderDistance", game.renderDistance());
+		gm.addProperty("simulationDistance", game.simulationDistance());
+		if (game.serverBrand() != null) gm.addProperty("serverBrand", game.serverBrand());
+		JsonObject tick = new JsonObject();
+		tick.addProperty("rate", server != null ? server.tickRate() : game.tickRate());
+		tick.addProperty("state", server != null ? server.tickState() : game.tickState());
+		if (server != null && server.mspt() != null) tick.addProperty("mspt", round(server.mspt(), 2));
+		gm.add("tick", tick);
+		root.add("game", gm);
+
+		JsonArray ms = new JsonArray();
+		for (ModInfo m : mods) {
+			JsonObject o = new JsonObject();
+			o.addProperty("id", m.id());
+			o.addProperty("name", m.name());
+			o.addProperty("version", m.version());
+			ms.add(o);
+		}
+		root.add("mods", ms);
+
+		if (server != null && server.spawn() != null) root.add("spawn", server.spawn());
+		if (server != null && server.gamerules() != null) root.add("gamerules", server.gamerules());
 
 		// null = unknown (multiplayer: the client is never told about structures).
 		if (structures != null) {

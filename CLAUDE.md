@@ -137,8 +137,17 @@ dentro del campo de visión de la cámara (FOV vertical de opciones + aspecto de
    (sal 987234911, en `Slime`). Detalles: fila "Chunk slime" (el más cercano).
    Waypoints: formato Xaero verificado en xaerominimap-fabric 26.5.3 (`WaypointIO`); `dim%0/-1/1/mw$default_1.txt`;
    JourneyMap 6.0.9 los importa ("Importar Puntos de Ruta Externos"). IPC `library.exportWaypoints` → .zip + LEEME.
-3. Mod: mob caps reales, gamerules, mods cargados/brand/distancias de render y simulación, MSPT, entidades por tipo en el área,
-   estado y contenido del bloque apuntado (tolvas, cofres, comparadores). Campos opcionales en schema 1.
+3. **Hecho** — Mod ampliado (campos opcionales en schema 1; la app descarta solo la sección mal formada con `.catch`):
+   `game` {difficulty, hardcore, renderDistance, simulationDistance, serverBrand, tick {rate, state, mspt}},
+   `mods` (instalados, sin builtin ni anidados), `nearby` (entidades cargadas ≤128 bloques por tipo), y en un jugador
+   (`ServerCollector`, hilo del servidor): `spawn` {chunks, counts por MobCategory}, `gamerules` {id: {value, default}},
+   `target.block` {state, signal {received, comparatorOutput, containerSignal}, container {size, items[slot,id,count]}},
+   `target.entity.villager` {profession, type, level, xp, home, jobSite, meetingPoint, golemDetectedRecently,
+   trades[{buy[], sell, uses, maxUses}]}; los ítems llevan `enchantments` {id: nivel}. Nota: leer `getOffers()` genera los
+   tratos de un aldeano que aún no los tenía (igual que abrir su menú). UI: `features/details/TechnicalPanels.tsx`
+   (Técnico ampliado, Aldeano, reglas, mods), primitivas en `parts.tsx`, catálogo `shared/catalog/villagers.ts`.
+   Búsqueda: profesión, encantamientos de los tratos y contenido de contenedores. Fixtures: `tests/fixtures/companion/`.
+   Pendiente sugerido: nombres de ítems en español leyendo `es_es.json` de `~/.minecraft/assets` (índice de la versión).
 4. Calculadora de punto AFK (esferas 24–128 y distancia de simulación) y planificador de enlace de portales (128/16).
 5. Snapshot `.litematic`/.nbt del build alrededor del bloque apuntado (solo un jugador).
 Ideas extra: aldeanos (profesión, trades, POI), cajas de estructuras, cubiomes-WASM (confirmar soporte 26.x).

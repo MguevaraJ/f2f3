@@ -6,7 +6,6 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
-import java.util.List;
 import java.util.Queue;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -14,12 +13,10 @@ import java.util.concurrent.TimeUnit;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.server.IntegratedServer;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.Util;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.levelgen.structure.Structure;
 
 /**
  * Pairs the snapshot taken on F2 with the file name Minecraft picks for the image a few
@@ -34,7 +31,7 @@ public final class SidecarWriter {
 	/** A readback takes a few frames; older entries belong to a screenshot that failed. */
 	private static final long MAX_PENDING_NANOS = TimeUnit.SECONDS.toNanos(5);
 
-	private record Pending(CaptureSnapshot snapshot, CompletableFuture<CaptureSnapshot.Structures> structures, long createdAt) {}
+	private record Pending(CaptureSnapshot snapshot, CompletableFuture<ServerCollector.Result> server, long createdAt) {}
 
 	private SidecarWriter() {}
 
@@ -49,7 +46,7 @@ public final class SidecarWriter {
 			return;
 		}
 		if (snapshot == null) return;
-		Pending p = new Pending(snapshot, structuresAsync(mc, snapshot), System.nanoTime());
+		Pending p = new Pending(snapshot, serverAsync(mc, snapshot), System.nanoTime());
 		if (targetOrNull != null) write(targetOrNull, p);
 		else PENDING.add(p);
 	}
@@ -67,14 +64,15 @@ public final class SidecarWriter {
 		int dot = name.lastIndexOf('.');
 		File sidecar = new File(image.getParentFile(), (dot > 0 ? name.substring(0, dot) : name) + SUFFIX);
 		Util.ioPool().execute(() -> {
-			CaptureSnapshot.Structures structures = null;
+			ServerCollector.Result server = null;
 			try {
-				structures = p.structures().get(2, TimeUnit.SECONDS);
-			} catch (Exception ignored) {
-				// Multiplayer, or the server was busy: leave structures as "unknown".
+				server = p.server().get(2, TimeUnit.SECONDS);
+			} catch (Exception e) {
+				// The server was busy (or failed): leave the server-only data as "unknown".
+				CraftshotCompanion.LOG.debug("Server data unavailable for the screenshot", e);
 			}
 			String json = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create()
-				.toJson(p.snapshot().toJson(structures));
+				.toJson(p.snapshot().toJson(server));
 			try {
 				File tmp = new File(sidecar.getParentFile(), sidecar.getName() + ".tmp");
 				Files.writeString(tmp.toPath(), json, StandardCharsets.UTF_8);
@@ -86,10 +84,10 @@ public final class SidecarWriter {
 	}
 
 	/**
-	 * Structures only exist on the server. In singleplayer we ask the integrated server
-	 * (on its own thread) which structures contain the player and the targeted block.
+	 * Structures, mob caps, game rules, container contents and villager trades only exist
+	 * on the server. In singleplayer we ask the integrated server, on its own thread.
 	 */
-	private static CompletableFuture<CaptureSnapshot.Structures> structuresAsync(Minecraft mc, CaptureSnapshot s) {
+	private static CompletableFuture<ServerCollector.Result> serverAsync(Minecraft mc, CaptureSnapshot s) {
 		IntegratedServer server = mc.getSingleplayerServer();
 		if (server == null || mc.level == null || mc.player == null) return CompletableFuture.completedFuture(null);
 		ResourceKey<Level> dim = mc.level.dimension();
@@ -97,19 +95,10 @@ public final class SidecarWriter {
 		BlockPos target = s.targetBlock() != null
 			? new BlockPos(s.targetBlock().pos().x(), s.targetBlock().pos().y(), s.targetBlock().pos().z())
 			: null;
+		Integer entityId = s.targetEntity() != null ? s.targetEntity().networkId() : null;
 		return server.submit(() -> {
 			ServerLevel level = server.getLevel(dim);
-			if (level == null) return null;
-			return new CaptureSnapshot.Structures(structuresAt(level, at), target != null ? structuresAt(level, target) : List.of());
+			return level == null ? null : ServerCollector.collect(server, level, at, target, entityId);
 		});
-	}
-
-	private static List<String> structuresAt(ServerLevel level, BlockPos pos) {
-		var registry = level.registryAccess().lookupOrThrow(Registries.STRUCTURE);
-		return level.structureManager().getAllStructuresAt(pos).keySet().stream()
-			.filter(st -> level.structureManager().getStructureAt(pos, st).isValid())
-			.map((Structure st) -> String.valueOf(registry.getKey(st)))
-			.sorted()
-			.toList();
 	}
 }

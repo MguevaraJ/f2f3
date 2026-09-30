@@ -16,6 +16,22 @@ const vec = z.object({ x: num, y: num, z: num })
 const blockVec = z.object({ x: z.number().int(), y: z.number().int(), z: z.number().int() })
 const id = z.string().regex(/^[a-z0-9_.-]+:[a-z0-9_/.-]+$/)
 
+const item = z.object({
+  id,
+  count: z.number().int().nonnegative(),
+  enchantments: z.record(id, z.number().int()).optional()
+})
+const globalPos = z.object({
+  dimension: id,
+  x: z.number().int(),
+  y: z.number().int(),
+  z: z.number().int()
+})
+const ruleValue = z.union([z.boolean(), z.number(), z.string()])
+
+/** Sections added after the first release: a malformed one is dropped, not the whole file. */
+const lenient = <T extends z.ZodType>(t: T) => t.optional().catch(undefined)
+
 const schema = z.object({
   format: z.literal('craftshot-companion'),
   schema: z.literal(1),
@@ -41,14 +57,81 @@ const schema = z.object({
   light: z.object({ sky: z.number().int(), block: z.number().int() }).optional(),
   target: z
     .object({
-      block: z.object({ id, pos: blockVec }).optional(),
-      entity: z.object({ id, distance: num }).optional()
+      block: z
+        .object({
+          id,
+          pos: blockVec,
+          state: lenient(z.record(z.string(), z.string())),
+          signal: lenient(
+            z.object({
+              received: z.number().int(),
+              comparatorOutput: z.number().int().optional(),
+              containerSignal: z.number().int().optional()
+            })
+          ),
+          container: lenient(
+            z.object({
+              size: z.number().int(),
+              items: z.array(item.extend({ slot: z.number().int() }))
+            })
+          )
+        })
+        .optional(),
+      entity: z
+        .object({
+          id,
+          distance: num,
+          villager: lenient(
+            z.object({
+              profession: z.string().optional(),
+              type: z.string().optional(),
+              level: z.number().int().optional(),
+              xp: z.number().int().optional(),
+              home: globalPos.optional(),
+              jobSite: globalPos.optional(),
+              meetingPoint: globalPos.optional(),
+              golemDetectedRecently: z.boolean().optional(),
+              trades: z.array(
+                z.object({
+                  buy: z.array(item),
+                  sell: item,
+                  uses: z.number().int(),
+                  maxUses: z.number().int()
+                })
+              )
+            })
+          )
+        })
+        .optional()
     })
     .default({}),
   entities: z
     .array(z.object({ id, count: z.number().int().positive(), nearest: num }))
     .default([]),
-  structures: z.object({ inside: z.array(id), target: z.array(id) }).optional()
+  structures: z.object({ inside: z.array(id), target: z.array(id) }).optional(),
+  nearby: lenient(z.array(z.object({ id, count: z.number().int() }))),
+  game: lenient(
+    z.object({
+      difficulty: z.string(),
+      hardcore: z.boolean(),
+      renderDistance: z.number().int(),
+      simulationDistance: z.number().int(),
+      serverBrand: z.string().optional(),
+      tick: z.object({
+        rate: num,
+        state: z.enum(['normal', 'frozen', 'stepping', 'sprinting']),
+        mspt: num.optional()
+      })
+    })
+  ),
+  mods: lenient(z.array(z.object({ id: z.string(), name: z.string(), version: z.string() }))),
+  spawn: lenient(
+    z.object({
+      chunks: z.number().int(),
+      counts: z.record(z.string(), z.number().int())
+    })
+  ),
+  gamerules: lenient(z.record(z.string(), z.object({ value: ruleValue, default: ruleValue })))
 })
 
 /** Parses the sidecar's text; null when it is not a valid schema-1 file. */
@@ -72,7 +155,12 @@ export function parseCompanion(text: string): CompanionData | null {
     light: d.light,
     target: d.target,
     entities: d.entities,
-    structures: d.structures
+    structures: d.structures,
+    nearby: d.nearby,
+    game: d.game,
+    mods: d.mods,
+    spawn: d.spawn as CompanionData['spawn'],
+    gamerules: d.gamerules
   }
 }
 
@@ -122,7 +210,12 @@ export function companionLocation(c: CompanionData): LocationData {
     region: `r.${chunk.x >> 5}.${chunk.z >> 5}.mca`,
     facing: { ...facing, towards: TOWARDS[facing.direction] },
     light: c.light,
-    targetedBlock: c.target.block,
+    targetedBlock: c.target.block && {
+      pos: c.target.block.pos,
+      id: c.target.block.id,
+      state: c.target.block.state
+    },
     targetedEntity: c.target.entity?.id
   }
 }
+

@@ -2,6 +2,7 @@ import { biomeName, dimensionName } from '@shared/catalog/biomes'
 import { mobName } from '@shared/catalog/mobs'
 import { structureName } from '@shared/catalog/structures'
 import type { InfoSource, ScreenshotEntry } from '@shared/types'
+import { enchantmentName, professionName } from '@shared/catalog/villagers'
 
 export type SortKey = 'date' | 'name' | 'size' | 'x' | 'y' | 'z' | 'origin' | 'biome' | 'dimension'
 export type SortDir = 'asc' | 'desc'
@@ -67,7 +68,22 @@ export function searchableText(s: ScreenshotEntry): string {
   for (const m of a?.mobs ?? []) parts.push(m.id, mobName(m.id))
   for (const st of a?.structures ?? []) parts.push(st.id, structureName(st.id))
   if (a?.f3?.version) parts.push(a.f3.version)
-  if (a?.mod) parts.push('mod', a.mod.minecraft, a.mod.world.name)
+  if (a?.mod) {
+    parts.push('mod', a.mod.minecraft, a.mod.world.name)
+    // Find the librarian selling Mending, or the chest with the diamonds.
+    const v = a.mod.target.entity?.villager
+    if (v) {
+      parts.push('aldeano', v.profession ?? '')
+      if (v.profession) parts.push(professionName(v.profession))
+      for (const t of v.trades)
+        for (const it of [...t.buy, t.sell]) {
+          parts.push(it.id)
+          for (const [e, l] of Object.entries(it.enchantments ?? {}))
+            parts.push(e, enchantmentName(e, l))
+        }
+    }
+    for (const it of a.mod.target.block?.container?.items ?? []) parts.push(it.id)
+  }
   if (a?.location?.targetedBlock?.id) parts.push(a.location.targetedBlock.id)
   if (a?.vision) parts.push(a.vision.description)
   if (a?.hasF3) parts.push('f3')
