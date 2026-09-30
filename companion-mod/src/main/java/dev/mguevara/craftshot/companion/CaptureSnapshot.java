@@ -25,13 +25,15 @@ public record CaptureSnapshot(
 
 	public record Vec(double x, double y, double z) {}
 
+	public record BlockVec(int x, int y, int z) {}
+
 	public record World(String type, String name, Long seed, String dimension, long day, long timeOfDay, String weather) {}
 
-	public record Player(Vec position, Vec block, Vec chunk, String direction, float yaw, float pitch, String gameMode) {}
+	public record Player(Vec position, BlockVec block, BlockVec chunk, String direction, float yaw, float pitch, String gameMode) {}
 
 	public record Light(int sky, int block) {}
 
-	public record TargetBlock(String id, Vec pos) {}
+	public record TargetBlock(String id, BlockVec pos) {}
 
 	public record TargetEntity(String id, double distance) {}
 
@@ -54,7 +56,8 @@ public record CaptureSnapshot(
 		JsonObject w = new JsonObject();
 		w.addProperty("type", world.type());
 		w.addProperty("name", world.name());
-		if (world.seed() != null) w.addProperty("seed", world.seed());
+		// As a string: 64-bit seeds exceed JavaScript's safe integer range.
+		if (world.seed() != null) w.addProperty("seed", Long.toString(world.seed()));
 		w.addProperty("dimension", world.dimension());
 		w.addProperty("day", world.day());
 		w.addProperty("timeOfDay", world.timeOfDay());
@@ -125,6 +128,14 @@ public record CaptureSnapshot(
 	}
 
 	private static JsonObject vec(Vec v) {
+		JsonObject o = new JsonObject();
+		o.addProperty("x", v.x());
+		o.addProperty("y", v.y());
+		o.addProperty("z", v.z());
+		return o;
+	}
+
+	private static JsonObject vec(BlockVec v) {
 		JsonObject o = new JsonObject();
 		o.addProperty("x", v.x());
 		o.addProperty("y", v.y());

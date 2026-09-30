@@ -61,7 +61,11 @@ La app lo lee como fuente **"Mod · Exacto"** (prioridad más alta junto a manua
 `settings.gradle`, `build.gradle` (plugin `net.fabricmc.fabric-loom` 1.18-SNAPSHOT, Java release 25),
 `src/main/resources/fabric.mod.json` (id `craftshot_companion`, environment client, entrypoint
 `dev.mguevara.craftshot.companion.CraftshotCompanion`, mixins `craftshot_companion.mixins.json`), mixin config, icono, LICENSE.
-**Falta todo el código Java** y compilar (`./gradlew build` → `build/libs/`). JDK 26 y 21 instalados (compila con release 25).
+**Mod terminado y probado en juego** (2026-09-29): `./gradlew build` → `build/libs/craftshot-companion-1.0.0+26.3.jar`.
+Prueba: `./gradlew runClient --args="--quickPlaySingleplayer CraftshotTest"` (mundo en `run/saves/`, con allowCommands).
+Verificado: coords/bioma/luz/target, mobs visibles (excluye los de detrás), estructuras (village_plains), Nether, ráfagas de F2
+(cola FIFO de snapshots). JDK 26 y 21 instalados (compila con release 25).
+xdotool: la ventana se busca con `xdotool search --class Minecraft` (por nombre falla); comprobar `getactivewindow` antes de teclear.
 Versiones: minecraft 26.3, loader 0.19.5, fabric-api 0.161.0+26.3 (no es dependencia obligatoria en fabric.mod.json).
 
 ### 26.3 está sin ofuscar (nombres oficiales de Mojang, sin mappings). APIs verificadas con javap en `~/.minecraft/versions/26.3/26.3.jar`:
@@ -72,7 +76,7 @@ Versiones: minecraft 26.3, loader 0.19.5, fabric-api 0.161.0+26.3 (no es depende
   `@Inject RETURN` en `getFile` → emparejar con el snapshot pendiente y escribir el JSON en `Util.ioPool()` (tmp + move atómico).
 - `Minecraft`: campos `player`, `level`, `hitResult`, `gameRenderer`, `options`, `gameMode`, `gameDirectory`;
   `getCurrentServer()` (ServerData: `name`, `ip`, `isRealm()`?), `hasSingleplayerServer()`, `getSingleplayerServer()`, `getWindow()`.
-- `Camera` (`gameRenderer.getMainCamera()`): `position()`, `forwardVector()` (Vector3fc), `xRot()`, `yRot()` (upVector: verificar).
+- `Camera` (`gameRenderer.mainCamera()`): `position()`, `forwardVector()` (Vector3fc), `xRot()`, `yRot()` (upVector: verificar).
 - Identificadores: clase `net.minecraft.resources.Identifier` (no ResourceLocation). `EntityType.getKey(type)` → Identifier;
   `BuiltInRegistries.BLOCK/ENTITY_TYPE`; `ResourceKey.identifier()` (verificar nombre).
 - `Level`: `dimension()`, `getOverworldClockTime()` (relojes de mundo de 26.x; no hay getDayTime), `isRaining()`, `isThundering()`,
@@ -89,7 +93,7 @@ Versiones: minecraft 26.3, loader 0.19.5, fabric-api 0.161.0+26.3 (no es depende
 { "format": "craftshot-companion", "schema": 1,
   "mod": { "name": "Craftshot Companion", "version": "1.0.0+26.3", "loader": "fabric", "minecraft": "26.3" },
   "capturedAt": "2026-09-29T15:32:10.123Z",
-  "world": { "type": "singleplayer|multiplayer|realms", "name": "…", "seed": 123, "dimension": "minecraft:overworld",
+  "world": { "type": "singleplayer|multiplayer|realms", "name": "…", "seed": "123", "dimension": "minecraft:overworld",
              "day": 12, "timeOfDay": 6000, "weather": "clear|rain|thunder" },
   "player": { "position": {"x":0,"y":0,"z":0}, "block": {…}, "chunk": {…},
               "facing": {"direction":"north","yaw":-151.8,"pitch":6.4}, "gameMode": "survival" },
@@ -98,7 +102,7 @@ Versiones: minecraft 26.3, loader 0.19.5, fabric-api 0.161.0+26.3 (no es depende
   "entities": [ {"id":"minecraft:cow","count":3,"nearest":12.5} ],
   "structures": { "inside": ["minecraft:village_plains"], "target": [] } }
 ```
-`seed` solo en un jugador; `structures` ausente = desconocido (multijugador). `entities` = seres vivos visibles:
+`seed` solo en un jugador y **como string** (64 bits no caben en un number de JS); `block`/`chunk`/`target.block.pos` son enteros; `structures` ausente = desconocido (multijugador). `entities` = seres vivos visibles:
 dentro del campo de visión de la cámara (FOV vertical de opciones + aspecto de ventana) y con línea de visión (clip a ojos o centro),
 ≤96 bloques, excluye jugador propio, ArmorStand e invisibles; agrupados por tipo.
 

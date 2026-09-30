@@ -7,7 +7,9 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.util.List;
+import java.util.Queue;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.TimeUnit;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.server.IntegratedServer;
@@ -26,10 +28,13 @@ import net.minecraft.world.level.levelgen.structure.Structure;
 public final class SidecarWriter {
 	public static final String SUFFIX = ".craftshot.json";
 
-	/** Snapshot waiting for Screenshot.getFile() to choose the file name. */
-	private static volatile Pending pending;
+	/** Snapshots waiting for Screenshot.getFile() to choose the file name (readbacks finish in order). */
+	private static final Queue<Pending> PENDING = new ConcurrentLinkedQueue<>();
 
-	private record Pending(CaptureSnapshot snapshot, CompletableFuture<CaptureSnapshot.Structures> structures) {}
+	/** A readback takes a few frames; older entries belong to a screenshot that failed. */
+	private static final long MAX_PENDING_NANOS = TimeUnit.SECONDS.toNanos(5);
+
+	private record Pending(CaptureSnapshot snapshot, CompletableFuture<CaptureSnapshot.Structures> structures, long createdAt) {}
 
 	private SidecarWriter() {}
 
@@ -44,15 +49,16 @@ public final class SidecarWriter {
 			return;
 		}
 		if (snapshot == null) return;
-		Pending p = new Pending(snapshot, structuresAsync(mc, snapshot));
+		Pending p = new Pending(snapshot, structuresAsync(mc, snapshot), System.nanoTime());
 		if (targetOrNull != null) write(targetOrNull, p);
-		else pending = p;
+		else PENDING.add(p);
 	}
 
 	/** Called with the file Minecraft chose for the image. */
 	public static void fileChosen(File image) {
-		Pending p = pending;
-		pending = null;
+		Pending p;
+		do p = PENDING.poll();
+		while (p != null && System.nanoTime() - p.createdAt() > MAX_PENDING_NANOS);
 		if (p != null) write(image, p);
 	}
 
@@ -89,7 +95,7 @@ public final class SidecarWriter {
 		ResourceKey<Level> dim = mc.level.dimension();
 		BlockPos at = mc.player.blockPosition();
 		BlockPos target = s.targetBlock() != null
-			? BlockPos.containing(s.targetBlock().pos().x(), s.targetBlock().pos().y(), s.targetBlock().pos().z())
+			? new BlockPos(s.targetBlock().pos().x(), s.targetBlock().pos().y(), s.targetBlock().pos().z())
 			: null;
 		return server.submit(() -> {
 			ServerLevel level = server.getLevel(dim);

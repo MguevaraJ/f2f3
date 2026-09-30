@@ -53,8 +53,8 @@ public final class SnapshotCollector {
 
 		CaptureSnapshot.Player p = new CaptureSnapshot.Player(
 			new CaptureSnapshot.Vec(player.getX(), player.getY(), player.getZ()),
-			new CaptureSnapshot.Vec(pos.getX(), pos.getY(), pos.getZ()),
-			new CaptureSnapshot.Vec(pos.getX() >> 4, pos.getY() >> 4, pos.getZ() >> 4),
+			new CaptureSnapshot.BlockVec(pos.getX(), pos.getY(), pos.getZ()),
+			new CaptureSnapshot.BlockVec(pos.getX() >> 4, pos.getY() >> 4, pos.getZ() >> 4),
 			player.getDirection().getSerializedName(),
 			wrapDegrees(player.getYRot()),
 			player.getXRot(),
@@ -73,7 +73,7 @@ public final class SnapshotCollector {
 			BlockPos bp = bh.getBlockPos();
 			targetBlock = new CaptureSnapshot.TargetBlock(
 				BuiltInRegistries.BLOCK.getKey(level.getBlockState(bp).getBlock()).toString(),
-				new CaptureSnapshot.Vec(bp.getX(), bp.getY(), bp.getZ())
+				new CaptureSnapshot.BlockVec(bp.getX(), bp.getY(), bp.getZ())
 			);
 		} else if (hit instanceof EntityHitResult eh) {
 			targetEntity = new CaptureSnapshot.TargetEntity(
@@ -102,7 +102,7 @@ public final class SnapshotCollector {
 	 * with an unobstructed line of sight (eyes or centre). Grouped by type.
 	 */
 	private static List<CaptureSnapshot.EntityGroup> visibleEntities(Minecraft mc, ClientLevel level, LocalPlayer self) {
-		Camera camera = mc.gameRenderer.getMainCamera();
+		Camera camera = mc.gameRenderer.mainCamera();
 		Vec3 eye = camera.position();
 		Vec3 forward = new Vec3(camera.forwardVector());
 		Vec3 up = new Vec3(camera.upVector());
