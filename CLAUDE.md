@@ -168,9 +168,13 @@ dentro del campo de visión de la cámara (FOV vertical de opciones + aspecto de
    `buildPathFor`/`sidecarPathsFor` (el .nbt se busca por nombre y sigue a la imagen al mover/renombrar/borrar),
    IPC `companion.exportBuild` (diálogo en `.minecraft/schematics` si existe), `features/details/BuildSection.tsx`
    (área, materiales en stacks, copiar lista), búsqueda por bloques del build. Fixtures `tests/fixtures/companion/build-26.3.*`.
+   **Esquina** (por defecto, `buildBase: "corner"`): el bloque apuntado es la esquina inferior más cercana al jugador,
+   a su derecha; la caja (`buildSize` lado, 33 por defecto, 3–97; `buildRadius` antiguo = 2r+1) crece hacia donde
+   mira (`player.getDirection()`), a su izquierda (`getCounterClockWise`) y arriba, y se recorta a lo no-aire.
+   `"center"` la centra. La vista previa apunta con un rayo propio de 96 bloques (`player.pick`), no con el alcance de la mano.
    **Vista previa** (`BuildPreview`, `BuildRegion`): Mayús+F2 no captura; muestra la caja con gizmos de 26.x
    (`Gizmos.cuboid` desde `Minecraft.tick()` TAIL, dentro de `collectPerTickGizmos`; aristas `setAlwaysOnTop`), sigue
-   la mira y se recalcula al cambiar de bloque/tamaño o cada 10 ticks. Rueda agachado = radio (2–48, mixin
+   la mira y se recalcula al cambiar de bloque/tamaño o cada 10 ticks. Rueda agachado = lado ±1 (3–97, mixin
    `MouseHandler.onScroll`); F2 guarda esa caja exacta (la captura se retrasa 2 ticks para que no salga la caja y se
    vacía la barra de acción); Esc/abrir cualquier pantalla cancela. Mixins: `Screenshot.grab(Minecraft,boolean)` HEAD
    cancelable (la tecla, solo en pulsación), `Minecraft.tick`, `MouseHandler.onScroll`. `build: "always"` guarda sin

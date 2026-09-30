@@ -169,9 +169,11 @@ function ModCard() {
           para que no falle en otras versiones.
         </p>
         <p className="muted small tip-line">
-          <b>Guardar un build</b> (un jugador): pulsa <span className="kbd">Mayús+F2</span> mirando
-          la base de la construcción y verás la zona que se guardará. Agachado, la rueda del ratón
-          cambia el tamaño; <span className="kbd">F2</span> hace la captura con el build (.nbt) y{' '}
+          <b>Guardar un build</b> (un jugador): desde fuera, apunta a la esquina inferior de la
+          construcción más cercana a ti, a tu derecha, y pulsa <span className="kbd">Mayús+F2</span>
+          : verás la zona que se guardará, que crece desde ahí hacia el fondo, a la izquierda y
+          hacia arriba. Agachado, la rueda del ratón cambia el tamaño;{' '}
+          <span className="kbd">F2</span> hace la captura con el build (.nbt) y{' '}
           <span className="kbd">Esc</span> cancela.
         </p>
       </div>
