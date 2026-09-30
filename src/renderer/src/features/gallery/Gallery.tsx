@@ -19,6 +19,7 @@ import { dayKey, formatDayHeading, formatRelative, plural } from '../../lib/form
 import { useLibrary } from '../../store/library'
 import { useUi, type MenuItem } from '../../store/ui'
 import { DetailsPanel } from '../details/DetailsPanel'
+import { SelectionSummary } from '../details/SelectionSummary'
 import {
   analyzeWithAi,
   copyImage,
@@ -57,7 +58,9 @@ export function Gallery({ shots, facets }: Props) {
   const ids = useMemo(() => shots.map((s) => s.id), [shots])
   const selectedSet = useMemo(() => new Set(selection), [selection])
   const cutSet = useMemo(() => new Set(clipboard?.mode === 'cut' ? clipboard.ids : []), [clipboard])
-  const focused = selection.length ? byId.get(selection[selection.length - 1]) : undefined
+  // One selected → its details; several → a summary of them all.
+  const picked = useMemo(() => selection.flatMap((id) => byId.get(id) ?? []), [selection, byId])
+  const focused = picked.length === 1 ? picked[0] : undefined
 
   // Group by day when sorted by date, like a photo timeline.
   const groups = useMemo(() => {
@@ -360,6 +363,8 @@ export function Gallery({ shots, facets }: Props) {
         <aside className="details-dock">
           {focused ? (
             <DetailsPanel shot={focused} />
+          ) : picked.length > 1 ? (
+            <SelectionSummary shots={picked} />
           ) : (
             <div className="empty-state small">
               <Icon name="info" size={36} />

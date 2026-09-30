@@ -704,3 +704,50 @@ button.fact-value:hover svg {
   flex: 1;
   min-width: 0;
 }
+
+/* Several screenshots selected */
+.details-name.static {
+  cursor: default;
+  font-weight: 700;
+}
+.selection-thumbs {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 4px;
+  margin: 10px 0;
+  position: relative;
+}
+.selection-thumbs button {
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+  border-radius: 3px;
+  overflow: hidden;
+}
+.selection-thumbs img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+}
+.selection-thumbs button:hover img {
+  filter: brightness(1.2);
+}
+.selection-thumbs .more {
+  position: absolute;
+  right: 4px;
+  bottom: 4px;
+  padding: 1px 6px;
+  border-radius: 3px;
+  background: rgba(0, 0, 0, 0.75);
+  font-size: 12px;
+  font-weight: 700;
+}
+.details .chip.tag b {
+  margin-left: 4px;
+  opacity: 0.7;
+}
+.selection-hint {
+  margin: 10px 2px;
+}

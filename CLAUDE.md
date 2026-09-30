@@ -10,7 +10,7 @@ visor, carpetas, respaldo en Google Drive y avisos de capturas nuevas. **UI y te
 ```bash
 npm run dev            # desarrollo
 npm run build          # typecheck + build + scripts/check-preload.mjs (falla si un preload usa chunks)
-npm run typecheck && npx eslint . && npx vitest run    # verificación estándar (146 tests)
+npm run typecheck && npx eslint . && npx vitest run    # verificación estándar (154 tests)
 npm run dist:linux     # AppImage (el .env con MAIN_VITE_GOOGLE_CLIENT_ID/SECRET se incrusta)
 npm run ocr -- <png…>  # OCR del F3 desde terminal
 npm run eval:local -- <png…>   # evalúa el modelo local (CLIP); MODEL_CACHE=dir
