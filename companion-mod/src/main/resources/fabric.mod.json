@@ -1,0 +1,21 @@
+{
+	"schemaVersion": 1,
+	"id": "craftshot_companion",
+	"version": "${version}",
+	"name": "Craftshot Companion",
+	"description": "Guarda junto a cada captura (F2) los datos exactos del juego —coordenadas, bioma, dimensión, mobs visibles y estructuras— para que Craftshot los muestre sin necesidad del F3.",
+	"authors": ["Moises Guevara"],
+	"contact": {},
+	"license": "MIT",
+	"icon": "assets/craftshot_companion/icon.png",
+	"environment": "client",
+	"entrypoints": {
+		"client": ["dev.mguevara.craftshot.companion.CraftshotCompanion"]
+	},
+	"mixins": ["craftshot_companion.mixins.json"],
+	"depends": {
+		"fabricloader": ">=0.19.5",
+		"minecraft": "~26.3",
+		"java": ">=25"
+	}
+}
