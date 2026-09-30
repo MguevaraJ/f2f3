@@ -37,22 +37,38 @@ public final class BuildPreview {
 	private static int captureIn;
 	private static boolean capturing;
 	private static BuildRegion chosen;
+	/** The name screen is open for the chosen box. */
+	private static boolean naming;
+	/** Name typed for the chosen box ("" → build_N). */
+	private static String chosenName = "";
 
 	private BuildPreview() {}
 
 	/** Screenshot.grab(Minecraft, …) is starting; true cancels it. */
 	public static boolean onScreenshotKey(Minecraft mc) {
 		if (capturing) return false;
+		if (naming) return true;
 		if (active) {
 			if (region == null) {
 				message(mc, "Apunta a la base del build para guardarlo (Esc cancela)");
 				return true;
 			}
+			// Ask for a name first; the screenshot is taken once the screen is gone.
 			chosen = region;
 			active = false;
-			captureIn = CAPTURE_DELAY_TICKS;
-			// Keep the picture clean: no box and no action-bar text.
-			if (mc.player != null) mc.player.sendOverlayMessage(Component.empty());
+			naming = true;
+			mc.gui.setScreen(new BuildNameScreen(region.sizeText(), name -> {
+				naming = false;
+				chosenName = name;
+				captureIn = CAPTURE_DELAY_TICKS;
+				// Keep the picture clean: no box and no action-bar text.
+				if (mc.player != null) mc.player.sendOverlayMessage(Component.empty());
+			}, () -> {
+				naming = false;
+				chosen = null;
+				active = true;
+				age = 0;
+			}));
 			return true;
 		}
 		CompanionConfig config = CompanionConfig.get();
@@ -74,6 +90,13 @@ public final class BuildPreview {
 		return r;
 	}
 
+	/** The name typed for the chosen box, once ("" → automatic). */
+	public static String takeChosenName() {
+		String n = chosenName;
+		chosenName = "";
+		return n;
+	}
+
 	/** Scrolling while sneaking in the preview resizes the box; true consumes the scroll. */
 	public static boolean onScroll(Minecraft mc, double amount) {
 		if (!active || amount == 0 || mc.player == null || !mc.player.isShiftKeyDown()) return false;
@@ -93,6 +116,15 @@ public final class BuildPreview {
 				capturing = false;
 			}
 			if (saved != null) message(mc, "Build guardado: " + saved.sizeText() + " · " + saved.blocks() + " bloques");
+			return;
+		}
+		if (naming) {
+			// The box stays visible behind the name screen.
+			if (chosen != null) {
+				var box = chosen.aabb().inflate(0.02);
+				Gizmos.cuboid(box, BOX_FILL);
+				Gizmos.cuboid(box, BOX_EDGES).setAlwaysOnTop();
+			}
 			return;
 		}
 		if (!active) return;

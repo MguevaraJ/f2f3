@@ -190,7 +190,10 @@ dentro del campo de visión de la cámara (FOV vertical de opciones + aspecto de
    `server.getStructureTemplateManager().getOrCreate(craftshot:build_N)` + `save(id)` (como el bloque de estructura:
    escribe `generated/craftshot/structure/build_N.nbt` y actualiza la caché, así `/place` lo encuentra sin reabrir el
    mundo). N = máximo existente + 1. JSON `build.template`; el chat muestra "Build guardado en el mundo como …" con
-   "[Copiar comando]" (`ClickEvent.CopyToClipboard`). La app usa ese nombre; "Añadir a otro mundo" instala con el mismo id.
+   "[Copiar comando]" (`ClickEvent.CopyToClipboard`). **Nombre**: F2 en la vista previa abre `BuildNameScreen`
+   (EditBox; Enter = `KeyEvent.isConfirmation()`, no `key()`; Esc vuelve a la vista previa; sin desenfoque para que
+   se vea la caja; `isPauseScreen` false). `slug()` → `[a-z0-9_.-]` sin acentos; vacío → build_N; si existe, _2, _3…
+   La pantalla y `setScreen` están en `mc.gui` en 26.3. La app usa ese nombre; "Añadir a otro mundo" instala con el mismo id.
    Ojo: `run/saves/CraftshotTest` ya no carga (falta world_gen_settings) y el juego abre "New World (1)".
    No recompilar el mod (`build:mod`) con `runClient` abierto: el cliente se cerró al hacerlo.
 Ideas extra: aldeanos (profesión, trades, POI), cajas de estructuras, cubiomes-WASM (confirmar soporte 26.x).

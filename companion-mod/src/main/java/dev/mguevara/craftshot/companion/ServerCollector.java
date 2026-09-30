@@ -72,7 +72,7 @@ public final class ServerCollector {
 	private static final java.util.regex.Pattern TEMPLATE_FILE = java.util.regex.Pattern.compile("build_(\\d+)\\.nbt");
 
 	public static Result collect(MinecraftServer server, ServerLevel level, BlockPos at, BlockPos target, Integer entityId,
-			BuildRegion buildRegion, String author) {
+			BuildRegion buildRegion, String buildName, String author) {
 		ServerTickRateManager tick = server.tickRateManager();
 		String state = tick.isFrozen() ? (tick.isSteppingForward() ? "stepping" : "frozen")
 			: tick.isSprinting() ? "sprinting" : "normal";
@@ -85,7 +85,7 @@ public final class ServerCollector {
 			gamerules(level.getGameRules()),
 			target != null ? block(level, target) : null,
 			entityId != null ? villager(level.getEntity(entityId)) : null,
-			buildRegion != null ? build(server, level, buildRegion, author) : null
+			buildRegion != null ? build(server, level, buildRegion, buildName, author) : null
 		);
 	}
 
@@ -94,9 +94,9 @@ public final class ServerCollector {
 	 * Like a structure block, it also goes into the world (generated/craftshot/structure/),
 	 * through the template manager so that /place finds it right away.
 	 */
-	private static Build build(MinecraftServer server, ServerLevel level, BuildRegion region, String author) {
+	private static Build build(MinecraftServer server, ServerLevel level, BuildRegion region, String name, String author) {
 		StructureTemplateManager manager = server.getStructureTemplateManager();
-		Identifier id = Identifier.fromNamespaceAndPath(TEMPLATE_NAMESPACE, "build_" + nextBuildNumber(server));
+		Identifier id = Identifier.fromNamespaceAndPath(TEMPLATE_NAMESPACE, freeName(server, name));
 		StructureTemplate template = manager.getOrCreate(id);
 		template.fillFromWorld(level, region.origin(), region.size(), true, List.of(Blocks.STRUCTURE_VOID));
 		template.setAuthor(author);
@@ -105,9 +105,25 @@ public final class ServerCollector {
 		return new Build(nbt, region.origin(), region.size(), region.countBlocks(level), nbt.getListOrEmpty("entities").size(), saved);
 	}
 
+	/**
+	 * The name typed (already a valid path), with _2, _3… when taken, so a build never
+	 * overwrites another; empty → build_N.
+	 */
+	private static String freeName(MinecraftServer server, String name) {
+		if (name == null || name.isEmpty() || !Identifier.isValidPath(name)) return "build_" + nextBuildNumber(server);
+		Path dir = templatesDir(server);
+		String candidate = name;
+		for (int i = 2; Files.exists(dir.resolve(candidate + ".nbt")); i++) candidate = name + "_" + i;
+		return candidate;
+	}
+
+	private static Path templatesDir(MinecraftServer server) {
+		return server.getWorldPath(LevelResource.GENERATED_DIR).resolve(TEMPLATE_NAMESPACE).resolve("structure");
+	}
+
 	/** One more than the highest build_N already in this world. */
 	private static int nextBuildNumber(MinecraftServer server) {
-		Path dir = server.getWorldPath(LevelResource.GENERATED_DIR).resolve(TEMPLATE_NAMESPACE).resolve("structure");
+		Path dir = templatesDir(server);
 		int max = 0;
 		try (Stream<Path> files = Files.list(dir)) {
 			for (Path f : (Iterable<Path>) files::iterator) {

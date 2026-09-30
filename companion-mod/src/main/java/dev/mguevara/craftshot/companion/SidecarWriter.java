@@ -120,6 +120,7 @@ public final class SidecarWriter {
 		Integer entityId = s.targetEntity() != null ? s.targetEntity().networkId() : null;
 		// The box chosen in the preview (sneak+F2), or with "build": "always", the automatic one.
 		BuildRegion chosen = BuildPreview.takeChosen();
+		String name = BuildPreview.takeChosenName();
 		CompanionConfig config = CompanionConfig.get();
 		boolean auto = chosen == null && target != null && config.build().equals("always");
 		Direction facing = mc.player.getDirection();
@@ -128,7 +129,7 @@ public final class SidecarWriter {
 			ServerLevel level = server.getLevel(dim);
 			if (level == null) return null;
 			BuildRegion region = auto ? config.region(level, target, config.buildSize(), facing) : chosen;
-			return ServerCollector.collect(server, level, at, target, entityId, region, author);
+			return ServerCollector.collect(server, level, at, target, entityId, region, name, author);
 		});
 	}
 }

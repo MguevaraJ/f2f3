@@ -173,8 +173,9 @@ function ModCard() {
           construcción más cercana a ti, a tu derecha, y pulsa <span className="kbd">Mayús+F2</span>
           : verás la zona que se guardará, que crece desde ahí hacia el fondo, a la izquierda y
           hacia arriba. Agachado, la rueda del ratón cambia el tamaño;{' '}
-          <span className="kbd">F2</span> hace la captura y guarda el build en el mundo como{' '}
-          <code>craftshot:build_1</code>, <code>_2</code>… (el chat te da el comando para pegarlo) y{' '}
+          <span className="kbd">F2</span> te pide un nombre (p. ej. «Casa del Lago»), hace la
+          captura y guarda el build en el mundo como <code>craftshot:casa_del_lago</code> (vacío:{' '}
+          <code>build_1</code>, <code>build_2</code>…). El chat te da el comando para pegarlo y{' '}
           <span className="kbd">Esc</span> cancela.
         </p>
       </div>
