@@ -1,10 +1,12 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { prettifyId } from '@shared/catalog/biomes'
-import type { BuildSummary, CompanionBuild } from '@shared/types'
+import { FACINGS, isFacing, placeCommand, templateId, type Facing } from '@shared/placement'
+import type { BuildSummary, CompanionBuild, CompanionData } from '@shared/types'
 import { Icon } from '../../components/icons'
 import { api } from '../../lib/api'
 import { toast } from '../../store/toasts'
-import { Row, Rows, Section, SourceTag } from './parts'
+import { DIRECTION_ES } from '../../lib/coords'
+import { CopyButton, Row, Rows, Section, SourceTag } from './parts'
 import { entityName } from './TechnicalPanels'
 
 const MATERIALS_SHOWN = 10
@@ -27,12 +29,16 @@ export function materialsText(b: BuildSummary): string {
 /** The area around the targeted block saved on sneak+F2 (vanilla structure .nbt). */
 export function BuildSection({
   shotId,
+  shotName,
   build,
-  summary
+  summary,
+  mod
 }: {
   shotId: string
+  shotName: string
   build: CompanionBuild
   summary: BuildSummary | null
+  mod: CompanionData
 }) {
   const [all, setAll] = useState(false)
   const { size, origin } = build
@@ -114,12 +120,120 @@ export function BuildSection({
           </button>
         </div>
       )}
+      {summary && <PlaceBlock shotId={shotId} shotName={shotName} build={build} mod={mod} />}
       <p className="muted small">
-        Litematica lo abre desde «Cargar esquemas» (se guarda por defecto en{' '}
-        <code>.minecraft/schematics</code>). En el juego: cópialo como{' '}
-        <code>saves/&lt;mundo&gt;/generated/minecraft/structure/&lt;nombre&gt;.nbt</code> y usa{' '}
-        <code>/place template minecraft:&lt;nombre&gt;</code> o un bloque de estructura.
+        Litematica lo abre desde «Cargar esquemas» (el botón «Guardar .nbt…» propone su carpeta{' '}
+        <code>.minecraft/schematics</code>).
       </p>
     </Section>
+  )
+}
+
+/**
+ * Puts the build back in a world where it was relative to the player: copies it into the
+ * world and gives the /place command for the way the player is facing now.
+ */
+function PlaceBlock({
+  shotId,
+  shotName,
+  build,
+  mod
+}: {
+  shotId: string
+  shotName: string
+  build: CompanionBuild
+  mod: CompanionData
+}) {
+  const [saves, setSaves] = useState<{ folder: string; name: string }[] | null>(null)
+  const [folder, setFolder] = useState('')
+  const [installed, setInstalled] = useState<string | null>(null)
+  const then: Facing = isFacing(mod.player.facing.direction) ? mod.player.facing.direction : 'north'
+  const [now, setNow] = useState<Facing>(then)
+
+  useEffect(() => {
+    let alive = true
+    void api.companion.listSaves().then((list) => {
+      if (!alive) return
+      setSaves(list)
+      // The world the screenshot comes from, when its name matches.
+      setFolder((list.find((w) => w.name === mod.world.name) ?? list[0])?.folder ?? '')
+    })
+    return () => {
+      alive = false
+    }
+  }, [mod.world.name])
+
+  const id = templateId(shotName)
+  const command = placeCommand(id, build.origin, mod.player.block, then, now)
+  const dup = (name: string): boolean => (saves ?? []).filter((w) => w.name === name).length > 1
+
+  const install = async (): Promise<void> => {
+    try {
+      await api.companion.installBuild(shotId, folder)
+      setInstalled(folder)
+      toast.success('Build añadido al mundo')
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : String(err))
+    }
+  }
+
+  return (
+    <div className="block-state place-block">
+      <div className="mobs-head">
+        <Icon name="pin" size={15} /> Pegarlo donde estaba
+      </div>
+      <p className="muted small">
+        Aparece en el mismo sitio respecto a ti: misma distancia, altura y lado. Colócate donde
+        quieras y ejecuta el comando (hacen falta trucos activados).
+      </p>
+      {saves && saves.length > 0 ? (
+        <div className="place-row">
+          <select
+            className="input small-select"
+            value={folder}
+            onChange={(e) => {
+              setFolder(e.target.value)
+              setInstalled(null)
+            }}
+            aria-label="Mundo"
+          >
+            {saves.map((w) => (
+              <option key={w.folder} value={w.folder}>
+                {w.name}
+                {dup(w.name) || w.name !== w.folder ? ` (${w.folder})` : ''}
+              </option>
+            ))}
+          </select>
+          <button className="btn small" onClick={() => void install()}>
+            <Icon name={installed === folder ? 'check' : 'folder'} size={14} />{' '}
+            {installed === folder ? 'Añadido' : 'Añadir al mundo'}
+          </button>
+        </div>
+      ) : (
+        saves && <p className="muted small">No se encontraron mundos en .minecraft/saves.</p>
+      )}
+      <div className="place-row">
+        <span className="small">Mirando al</span>
+        <div className="segmented">
+          {FACINGS.map((f) => (
+            <button
+              key={f}
+              className={f === now ? 'on' : ''}
+              onClick={() => setNow(f)}
+              title={f === then ? 'Como en la captura' : undefined}
+            >
+              {DIRECTION_ES[f]}
+              {f === then ? ' •' : ''}
+            </button>
+          ))}
+        </div>
+      </div>
+      <CopyButton label="Comando" value={command} />
+      <p className="muted small">
+        • = hacia donde mirabas en la captura. Si miras a otro lado, elige esa dirección (en el F3
+        aparece como «Facing») y el build gira contigo. Si probaste el comando antes de añadirlo,
+        sal y vuelve a entrar al mundo: el juego recuerda que no existía.
+      </p>
+    </div>
   )
 }

@@ -2,6 +2,8 @@ import { copyFile, writeFile } from 'node:fs/promises'
 import { existsSync } from 'node:fs'
 import { basename, join } from 'node:path'
 import { buildPathFor } from '@core/companion/parseCompanion'
+import { templateId } from '@shared/placement'
+import { installTemplate, listSaves, savesDirFor } from '../minecraft/worlds'
 import {
   app,
   BrowserWindow,
@@ -267,6 +269,17 @@ export function registerIpc(services: Services): void {
     if (res.canceled || !res.filePath) return null
     await copyFile(src, res.filePath)
     return res.filePath
+  })
+
+  handle(IPC.companion.listSaves, () => listSaves(savesDirFor(settings.value.screenshotsDir)))
+  handle(IPC.companion.installBuild, async (_e, id, folder) => {
+    const image = library.resolveId(str(id))
+    const src = buildPathFor(image)
+    if (!existsSync(src)) throw new Error('Esta captura no tiene un build guardado.')
+    const saves = savesDirFor(settings.value.screenshotsDir)
+    const known = await listSaves(saves)
+    if (!known.some((w) => w.folder === str(folder))) throw new Error('No se encontró ese mundo.')
+    return installTemplate(saves, str(folder), templateId(basename(image)), src)
   })
 
   // On-device model (level 2)

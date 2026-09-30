@@ -49,7 +49,9 @@ export const IPC = {
   },
   companion: {
     saveMod: 'companion:save-mod',
-    exportBuild: 'companion:export-build'
+    exportBuild: 'companion:export-build',
+    listSaves: 'companion:list-saves',
+    installBuild: 'companion:install-build'
   },
   localModel: {
     status: 'local-model:status',
@@ -188,6 +190,10 @@ export interface CraftshotApi {
     saveMod(): Promise<string | null>
     /** Saves the build (.nbt) captured with a screenshot; null if cancelled. */
     exportBuild(id: string): Promise<string | null>
+    /** Singleplayer worlds of the .minecraft the screenshots belong to. */
+    listSaves(): Promise<{ folder: string; name: string }[]>
+    /** Copies the build into a world so `/place template <templateId>` finds it; returns the file. */
+    installBuild(id: string, folder: string): Promise<string>
   }
   localModel: {
     status(): Promise<LocalModelStatus>

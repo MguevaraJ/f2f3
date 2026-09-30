@@ -180,6 +180,12 @@ dentro del campo de visión de la cámara (FOV vertical de opciones + aspecto de
    cancelable (la tecla, solo en pulsación), `Minecraft.tick`, `MouseHandler.onScroll`. `build: "always"` guarda sin
    vista previa en cada F2 (caja calculada en el servidor). `Minecraft.screen` ahora es `mc.gui.screen()`.
    `pkill -f '[j]ava.*Knot'` en un comando aparte: si la línea contiene "java…Knot" se mata la propia shell.
+   **Pegarlo donde estaba**: `src/shared/placement.ts` (`templateId` → `minecraft:craftshot/<imagen>`, `placeCommand`:
+   `/place template <id> ~dx ~dy ~dz [rotación]` con dx = origen − bloque del jugador, girado por cuartos entre la
+   dirección de la captura y la actual; clockwise_90 = (x,z)→(−z,x), probado en juego). `src/main/minecraft/worlds.ts`:
+   `listSaves` (lee `Data.LevelName` de level.dat; saves = padre de screenshotsDir) e `installTemplate`
+   (`saves/<mundo>/generated/minecraft/structure/craftshot/<img>.nbt`). IPC `companion.listSaves`/`installBuild`.
+   UI: bloque "Pegarlo donde estaba" en `BuildSection` (mundo, "Añadir al mundo", dirección, comando).
    Ojo: `run/saves/CraftshotTest` ya no carga (falta world_gen_settings) y el juego abre "New World (1)".
    No recompilar el mod (`build:mod`) con `runClient` abierto: el cliente se cerró al hacerlo.
 Ideas extra: aldeanos (profesión, trades, POI), cajas de estructuras, cubiomes-WASM (confirmar soporte 26.x).

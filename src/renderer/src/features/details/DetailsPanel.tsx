@@ -160,7 +160,13 @@ export function DetailsPanel({
           )}
           {a.mod?.target.entity?.villager && <VillagerSection v={a.mod.target.entity.villager} />}
           {a.mod?.build && (
-            <BuildSection shotId={shot.id} build={a.mod.build} summary={a.build ?? null} />
+            <BuildSection
+              shotId={shot.id}
+              shotName={shot.name}
+              build={a.mod.build}
+              summary={a.build ?? null}
+              mod={a.mod}
+            />
           )}
           <VisionSection shot={shot} />
         </>

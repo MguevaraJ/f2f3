@@ -57,7 +57,9 @@ const api: CraftshotApi = {
   },
   companion: {
     saveMod: invoke(IPC.companion.saveMod),
-    exportBuild: invoke(IPC.companion.exportBuild)
+    exportBuild: invoke(IPC.companion.exportBuild),
+    listSaves: invoke(IPC.companion.listSaves),
+    installBuild: invoke(IPC.companion.installBuild)
   },
   localModel: {
     status: invoke(IPC.localModel.status),
