@@ -61,7 +61,7 @@ export function BuildSection({
         <Row
           k="Área"
           v={`${size.x}×${size.y}×${size.z} desde ${origin.x} ${origin.y} ${origin.z}`}
-          hint="Centrada en el bloque apuntado; incluye el aire, así que al pegarla limpia la zona"
+          hint="Desde el nivel del bloque apuntado hacia arriba, recortada a lo que no es aire; al pegarla también limpia el aire de dentro"
         />
         <Row k="Bloques" v={`${build.blocks.toLocaleString('es')} (sin contar el aire)`} />
         {summary && summary.blockEntities > 0 && (

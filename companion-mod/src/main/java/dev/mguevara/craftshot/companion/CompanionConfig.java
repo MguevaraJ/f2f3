@@ -11,11 +11,12 @@ import net.fabricmc.loader.api.FabricLoader;
 
 /**
  * "config/craftshot_companion.json": when to save the build around the targeted block
- * ("sneak": only when sneaking while pressing F2, "always", "never") and how far.
+ * ("sneak": only when sneaking while pressing F2, "always", "never"), how far, and whether
+ * the box starts at the targeted block's level ("target") or is centred on it ("center").
  * Read once at startup; a missing or broken file falls back to the defaults.
  */
-public record CompanionConfig(String build, int buildRadius) {
-	public static final CompanionConfig DEFAULTS = new CompanionConfig("sneak", 16);
+public record CompanionConfig(String build, int buildRadius, String buildBase) {
+	public static final CompanionConfig DEFAULTS = new CompanionConfig("sneak", 16, "target");
 	/** 97 blocks per side at most: bigger areas would stall the server on F2. */
 	private static final int MAX_RADIUS = 48;
 
@@ -33,11 +34,14 @@ public record CompanionConfig(String build, int buildRadius) {
 				String build = o.has("build") ? o.get("build").getAsString() : DEFAULTS.build();
 				if (!build.equals("sneak") && !build.equals("always") && !build.equals("never")) build = DEFAULTS.build();
 				int radius = o.has("buildRadius") ? o.get("buildRadius").getAsInt() : DEFAULTS.buildRadius();
-				current = new CompanionConfig(build, Math.max(1, Math.min(MAX_RADIUS, radius)));
+				String base = o.has("buildBase") ? o.get("buildBase").getAsString() : DEFAULTS.buildBase();
+				if (!base.equals("target") && !base.equals("center")) base = DEFAULTS.buildBase();
+				current = new CompanionConfig(build, Math.max(1, Math.min(MAX_RADIUS, radius)), base);
 			} else {
 				JsonObject o = new JsonObject();
 				o.addProperty("build", DEFAULTS.build());
 				o.addProperty("buildRadius", DEFAULTS.buildRadius());
+				o.addProperty("buildBase", DEFAULTS.buildBase());
 				Files.createDirectories(file.getParent());
 				Files.writeString(file, new GsonBuilder().setPrettyPrinting().create().toJson(o), StandardCharsets.UTF_8);
 			}

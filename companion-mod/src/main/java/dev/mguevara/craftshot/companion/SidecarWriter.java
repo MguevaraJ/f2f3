@@ -113,10 +113,11 @@ public final class SidecarWriter {
 			: null;
 		Integer entityId = s.targetEntity() != null ? s.targetEntity().networkId() : null;
 		int buildRadius = CompanionConfig.get().wantsBuild(mc.player.isShiftKeyDown()) ? CompanionConfig.get().buildRadius() : 0;
+		boolean fromTarget = CompanionConfig.get().buildBase().equals("target");
 		String author = mc.player.getGameProfile().name();
 		return server.submit(() -> {
 			ServerLevel level = server.getLevel(dim);
-			return level == null ? null : ServerCollector.collect(server, level, at, target, entityId, buildRadius, author);
+			return level == null ? null : ServerCollector.collect(server, level, at, target, entityId, buildRadius, fromTarget, author);
 		});
 	}
 }

@@ -158,9 +158,9 @@ dentro del campo de visión de la cámara (FOV vertical de opciones + aspecto de
    central); simulación por defecto = la de la captura más reciente con mod, si no 12. Portales: A/B con comprobación
    de ida y vuelta; las capturas que apuntan a `minecraft:nether_portal` cuentan como portales existentes.
 5. **Hecho** — Snapshot del build (solo un jugador): **agachado + F2** apuntando a un bloque, el mod guarda
-   `NOMBRE.craftshot.nbt` (estructura vanilla, cubo de 2r+1 centrado en el bloque, con aire y entidades; recortado a la
-   altura del mundo) antes del JSON, y añade `build` {file, origin, size, blocks, entities}. Config
-   `config/craftshot_companion.json`: `build` "sneak"|"always"|"never", `buildRadius` (16, máx. 48) — `CompanionConfig`.
+   `NOMBRE.craftshot.nbt` (estructura vanilla: 2r+1 de ancho, desde el nivel del bloque apuntado hacia arriba (2r+1 de
+   alto) y recortada a la caja de bloques no-aire; conserva el aire interior y las entidades) antes del JSON, y añade `build` {file, origin, size, blocks, entities}. Config
+   `config/craftshot_companion.json`: `build` "sneak"|"always"|"never", `buildRadius` (16, máx. 48), `buildBase` "target" (por defecto, hacia arriba) | "center" — `CompanionConfig`.
    `StructureTemplate.fillFromWorld` en el hilo del servidor. En 26.x la paleta usa `id` (antes `Name`) y la carpeta de
    plantillas del mundo es `generated/<ns>/structure/` (singular); probado con `/place template` ("Loaded template").
    Litematica carga .nbt vanilla (no se genera .litematic). App: `src/core/nbt/readNbt.ts` (lector NBT),

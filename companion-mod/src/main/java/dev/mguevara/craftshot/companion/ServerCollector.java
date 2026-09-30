@@ -60,7 +60,7 @@ public final class ServerCollector {
 	public record Build(CompoundTag nbt, BlockPos origin, Vec3i size, int blocks, int entities) {}
 
 	public static Result collect(MinecraftServer server, ServerLevel level, BlockPos at, BlockPos target, Integer entityId,
-			int buildRadius, String author) {
+			int buildRadius, boolean buildFromTarget, String author) {
 		ServerTickRateManager tick = server.tickRateManager();
 		String state = tick.isFrozen() ? (tick.isSteppingForward() ? "stepping" : "frozen")
 			: tick.isSprinting() ? "sprinting" : "normal";
@@ -73,27 +73,40 @@ public final class ServerCollector {
 			gamerules(level.getGameRules()),
 			target != null ? block(level, target) : null,
 			entityId != null ? villager(level.getEntity(entityId)) : null,
-			target != null && buildRadius > 0 ? build(level, target, buildRadius, author) : null
+			target != null && buildRadius > 0 ? build(level, target, buildRadius, buildFromTarget, author) : null
 		);
 	}
 
 	/**
-	 * A cube of side 2r+1 centred on the target (clipped to the world's height), air
-	 * included so that pasting it clears the area, like a structure block does.
+	 * The build around the target: 2r+1 blocks wide, from the target's level upwards (or
+	 * centred on it with "buildBase": "center"), clipped to the world's height and then
+	 * trimmed to the non-air blocks, so the ground below and empty layers are left out.
+	 * Air inside the box is kept so that pasting it clears the area, like a structure block.
 	 */
-	private static Build build(ServerLevel level, BlockPos centre, int r, String author) {
-		int y0 = Math.max(level.getMinY(), centre.getY() - r);
-		int y1 = Math.min(level.getMaxY(), centre.getY() + r);
-		BlockPos origin = new BlockPos(centre.getX() - r, y0, centre.getZ() - r);
-		Vec3i size = new Vec3i(2 * r + 1, y1 - y0 + 1, 2 * r + 1);
+	private static Build build(ServerLevel level, BlockPos target, int r, boolean fromTarget, String author) {
+		int y0 = Math.max(level.getMinY(), fromTarget ? target.getY() : target.getY() - r);
+		int y1 = Math.min(level.getMaxY(), fromTarget ? target.getY() + 2 * r : target.getY() + r);
+		BlockPos from = new BlockPos(target.getX() - r, y0, target.getZ() - r);
+		BlockPos to = new BlockPos(target.getX() + r, y1, target.getZ() + r);
+
+		int minX = Integer.MAX_VALUE, minY = Integer.MAX_VALUE, minZ = Integer.MAX_VALUE;
+		int maxX = Integer.MIN_VALUE, maxY = Integer.MIN_VALUE, maxZ = Integer.MIN_VALUE;
+		int blocks = 0;
+		for (BlockPos p : BlockPos.betweenClosed(from, to)) {
+			if (level.getBlockState(p).isAir()) continue;
+			blocks++;
+			minX = Math.min(minX, p.getX()); maxX = Math.max(maxX, p.getX());
+			minY = Math.min(minY, p.getY()); maxY = Math.max(maxY, p.getY());
+			minZ = Math.min(minZ, p.getZ()); maxZ = Math.max(maxZ, p.getZ());
+		}
+		if (blocks == 0) return null;
+
+		BlockPos origin = new BlockPos(minX, minY, minZ);
+		Vec3i size = new Vec3i(maxX - minX + 1, maxY - minY + 1, maxZ - minZ + 1);
 		StructureTemplate template = new StructureTemplate();
 		template.fillFromWorld(level, origin, size, true, List.of(Blocks.STRUCTURE_VOID));
 		template.setAuthor(author);
 		CompoundTag nbt = template.save(new CompoundTag());
-		int blocks = 0;
-		for (BlockPos p : BlockPos.betweenClosed(origin, origin.offset(size).offset(-1, -1, -1))) {
-			if (!level.getBlockState(p).isAir()) blocks++;
-		}
 		return new Build(nbt, origin, size, blocks, nbt.getListOrEmpty("entities").size());
 	}
 
