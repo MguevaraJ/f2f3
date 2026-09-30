@@ -4,7 +4,12 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.stream.Stream;
 import java.util.Optional;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.GlobalPos;
@@ -12,6 +17,7 @@ import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.Vec3i;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.ServerTickRateManager;
 import net.minecraft.server.level.ServerLevel;
@@ -34,6 +40,8 @@ import net.minecraft.world.level.gamerules.GameRule;
 import net.minecraft.world.level.gamerules.GameRules;
 import net.minecraft.world.level.levelgen.structure.Structure;
 import net.minecraft.world.level.levelgen.structure.templatesystem.StructureTemplate;
+import net.minecraft.world.level.levelgen.structure.templatesystem.StructureTemplateManager;
+import net.minecraft.world.level.storage.LevelResource;
 
 /**
  * What only the (integrated) server knows, read on the server thread in singleplayer:
@@ -57,7 +65,11 @@ public final class ServerCollector {
 	) {}
 
 	/** The blocks around the targeted block as a vanilla structure (.nbt), plus its summary. */
-	public record Build(CompoundTag nbt, BlockPos origin, Vec3i size, int blocks, int entities) {}
+	public record Build(CompoundTag nbt, BlockPos origin, Vec3i size, int blocks, int entities, String template) {}
+
+	/** Builds are saved in the world as craftshot:build_1, craftshot:build_2…: short to type and tab-completed by /place. */
+	public static final String TEMPLATE_NAMESPACE = "craftshot";
+	private static final java.util.regex.Pattern TEMPLATE_FILE = java.util.regex.Pattern.compile("build_(\\d+)\\.nbt");
 
 	public static Result collect(MinecraftServer server, ServerLevel level, BlockPos at, BlockPos target, Integer entityId,
 			BuildRegion buildRegion, String author) {
@@ -73,17 +85,39 @@ public final class ServerCollector {
 			gamerules(level.getGameRules()),
 			target != null ? block(level, target) : null,
 			entityId != null ? villager(level.getEntity(entityId)) : null,
-			buildRegion != null ? build(level, buildRegion, author) : null
+			buildRegion != null ? build(server, level, buildRegion, author) : null
 		);
 	}
 
-	/** Saves the box as a vanilla structure; air inside is kept so pasting clears the area. */
-	private static Build build(ServerLevel level, BuildRegion region, String author) {
-		StructureTemplate template = new StructureTemplate();
+	/**
+	 * Saves the box as a vanilla structure; air inside is kept so pasting clears the area.
+	 * Like a structure block, it also goes into the world (generated/craftshot/structure/),
+	 * through the template manager so that /place finds it right away.
+	 */
+	private static Build build(MinecraftServer server, ServerLevel level, BuildRegion region, String author) {
+		StructureTemplateManager manager = server.getStructureTemplateManager();
+		Identifier id = Identifier.fromNamespaceAndPath(TEMPLATE_NAMESPACE, "build_" + nextBuildNumber(server));
+		StructureTemplate template = manager.getOrCreate(id);
 		template.fillFromWorld(level, region.origin(), region.size(), true, List.of(Blocks.STRUCTURE_VOID));
 		template.setAuthor(author);
+		String saved = manager.save(id) ? id.toString() : null;
 		CompoundTag nbt = template.save(new CompoundTag());
-		return new Build(nbt, region.origin(), region.size(), region.countBlocks(level), nbt.getListOrEmpty("entities").size());
+		return new Build(nbt, region.origin(), region.size(), region.countBlocks(level), nbt.getListOrEmpty("entities").size(), saved);
+	}
+
+	/** One more than the highest build_N already in this world. */
+	private static int nextBuildNumber(MinecraftServer server) {
+		Path dir = server.getWorldPath(LevelResource.GENERATED_DIR).resolve(TEMPLATE_NAMESPACE).resolve("structure");
+		int max = 0;
+		try (Stream<Path> files = Files.list(dir)) {
+			for (Path f : (Iterable<Path>) files::iterator) {
+				Matcher m = TEMPLATE_FILE.matcher(f.getFileName().toString());
+				if (m.matches()) max = Math.max(max, Integer.parseInt(m.group(1)));
+			}
+		} catch (IOException | NumberFormatException e) {
+			// No builds yet.
+		}
+		return max + 1;
 	}
 
 	private static List<String> structuresAt(ServerLevel level, BlockPos pos) {

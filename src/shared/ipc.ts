@@ -193,7 +193,7 @@ export interface CraftshotApi {
     /** Singleplayer worlds of the .minecraft the screenshots belong to. */
     listSaves(): Promise<{ folder: string; name: string }[]>
     /** Copies the build into a world so `/place template <templateId>` finds it; returns the file. */
-    installBuild(id: string, folder: string): Promise<string>
+    installBuild(id: string, folder: string, template?: string): Promise<string>
   }
   localModel: {
     status(): Promise<LocalModelStatus>

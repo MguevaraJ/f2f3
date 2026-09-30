@@ -186,6 +186,11 @@ dentro del campo de visión de la cámara (FOV vertical de opciones + aspecto de
    `listSaves` (lee `Data.LevelName` de level.dat; saves = padre de screenshotsDir) e `installTemplate`
    (`saves/<mundo>/generated/minecraft/structure/craftshot/<img>.nbt`). IPC `companion.listSaves`/`installBuild`.
    UI: bloque "Pegarlo donde estaba" en `BuildSection` (mundo, "Añadir al mundo", dirección, comando).
+   **Guardado en el mundo** (automático al guardar con la vista previa): `ServerCollector.build` usa
+   `server.getStructureTemplateManager().getOrCreate(craftshot:build_N)` + `save(id)` (como el bloque de estructura:
+   escribe `generated/craftshot/structure/build_N.nbt` y actualiza la caché, así `/place` lo encuentra sin reabrir el
+   mundo). N = máximo existente + 1. JSON `build.template`; el chat muestra "Build guardado en el mundo como …" con
+   "[Copiar comando]" (`ClickEvent.CopyToClipboard`). La app usa ese nombre; "Añadir a otro mundo" instala con el mismo id.
    Ojo: `run/saves/CraftshotTest` ya no carga (falta world_gen_settings) y el juego abre "New World (1)".
    No recompilar el mod (`build:mod`) con `runClient` abierto: el cliente se cerró al hacerlo.
 Ideas extra: aldeanos (profesión, trades, POI), cajas de estructuras, cubiomes-WASM (confirmar soporte 26.x).

@@ -1,12 +1,15 @@
 package dev.mguevara.craftshot.companion;
 
+import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.Screenshot;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.gizmos.GizmoStyle;
 import net.minecraft.gizmos.Gizmos;
+import net.minecraft.network.chat.ClickEvent;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.HoverEvent;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
 
@@ -124,6 +127,41 @@ public final class BuildPreview {
 				: "Build " + region.sizeText() + " · " + region.blocks() + " bloques · F2 guarda · rueda agachado: tamaño (" + size + ") · Esc cancela");
 		}
 		age++;
+	}
+
+	/**
+	 * Tells where the build was saved, with the /place command that puts it back around
+	 * the player (same facing as now) one click away.
+	 */
+	public static void announce(ServerCollector.Build b, CaptureSnapshot.BlockVec player, String facing) {
+		Minecraft mc = Minecraft.getInstance();
+		if (mc.player == null) return;
+		String command = "/place template " + b.template()
+			+ " " + rel(b.origin().getX() - player.x()) + " " + rel(b.origin().getY() - player.y()) + " " + rel(b.origin().getZ() - player.z());
+		Component copy = Component.literal("[Copiar comando]").withStyle(style -> style
+			.withColor(ChatFormatting.GREEN)
+			.withUnderlined(true)
+			.withClickEvent(new ClickEvent.CopyToClipboard(command))
+			.withHoverEvent(new HoverEvent.ShowText(Component.literal(command
+				+ "\nEjecútalo mirando al " + facingName(facing) + " y el build aparecerá en el mismo sitio respecto a ti."))));
+		mc.player.sendSystemMessage(Component.literal("Build guardado en el mundo como ")
+			.append(Component.literal(b.template()).withStyle(ChatFormatting.YELLOW))
+			.append(" (" + b.size().getX() + "×" + b.size().getY() + "×" + b.size().getZ() + ") ")
+			.append(copy));
+	}
+
+	private static String rel(int n) {
+		return n == 0 ? "~" : "~" + n;
+	}
+
+	private static String facingName(String facing) {
+		return switch (facing) {
+			case "north" -> "norte";
+			case "south" -> "sur";
+			case "east" -> "este";
+			case "west" -> "oeste";
+			default -> facing;
+		};
 	}
 
 	private static void message(Minecraft mc, String text) {

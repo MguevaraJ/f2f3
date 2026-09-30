@@ -150,7 +150,8 @@ const schema = z.object({
       origin: blockVec,
       size: blockVec,
       blocks: z.number().int(),
-      entities: z.number().int()
+      entities: z.number().int(),
+      template: id.optional()
     })
   )
 })

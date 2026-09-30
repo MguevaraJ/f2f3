@@ -174,6 +174,7 @@ public record CaptureSnapshot(
 			o.add("size", vec(new BlockVec(b.size().getX(), b.size().getY(), b.size().getZ())));
 			o.addProperty("blocks", b.blocks());
 			o.addProperty("entities", b.entities());
+			if (b.template() != null) o.addProperty("template", b.template());
 			root.add("build", o);
 		}
 

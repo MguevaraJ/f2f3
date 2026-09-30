@@ -76,6 +76,11 @@ public final class SidecarWriter {
 				// The server was busy (or failed): leave the server-only data as "unknown".
 				CraftshotCompanion.LOG.debug("Server data unavailable for the screenshot", e);
 			}
+			if (server != null && server.build() != null && server.build().template() != null) {
+				ServerCollector.Build b = server.build();
+				CaptureSnapshot.Player pl = p.snapshot().player();
+				Minecraft.getInstance().execute(() -> BuildPreview.announce(b, pl.block(), pl.direction()));
+			}
 			// The structure goes first: when the app sees the JSON, the .nbt is already there.
 			String buildName = null;
 			if (server != null && server.build() != null) {

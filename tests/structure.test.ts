@@ -12,14 +12,9 @@ describe('readNbt', () => {
   it('reads every tag type', () => {
     // Root compound "" { b:1, s:-2, l:5L, str:"hé", list:[int 7, int 8], ia:[3] }
     const bytes = [
-      10, 0, 0,
-      1, 0, 1, 98, 1,
-      2, 0, 1, 115, 0xff, 0xfe,
-      4, 0, 1, 108, 0, 0, 0, 0, 0, 0, 0, 5,
-      8, 0, 3, 115, 116, 114, 0, 3, 104, 0xc3, 0xa9,
-      9, 0, 4, 108, 105, 115, 116, 3, 0, 0, 0, 2, 0, 0, 0, 7, 0, 0, 0, 8,
-      11, 0, 2, 105, 97, 0, 0, 0, 1, 0, 0, 0, 3,
-      0
+      10, 0, 0, 1, 0, 1, 98, 1, 2, 0, 1, 115, 0xff, 0xfe, 4, 0, 1, 108, 0, 0, 0, 0, 0, 0, 0, 5, 8,
+      0, 3, 115, 116, 114, 0, 3, 104, 0xc3, 0xa9, 9, 0, 4, 108, 105, 115, 116, 3, 0, 0, 0, 2, 0, 0,
+      0, 7, 0, 0, 0, 8, 11, 0, 2, 105, 97, 0, 0, 0, 1, 0, 0, 0, 3, 0
     ]
     const raw = Uint8Array.from(bytes)
     for (const data of [raw, gzipSync(raw)]) {
@@ -44,6 +39,15 @@ describe('build snapshot (real 26.3 file, sneak+F2 at a chest)', () => {
       blocks: 13854,
       entities: 3
     })
+  })
+
+  it('keeps the name the build got in the world', () => {
+    const raw = JSON.parse(fixture('build-26.3.craftshot.json').toString('utf8'))
+    raw.build.template = 'craftshot:build_3'
+    expect(parseCompanion(JSON.stringify(raw))!.build!.template).toBe('craftshot:build_3')
+    raw.build.template = 'no es un id'
+    // A bad name only drops the build section, never the whole sidecar.
+    expect(parseCompanion(JSON.stringify(raw))).not.toBeNull()
   })
 
   it('summarizes the structure file like the mod counted it', () => {

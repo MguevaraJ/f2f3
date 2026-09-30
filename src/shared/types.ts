@@ -216,6 +216,8 @@ export interface CompanionBuild {
   size: Vec3
   blocks: number
   entities: number
+  /** Template the mod saved in the world ("craftshot:build_3"), for /place template. */
+  template?: string
 }
 
 /** What the app read from that structure file. */

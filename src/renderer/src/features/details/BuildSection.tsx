@@ -156,20 +156,24 @@ function PlaceBlock({
       if (!alive) return
       setSaves(list)
       // The world the screenshot comes from, when its name matches.
-      setFolder((list.find((w) => w.name === mod.world.name) ?? list[0])?.folder ?? '')
+      // With the build already in its world, suggest another one.
+      const own = list.find((w) => w.name === mod.world.name)
+      const pick = build.template ? (list.find((w) => w !== own) ?? own) : (own ?? list[0])
+      setFolder(pick?.folder ?? '')
     })
     return () => {
       alive = false
     }
-  }, [mod.world.name])
+  }, [mod.world.name, build.template])
 
-  const id = templateId(shotName)
+  const id = build.template ?? templateId(shotName)
+  const inWorld = !!build.template
   const command = placeCommand(id, build.origin, mod.player.block, then, now)
   const dup = (name: string): boolean => (saves ?? []).filter((w) => w.name === name).length > 1
 
   const install = async (): Promise<void> => {
     try {
-      await api.companion.installBuild(shotId, folder)
+      await api.companion.installBuild(shotId, folder, build.template)
       setInstalled(folder)
       toast.success('Build añadido al mundo')
     } catch (err) {
@@ -186,6 +190,12 @@ function PlaceBlock({
         Aparece en el mismo sitio respecto a ti: misma distancia, altura y lado. Colócate donde
         quieras y ejecuta el comando (hacen falta trucos activados).
       </p>
+      {inWorld && (
+        <p className="small">
+          Ya está en el mundo «{mod.world.name}» como <code>{id}</code>. En el juego, escribe{' '}
+          <code>/place template craftshot:</code> y el tabulador te lista todos tus builds.
+        </p>
+      )}
       {saves && saves.length > 0 ? (
         <div className="place-row">
           <select
@@ -206,7 +216,7 @@ function PlaceBlock({
           </select>
           <button className="btn small" onClick={() => void install()}>
             <Icon name={installed === folder ? 'check' : 'folder'} size={14} />{' '}
-            {installed === folder ? 'Añadido' : 'Añadir al mundo'}
+            {installed === folder ? 'Añadido' : inWorld ? 'Añadir a otro mundo' : 'Añadir al mundo'}
           </button>
         </div>
       ) : (

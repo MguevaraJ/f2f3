@@ -272,14 +272,16 @@ export function registerIpc(services: Services): void {
   })
 
   handle(IPC.companion.listSaves, () => listSaves(savesDirFor(settings.value.screenshotsDir)))
-  handle(IPC.companion.installBuild, async (_e, id, folder) => {
+  handle(IPC.companion.installBuild, async (_e, id, folder, template) => {
     const image = library.resolveId(str(id))
     const src = buildPathFor(image)
     if (!existsSync(src)) throw new Error('Esta captura no tiene un build guardado.')
     const saves = savesDirFor(settings.value.screenshotsDir)
     const known = await listSaves(saves)
     if (!known.some((w) => w.folder === str(folder))) throw new Error('No se encontró ese mundo.')
-    return installTemplate(saves, str(folder), templateId(basename(image)), src)
+    // The mod's name (craftshot:build_3) when it saved one, so the same command works everywhere.
+    const name = typeof template === 'string' && template ? template : templateId(basename(image))
+    return installTemplate(saves, str(folder), name, src)
   })
 
   // On-device model (level 2)
