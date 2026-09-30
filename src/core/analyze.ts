@@ -1,4 +1,5 @@
 import type {
+  BuildSummary,
   BiomeInfo,
   CompanionData,
   LocationData,
@@ -17,7 +18,7 @@ import { estimateScene } from './vision/sceneHeuristics'
 import { companionLocation, companionStructures } from './companion/parseCompanion'
 
 /** Bump when the local pipeline changes so cached analyses get recomputed. */
-export const ANALYSIS_SCHEMA = 8
+export const ANALYSIS_SCHEMA = 9
 
 /**
  * Offline analysis of one screenshot: Companion mod sidecar, F3 OCR + parsing and the colour estimate.
@@ -28,7 +29,8 @@ export function analyzeImage(
   img: RgbaImage,
   font: MinecraftFont | null,
   fingerprint: string,
-  mod: CompanionData | null = null
+  mod: CompanionData | null = null,
+  build: BuildSummary | null = null
 ): ScreenshotAnalysis {
   const started = performance.now()
   const ocr = font ? readDebugOverlay(font, img) : null
@@ -40,6 +42,7 @@ export function analyzeImage(
     schema: ANALYSIS_SCHEMA,
     fingerprint,
     analyzedAt: Date.now(),
+    build,
     hasF3,
     f3,
     ocr:

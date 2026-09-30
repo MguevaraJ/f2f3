@@ -10,7 +10,7 @@ visor, carpetas, respaldo en Google Drive y avisos de capturas nuevas. **UI y te
 ```bash
 npm run dev            # desarrollo
 npm run build          # typecheck + build + scripts/check-preload.mjs (falla si un preload usa chunks)
-npm run typecheck && npx eslint . && npx vitest run    # verificación estándar (149 tests)
+npm run typecheck && npx eslint . && npx vitest run    # verificación estándar (146 tests)
 npm run dist:linux     # AppImage (el .env con MAIN_VITE_GOOGLE_CLIENT_ID/SECRET se incrusta)
 npm run ocr -- <png…>  # OCR del F3 desde terminal
 npm run eval:local -- <png…>   # evalúa el modelo local (CLIP); MODEL_CACHE=dir
@@ -157,5 +157,17 @@ dentro del campo de visión de la cámara (FOV vertical de opciones + aspecto de
    AFK: modo "Granjas de mobs" (centro de la esfera mínima, elevado si una granja queda a <24) o "Solo carga" (chunk
    central); simulación por defecto = la de la captura más reciente con mod, si no 12. Portales: A/B con comprobación
    de ida y vuelta; las capturas que apuntan a `minecraft:nether_portal` cuentan como portales existentes.
-5. Snapshot `.litematic`/.nbt del build alrededor del bloque apuntado (solo un jugador).
+5. **Hecho** — Snapshot del build (solo un jugador): **agachado + F2** apuntando a un bloque, el mod guarda
+   `NOMBRE.craftshot.nbt` (estructura vanilla, cubo de 2r+1 centrado en el bloque, con aire y entidades; recortado a la
+   altura del mundo) antes del JSON, y añade `build` {file, origin, size, blocks, entities}. Config
+   `config/craftshot_companion.json`: `build` "sneak"|"always"|"never", `buildRadius` (16, máx. 48) — `CompanionConfig`.
+   `StructureTemplate.fillFromWorld` en el hilo del servidor. En 26.x la paleta usa `id` (antes `Name`) y la carpeta de
+   plantillas del mundo es `generated/<ns>/structure/` (singular); probado con `/place template` ("Loaded template").
+   Litematica carga .nbt vanilla (no se genera .litematic). App: `src/core/nbt/readNbt.ts` (lector NBT),
+   `src/core/companion/structure.ts` (`summarizeStructure`: materiales, entidades), `analysis.build` (ANALYSIS_SCHEMA 9),
+   `buildPathFor`/`sidecarPathsFor` (el .nbt se busca por nombre y sigue a la imagen al mover/renombrar/borrar),
+   IPC `companion.exportBuild` (diálogo en `.minecraft/schematics` si existe), `features/details/BuildSection.tsx`
+   (área, materiales en stacks, copiar lista), búsqueda por bloques del build. Fixtures `tests/fixtures/companion/build-26.3.*`.
+   Ojo: `run/saves/CraftshotTest` ya no carga (falta world_gen_settings) y el juego abre "New World (1)".
+   No recompilar el mod (`build:mod`) con `runClient` abierto: el cliente se cerró al hacerlo.
 Ideas extra: aldeanos (profesión, trades, POI), cajas de estructuras, cubiomes-WASM (confirmar soporte 26.x).

@@ -55,7 +55,7 @@ public record CaptureSnapshot(
 	 * The server part (structures, mob caps, game rules…) comes from the integrated server
 	 * in singleplayer; null in multiplayer, where the client is never told about it.
 	 */
-	public JsonObject toJson(ServerCollector.Result server) {
+	public JsonObject toJson(ServerCollector.Result server, String buildFile) {
 		Structures structures = server != null ? server.structures() : null;
 		JsonObject root = new JsonObject();
 		root.addProperty("format", FORMAT);
@@ -166,6 +166,16 @@ public record CaptureSnapshot(
 
 		if (server != null && server.spawn() != null) root.add("spawn", server.spawn());
 		if (server != null && server.gamerules() != null) root.add("gamerules", server.gamerules());
+		if (buildFile != null && server.build() != null) {
+			ServerCollector.Build b = server.build();
+			JsonObject o = new JsonObject();
+			o.addProperty("file", buildFile);
+			o.add("origin", vec(new BlockVec(b.origin().getX(), b.origin().getY(), b.origin().getZ())));
+			o.add("size", vec(new BlockVec(b.size().getX(), b.size().getY(), b.size().getZ())));
+			o.addProperty("blocks", b.blocks());
+			o.addProperty("entities", b.entities());
+			root.add("build", o);
+		}
 
 		// null = unknown (multiplayer: the client is never told about structures).
 		if (structures != null) {

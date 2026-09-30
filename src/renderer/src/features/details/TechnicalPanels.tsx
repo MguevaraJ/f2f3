@@ -34,7 +34,7 @@ const ENTITY_LABEL: Record<string, string> = {
   'minecraft:item_frame': 'Marcos',
   'minecraft:player': 'Jugadores'
 }
-const entityName = (id: string): string => ENTITY_LABEL[id] ?? mobName(id)
+export const entityName = (id: string): string => ENTITY_LABEL[id] ?? mobName(id)
 
 export function itemLabel(item: CompanionItem): string {
   const ench = Object.entries(item.enchantments ?? {})

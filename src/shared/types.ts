@@ -184,7 +184,11 @@ export interface CompanionData {
   /** Singleplayer: mob counts per category from the last spawning pass. */
   spawn?: { chunks: number; counts: Partial<Record<SpawnCategory, number>> }
   /** Singleplayer: every game rule with its default. */
-  gamerules?: Record<string, { value: boolean | number | string; default: boolean | number | string }>
+  gamerules?: Record<
+    string,
+    { value: boolean | number | string; default: boolean | number | string }
+  >
+  build?: CompanionBuild
 }
 
 export interface CompanionItem {
@@ -204,6 +208,26 @@ export interface CompanionVillager {
   meetingPoint?: Vec3 & { dimension: string }
   golemDetectedRecently?: boolean
   trades: { buy: CompanionItem[]; sell: CompanionItem; uses: number; maxUses: number }[]
+}
+
+/** The build saved by the mod on sneak+F2 (".craftshot.nbt"), as the mod describes it. */
+export interface CompanionBuild {
+  origin: Vec3
+  size: Vec3
+  blocks: number
+  entities: number
+}
+
+/** What the app read from that structure file. */
+export interface BuildSummary {
+  size: Vec3
+  /** Non-air blocks. */
+  blocks: number
+  blockEntities: number
+  /** Block counts by id, most used first (the material list). */
+  materials: { id: string; count: number }[]
+  entities: { id: string; count: number }[]
+  dataVersion?: number
 }
 
 /** Position data shown in the UI, from the mod (preferred) or the F3 overlay. */
@@ -286,6 +310,8 @@ export interface ScreenshotAnalysis {
   // ── Resolved values (derived from the sources above by resolveAnalysis) ──
   /** Coordinates, orientation and target: mod first, then F3. */
   location: LocationData | null
+  /** Summary of the structure file saved with the screenshot (mod, sneak+F2). */
+  build?: BuildSummary | null
   dimension: { id: DimensionId; source: InfoSource } | null
   biome: BiomeInfo | null
   mobs: MobInfo[]

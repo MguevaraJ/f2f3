@@ -25,6 +25,7 @@ import {
 import { formatBytes, formatDateTime, formatNumber, formatRelative } from '../../lib/format'
 import { PROVIDER_LABEL, SOURCE_INFO } from '../../lib/sources'
 import { useLocalModel } from '../../store/localModel'
+import { BuildSection } from './BuildSection'
 import { GameRulesBlock, ModsBlock, TechnicalSection, VillagerSection } from './TechnicalPanels'
 import { Section, Rows, Row, Fact, Axis, CopyButton, CopyChip, SourceTag } from './parts'
 import { useSettings } from '../../store/settings'
@@ -158,6 +159,9 @@ export function DetailsPanel({
             />
           )}
           {a.mod?.target.entity?.villager && <VillagerSection v={a.mod.target.entity.villager} />}
+          {a.mod?.build && (
+            <BuildSection shotId={shot.id} build={a.mod.build} summary={a.build ?? null} />
+          )}
           <VisionSection shot={shot} />
         </>
       )}

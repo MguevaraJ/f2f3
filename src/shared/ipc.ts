@@ -48,7 +48,8 @@ export const IPC = {
     openFolder: 'backup:open-folder'
   },
   companion: {
-    saveMod: 'companion:save-mod'
+    saveMod: 'companion:save-mod',
+    exportBuild: 'companion:export-build'
   },
   localModel: {
     status: 'local-model:status',
@@ -185,6 +186,8 @@ export interface CraftshotApi {
   companion: {
     /** Saves the bundled Craftshot Companion mod (.jar) where the user chooses; null if cancelled. */
     saveMod(): Promise<string | null>
+    /** Saves the build (.nbt) captured with a screenshot; null if cancelled. */
+    exportBuild(id: string): Promise<string | null>
   }
   localModel: {
     status(): Promise<LocalModelStatus>

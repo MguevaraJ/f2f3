@@ -11,6 +11,18 @@ export const COMPANION_SUFFIX = '.craftshot.json'
 export const companionPathFor = (imagePath: string): string =>
   imagePath.replace(/\.[^./\\]+$/, '') + COMPANION_SUFFIX
 
+/** Structure saved on sneak+F2; found by name (the JSON's "file" goes stale on rename). */
+export const BUILD_SUFFIX = '.craftshot.nbt'
+
+export const buildPathFor = (imagePath: string): string =>
+  imagePath.replace(/\.[^./\\]+$/, '') + BUILD_SUFFIX
+
+/** Every file the mod writes next to an image. */
+export const sidecarPathsFor = (imagePath: string): string[] => [
+  companionPathFor(imagePath),
+  buildPathFor(imagePath)
+]
+
 const num = z.number().finite()
 const vec = z.object({ x: num, y: num, z: num })
 const blockVec = z.object({ x: z.number().int(), y: z.number().int(), z: z.number().int() })
@@ -40,7 +52,10 @@ const schema = z.object({
   world: z.object({
     type: z.enum(['singleplayer', 'multiplayer', 'realms']),
     name: z.string(),
-    seed: z.string().regex(/^-?\d+$/).optional(),
+    seed: z
+      .string()
+      .regex(/^-?\d+$/)
+      .optional(),
     dimension: id,
     day: z.number().int().nonnegative(),
     timeOfDay: z.number().int().min(0).max(23999),
@@ -105,9 +120,7 @@ const schema = z.object({
         .optional()
     })
     .default({}),
-  entities: z
-    .array(z.object({ id, count: z.number().int().positive(), nearest: num }))
-    .default([]),
+  entities: z.array(z.object({ id, count: z.number().int().positive(), nearest: num })).default([]),
   structures: z.object({ inside: z.array(id), target: z.array(id) }).optional(),
   nearby: lenient(z.array(z.object({ id, count: z.number().int() }))),
   game: lenient(
@@ -131,7 +144,15 @@ const schema = z.object({
       counts: z.record(z.string(), z.number().int())
     })
   ),
-  gamerules: lenient(z.record(z.string(), z.object({ value: ruleValue, default: ruleValue })))
+  gamerules: lenient(z.record(z.string(), z.object({ value: ruleValue, default: ruleValue }))),
+  build: lenient(
+    z.object({
+      origin: blockVec,
+      size: blockVec,
+      blocks: z.number().int(),
+      entities: z.number().int()
+    })
+  )
 })
 
 /** Parses the sidecar's text; null when it is not a valid schema-1 file. */
@@ -160,7 +181,8 @@ export function parseCompanion(text: string): CompanionData | null {
     game: d.game,
     mods: d.mods,
     spawn: d.spawn as CompanionData['spawn'],
-    gamerules: d.gamerules
+    gamerules: d.gamerules,
+    build: d.build
   }
 }
 
@@ -218,4 +240,3 @@ export function companionLocation(c: CompanionData): LocationData {
     targetedEntity: c.target.entity?.id
   }
 }
-

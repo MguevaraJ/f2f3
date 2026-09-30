@@ -83,7 +83,10 @@ export function searchableText(s: ScreenshotEntry): string {
         }
     }
     for (const it of a.mod.target.block?.container?.items ?? []) parts.push(it.id)
+    if (a.mod.build) parts.push('build', 'estructura')
   }
+  // Builds are found by the blocks they contain ("minecraft:hopper").
+  for (const m of a?.build?.materials ?? []) parts.push(m.id)
   if (a?.location?.targetedBlock?.id) parts.push(a.location.targetedBlock.id)
   if (a?.vision) parts.push(a.vision.description)
   if (a?.hasF3) parts.push('f3')

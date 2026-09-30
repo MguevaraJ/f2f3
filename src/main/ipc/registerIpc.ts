@@ -1,5 +1,7 @@
 import { copyFile, writeFile } from 'node:fs/promises'
-import { join } from 'node:path'
+import { existsSync } from 'node:fs'
+import { basename, join } from 'node:path'
+import { buildPathFor } from '@core/companion/parseCompanion'
 import {
   app,
   BrowserWindow,
@@ -241,6 +243,29 @@ export function registerIpc(services: Services): void {
       : await dialog.showSaveDialog(options)
     if (res.canceled || !res.filePath) return null
     await copyFile(modJar, res.filePath)
+    return res.filePath
+  })
+
+  handle(IPC.companion.exportBuild, async (e, id) => {
+    const src = buildPathFor(library.resolveId(str(id)))
+    if (!existsSync(src)) throw new Error('Esta captura no tiene un build guardado.')
+    // Litematica's folder when it is there: "Cargar esquemas" lists it right away.
+    const schematics = join(app.getPath('home'), '.minecraft', 'schematics')
+    const dir = existsSync(schematics) ? schematics : app.getPath('downloads')
+    const parent = BrowserWindow.fromWebContents(e.sender)
+    const options = {
+      title: 'Guardar el build',
+      defaultPath: join(dir, basename(src).replace(/\.craftshot\.nbt$/, '.nbt')),
+      filters: [{ name: 'Estructura de Minecraft', extensions: ['nbt'] }],
+      properties: ['showOverwriteConfirmation', 'createDirectory'] as (
+        'showOverwriteConfirmation' | 'createDirectory'
+      )[]
+    }
+    const res = parent
+      ? await dialog.showSaveDialog(parent, options)
+      : await dialog.showSaveDialog(options)
+    if (res.canceled || !res.filePath) return null
+    await copyFile(src, res.filePath)
     return res.filePath
   })
 

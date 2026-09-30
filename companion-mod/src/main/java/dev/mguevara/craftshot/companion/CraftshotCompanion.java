@@ -15,6 +15,7 @@ public final class CraftshotCompanion implements ClientModInitializer {
 
 	@Override
 	public void onInitializeClient() {
+		CompanionConfig.load();
 		LOG.info("Craftshot Companion ready: screenshots will get a .craftshot.json sidecar");
 	}
 }

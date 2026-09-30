@@ -3,7 +3,8 @@ import { dirname } from 'node:path'
 import { parentPort } from 'node:worker_threads'
 import { PNG } from 'pngjs'
 import { analyzeImage } from '@core/analyze'
-import { companionPathFor, parseCompanion } from '@core/companion/parseCompanion'
+import { buildPathFor, companionPathFor, parseCompanion } from '@core/companion/parseCompanion'
+import { summarizeStructure } from '@core/companion/structure'
 import { loadFontFrom, type MinecraftFont } from '@core/font/minecraftFont'
 import { downscale } from '@core/image/resize'
 import type { WorkerJob, WorkerReply } from './protocol'
@@ -43,6 +44,19 @@ function companion(file: string): ReturnType<typeof parseCompanion> {
   }
 }
 
+/** The structure the mod saved on sneak+F2, when there is one. */
+function build(
+  file: string,
+  mod: ReturnType<typeof parseCompanion>
+): ReturnType<typeof summarizeStructure> {
+  if (!mod?.build) return null
+  try {
+    return summarizeStructure(readFileSync(buildPathFor(file)))
+  } catch {
+    return null
+  }
+}
+
 function run(job: WorkerJob): WorkerReply {
   const png = PNG.sync.read(readFileSync(job.file))
   const reply: WorkerReply = { jobId: job.jobId, ok: true, width: png.width, height: png.height }
@@ -52,7 +66,16 @@ function run(job: WorkerJob): WorkerReply {
     out.data = Buffer.from(small.data)
     writeAtomic(job.thumb.path, PNG.sync.write(out, { deflateLevel: 6, colorType: 2 }))
   }
-  if (job.analyze) reply.analysis = analyzeImage(png, font(job.fontSource), job.fingerprint, companion(job.file))
+  if (job.analyze) {
+    const mod = companion(job.file)
+    reply.analysis = analyzeImage(
+      png,
+      font(job.fontSource),
+      job.fingerprint,
+      mod,
+      build(job.file, mod)
+    )
+  }
   return reply
 }
 

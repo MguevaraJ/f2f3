@@ -56,7 +56,8 @@ const api: CraftshotApi = {
     onStatus: (cb) => subscribe(IPC.events.backupStatus, cb)
   },
   companion: {
-    saveMod: invoke(IPC.companion.saveMod)
+    saveMod: invoke(IPC.companion.saveMod),
+    exportBuild: invoke(IPC.companion.exportBuild)
   },
   localModel: {
     status: invoke(IPC.localModel.status),

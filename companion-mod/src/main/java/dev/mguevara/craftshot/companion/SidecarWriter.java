@@ -13,6 +13,7 @@ import java.util.concurrent.TimeUnit;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.server.IntegratedServer;
 import net.minecraft.core.BlockPos;
+import net.minecraft.nbt.NbtIo;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.Util;
@@ -24,6 +25,7 @@ import net.minecraft.world.level.Level;
  */
 public final class SidecarWriter {
 	public static final String SUFFIX = ".craftshot.json";
+	public static final String BUILD_SUFFIX = ".craftshot.nbt";
 
 	/** Snapshots waiting for Screenshot.getFile() to choose the file name (readbacks finish in order). */
 	private static final Queue<Pending> PENDING = new ConcurrentLinkedQueue<>();
@@ -62,7 +64,9 @@ public final class SidecarWriter {
 	private static void write(File image, Pending p) {
 		String name = image.getName();
 		int dot = name.lastIndexOf('.');
-		File sidecar = new File(image.getParentFile(), (dot > 0 ? name.substring(0, dot) : name) + SUFFIX);
+		String base = dot > 0 ? name.substring(0, dot) : name;
+		File sidecar = new File(image.getParentFile(), base + SUFFIX);
+		File buildFile = new File(image.getParentFile(), base + BUILD_SUFFIX);
 		Util.ioPool().execute(() -> {
 			ServerCollector.Result server = null;
 			try {
@@ -71,8 +75,20 @@ public final class SidecarWriter {
 				// The server was busy (or failed): leave the server-only data as "unknown".
 				CraftshotCompanion.LOG.debug("Server data unavailable for the screenshot", e);
 			}
+			// The structure goes first: when the app sees the JSON, the .nbt is already there.
+			String buildName = null;
+			if (server != null && server.build() != null) {
+				try {
+					File tmp = new File(buildFile.getParentFile(), buildFile.getName() + ".tmp");
+					NbtIo.writeCompressed(server.build().nbt(), tmp.toPath());
+					Files.move(tmp.toPath(), buildFile.toPath(), StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);
+					buildName = buildFile.getName();
+				} catch (IOException e) {
+					CraftshotCompanion.LOG.warn("Could not write {}", buildFile, e);
+				}
+			}
 			String json = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create()
-				.toJson(p.snapshot().toJson(server));
+				.toJson(p.snapshot().toJson(server, buildName));
 			try {
 				File tmp = new File(sidecar.getParentFile(), sidecar.getName() + ".tmp");
 				Files.writeString(tmp.toPath(), json, StandardCharsets.UTF_8);
@@ -96,9 +112,11 @@ public final class SidecarWriter {
 			? new BlockPos(s.targetBlock().pos().x(), s.targetBlock().pos().y(), s.targetBlock().pos().z())
 			: null;
 		Integer entityId = s.targetEntity() != null ? s.targetEntity().networkId() : null;
+		int buildRadius = CompanionConfig.get().wantsBuild(mc.player.isShiftKeyDown()) ? CompanionConfig.get().buildRadius() : 0;
+		String author = mc.player.getGameProfile().name();
 		return server.submit(() -> {
 			ServerLevel level = server.getLevel(dim);
-			return level == null ? null : ServerCollector.collect(server, level, at, target, entityId);
+			return level == null ? null : ServerCollector.collect(server, level, at, target, entityId, buildRadius, author);
 		});
 	}
 }

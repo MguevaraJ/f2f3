@@ -10,7 +10,7 @@ import type {
   LibrarySnapshot,
   ScreenshotEntry
 } from '@shared/types'
-import { companionPathFor } from '@core/companion/parseCompanion'
+import { companionPathFor, sidecarPathsFor } from '@core/companion/parseCompanion'
 import type { MetadataStore } from './MetadataStore'
 
 const IMAGE_RE = /\.(png|jpe?g)$/i
@@ -304,11 +304,14 @@ async function withSidecar(
   to: string | null,
   fn: (from: string, to: string) => Promise<void>
 ): Promise<void> {
-  const src = companionPathFor(from)
-  if (!IMAGE_RE.test(from) || !existsSync(src)) return
-  const dst = to ? companionPathFor(to) : ''
-  if (to && existsSync(dst) && dst.toLowerCase() !== src.toLowerCase()) return
-  await fn(src, dst)
+  if (!IMAGE_RE.test(from)) return
+  const dsts = to ? sidecarPathsFor(to) : []
+  for (const [i, src] of sidecarPathsFor(from).entries()) {
+    if (!existsSync(src)) continue
+    const dst = dsts[i] ?? ''
+    if (to && existsSync(dst) && dst.toLowerCase() !== src.toLowerCase()) continue
+    await fn(src, dst)
+  }
 }
 
 async function copyPreservingTimes(from: string, to: string): Promise<void> {

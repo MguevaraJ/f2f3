@@ -9,7 +9,9 @@ import java.util.Optional;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.GlobalPos;
 import net.minecraft.core.component.DataComponents;
+import net.minecraft.core.Vec3i;
 import net.minecraft.core.registries.Registries;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.ServerTickRateManager;
 import net.minecraft.server.level.ServerLevel;
@@ -25,11 +27,13 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.enchantment.ItemEnchantments;
 import net.minecraft.world.item.trading.MerchantOffer;
 import net.minecraft.world.level.NaturalSpawner;
+import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.ComparatorBlockEntity;
 import net.minecraft.world.level.gamerules.GameRule;
 import net.minecraft.world.level.gamerules.GameRules;
 import net.minecraft.world.level.levelgen.structure.Structure;
+import net.minecraft.world.level.levelgen.structure.templatesystem.StructureTemplate;
 
 /**
  * What only the (integrated) server knows, read on the server thread in singleplayer:
@@ -48,10 +52,15 @@ public final class ServerCollector {
 		JsonObject spawn,
 		JsonObject gamerules,
 		JsonObject block,
-		JsonObject villager
+		JsonObject villager,
+		Build build
 	) {}
 
-	public static Result collect(MinecraftServer server, ServerLevel level, BlockPos at, BlockPos target, Integer entityId) {
+	/** The blocks around the targeted block as a vanilla structure (.nbt), plus its summary. */
+	public record Build(CompoundTag nbt, BlockPos origin, Vec3i size, int blocks, int entities) {}
+
+	public static Result collect(MinecraftServer server, ServerLevel level, BlockPos at, BlockPos target, Integer entityId,
+			int buildRadius, String author) {
 		ServerTickRateManager tick = server.tickRateManager();
 		String state = tick.isFrozen() ? (tick.isSteppingForward() ? "stepping" : "frozen")
 			: tick.isSprinting() ? "sprinting" : "normal";
@@ -63,8 +72,29 @@ public final class ServerCollector {
 			spawn(level),
 			gamerules(level.getGameRules()),
 			target != null ? block(level, target) : null,
-			entityId != null ? villager(level.getEntity(entityId)) : null
+			entityId != null ? villager(level.getEntity(entityId)) : null,
+			target != null && buildRadius > 0 ? build(level, target, buildRadius, author) : null
 		);
+	}
+
+	/**
+	 * A cube of side 2r+1 centred on the target (clipped to the world's height), air
+	 * included so that pasting it clears the area, like a structure block does.
+	 */
+	private static Build build(ServerLevel level, BlockPos centre, int r, String author) {
+		int y0 = Math.max(level.getMinY(), centre.getY() - r);
+		int y1 = Math.min(level.getMaxY(), centre.getY() + r);
+		BlockPos origin = new BlockPos(centre.getX() - r, y0, centre.getZ() - r);
+		Vec3i size = new Vec3i(2 * r + 1, y1 - y0 + 1, 2 * r + 1);
+		StructureTemplate template = new StructureTemplate();
+		template.fillFromWorld(level, origin, size, true, List.of(Blocks.STRUCTURE_VOID));
+		template.setAuthor(author);
+		CompoundTag nbt = template.save(new CompoundTag());
+		int blocks = 0;
+		for (BlockPos p : BlockPos.betweenClosed(origin, origin.offset(size).offset(-1, -1, -1))) {
+			if (!level.getBlockState(p).isAir()) blocks++;
+		}
+		return new Build(nbt, origin, size, blocks, nbt.getListOrEmpty("entities").size());
 	}
 
 	private static List<String> structuresAt(ServerLevel level, BlockPos pos) {
