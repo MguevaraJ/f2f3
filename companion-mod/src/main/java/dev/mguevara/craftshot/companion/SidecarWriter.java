@@ -13,6 +13,7 @@ import java.util.concurrent.TimeUnit;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.server.IntegratedServer;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.nbt.NbtIo;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerLevel;
@@ -116,12 +117,12 @@ public final class SidecarWriter {
 		BuildRegion chosen = BuildPreview.takeChosen();
 		CompanionConfig config = CompanionConfig.get();
 		boolean auto = chosen == null && target != null && config.build().equals("always");
-		boolean fromTarget = config.buildBase().equals("target");
+		Direction facing = mc.player.getDirection();
 		String author = mc.player.getGameProfile().name();
 		return server.submit(() -> {
 			ServerLevel level = server.getLevel(dim);
 			if (level == null) return null;
-			BuildRegion region = auto ? BuildRegion.around(level, target, config.buildRadius(), fromTarget) : chosen;
+			BuildRegion region = auto ? config.region(level, target, config.buildSize(), facing) : chosen;
 			return ServerCollector.collect(server, level, at, target, entityId, region, author);
 		});
 	}

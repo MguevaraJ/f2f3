@@ -3,6 +3,7 @@ package dev.mguevara.craftshot.companion;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.Screenshot;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.gizmos.GizmoStyle;
 import net.minecraft.gizmos.Gizmos;
 import net.minecraft.network.chat.Component;
@@ -11,22 +12,22 @@ import net.minecraft.world.phys.HitResult;
 
 /**
  * Sneak+F2 does not save right away: it shows the box that would be saved, following the
- * aim. Scrolling while sneaking resizes it, F2 saves exactly that box (the screenshot is
+ * aim, with the aimed block at its near right corner. Scrolling while sneaking resizes it, F2 saves exactly that box (the screenshot is
  * taken a moment later, once the box is gone) and Esc cancels. Client thread only.
  */
 public final class BuildPreview {
-	private static final int MIN_RADIUS = 2;
-	private static final int MAX_RADIUS = 48;
 	/** Ticks to wait so a frame without the box is rendered before the screenshot. */
 	private static final int CAPTURE_DELAY_TICKS = 2;
+	private static final double PICK_RANGE = 96;
 	private static final GizmoStyle BOX_FILL = GizmoStyle.fill(0x185CE07A);
 	private static final GizmoStyle BOX_EDGES = GizmoStyle.stroke(0xFF5CE07A, 2.5f);
 	private static final GizmoStyle TARGET = GizmoStyle.stroke(0xFFFFD24A, 2.0f);
 
 	private static boolean active;
-	private static int radius;
+	private static int size;
+	private static Direction facing;
 	private static BlockPos target;
-	private static int computedRadius;
+	private static int computedSize;
 	private static BuildRegion region;
 	private static int age;
 
@@ -54,7 +55,7 @@ public final class BuildPreview {
 		CompanionConfig config = CompanionConfig.get();
 		if (config.build().equals("sneak") && mc.player != null && mc.player.isShiftKeyDown() && mc.hasSingleplayerServer()) {
 			active = true;
-			radius = config.buildRadius();
+			size = config.buildSize();
 			target = null;
 			region = null;
 			age = 0;
@@ -73,7 +74,7 @@ public final class BuildPreview {
 	/** Scrolling while sneaking in the preview resizes the box; true consumes the scroll. */
 	public static boolean onScroll(Minecraft mc, double amount) {
 		if (!active || amount == 0 || mc.player == null || !mc.player.isShiftKeyDown()) return false;
-		radius = Math.max(MIN_RADIUS, Math.min(MAX_RADIUS, radius + (amount > 0 ? 1 : -1)));
+		size = Math.max(CompanionConfig.MIN_SIZE, Math.min(CompanionConfig.MAX_SIZE, size + (amount > 0 ? 1 : -1)));
 		age = 0;
 		return true;
 	}
@@ -97,16 +98,18 @@ public final class BuildPreview {
 			if (mc.player != null) message(mc, "Guardado del build cancelado");
 			return;
 		}
-		HitResult hit = mc.hitResult;
+		// Our own ray, much longer than the hand's reach: the build is framed from outside.
+		HitResult hit = mc.player.pick(PICK_RANGE, 1.0f, false);
 		BlockPos aimed = hit instanceof BlockHitResult b && hit.getType() == HitResult.Type.BLOCK ? b.getBlockPos() : null;
-		boolean fromTarget = CompanionConfig.get().buildBase().equals("target");
+		Direction looking = mc.player.getDirection();
 		// The scan is up to 97³ blocks: redo it when the aim or the size changes, or twice a second.
 		if (aimed == null) {
 			region = null;
-		} else if (!aimed.equals(target) || computedRadius != radius || age % 10 == 0) {
-			region = BuildRegion.around(mc.level, aimed, radius, fromTarget);
-			computedRadius = radius;
+		} else if (!aimed.equals(target) || computedSize != size || looking != facing || age % 10 == 0) {
+			region = CompanionConfig.get().region(mc.level, aimed, size, looking);
+			computedSize = size;
 		}
+		facing = looking;
 		target = aimed;
 		if (region != null) {
 			// Edges drawn over the blocks (the bottom ones are inside the ground), like a selection.
@@ -118,7 +121,7 @@ public final class BuildPreview {
 		if (age % 10 == 0) {
 			message(mc, region == null
 				? "Apunta a la base del build · Esc cancela"
-				: "Build " + region.sizeText() + " · " + region.blocks() + " bloques · F2 guarda · rueda agachado: tamaño (" + radius + ") · Esc cancela");
+				: "Build " + region.sizeText() + " · " + region.blocks() + " bloques · F2 guarda · rueda agachado: tamaño (" + size + ") · Esc cancela");
 		}
 		age++;
 	}

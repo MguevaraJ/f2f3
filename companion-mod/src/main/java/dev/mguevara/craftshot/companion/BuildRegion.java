@@ -1,6 +1,7 @@
 package dev.mguevara.craftshot.companion;
 
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.core.Vec3i;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.AABB;
@@ -11,14 +12,28 @@ import net.minecraft.world.phys.AABB;
  */
 public record BuildRegion(BlockPos origin, Vec3i size, int blocks) {
 	/**
-	 * 2r+1 blocks wide around the target, from its level upwards 2r+1 blocks (or centred on
-	 * it), clipped to the world's height and trimmed to the non-air blocks. Null when empty.
+	 * A cube of `side` blocks with the target at its bottom corner nearest to the player,
+	 * on their right: it grows away from the player (`facing`), to their left and upwards.
+	 * Like framing a picture, the build can be selected from outside.
 	 */
-	public static BuildRegion around(Level level, BlockPos target, int r, boolean fromTarget) {
-		int y0 = Math.max(level.getMinY(), fromTarget ? target.getY() : target.getY() - r);
-		int y1 = Math.min(level.getMaxY(), fromTarget ? target.getY() + 2 * r : target.getY() + r);
-		BlockPos from = new BlockPos(target.getX() - r, y0, target.getZ() - r);
-		BlockPos to = new BlockPos(target.getX() + r, y1, target.getZ() + r);
+	public static BuildRegion corner(Level level, BlockPos target, int side, Direction facing) {
+		int n = side - 1;
+		Direction left = facing.getCounterClockWise();
+		BlockPos far = target.relative(facing, n).relative(left, n).above(n);
+		return trimmed(level, target, far);
+	}
+
+	/** A cube of `side` blocks centred on the target. */
+	public static BuildRegion centred(Level level, BlockPos target, int side) {
+		int r = side / 2;
+		return trimmed(level, target.offset(-r, -r, -r), target.offset(r, r, r));
+	}
+
+	/** The box between two corners, clipped to the world's height and trimmed to non-air blocks; null when empty. */
+	private static BuildRegion trimmed(Level level, BlockPos a, BlockPos b) {
+		BlockPos from = new BlockPos(Math.min(a.getX(), b.getX()), Math.max(level.getMinY(), Math.min(a.getY(), b.getY())), Math.min(a.getZ(), b.getZ()));
+		BlockPos to = new BlockPos(Math.max(a.getX(), b.getX()), Math.min(level.getMaxY(), Math.max(a.getY(), b.getY())), Math.max(a.getZ(), b.getZ()));
+		if (from.getY() > to.getY()) return null;
 
 		int minX = Integer.MAX_VALUE, minY = Integer.MAX_VALUE, minZ = Integer.MAX_VALUE;
 		int maxX = Integer.MIN_VALUE, maxY = Integer.MIN_VALUE, maxZ = Integer.MIN_VALUE;
