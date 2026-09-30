@@ -62,10 +62,10 @@ export function CapturePopupView() {
   if (!payload) return null
   const { entry, reading, more, shortcut } = payload
   const a = entry.analysis
-  const f3 = a?.f3
-  const block = f3?.block
+  const loc = a?.location
+  const block = loc?.block
   const dim = a?.dimension?.id
-  const tp = f3 ? tpCommand(f3) : null
+  const tp = loc ? tpCommand(loc) : null
 
   const copy = (text: string, what: string): void => {
     void popup.copy(text)

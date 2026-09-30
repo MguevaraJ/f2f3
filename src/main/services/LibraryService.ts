@@ -10,14 +10,16 @@ import type {
   LibrarySnapshot,
   ScreenshotEntry
 } from '@shared/types'
+import { companionPathFor } from '@core/companion/parseCompanion'
 import type { MetadataStore } from './MetadataStore'
 
 const IMAGE_RE = /\.(png|jpe?g)$/i
 const MAX_DEPTH = 8
 const MC_NAME_RE = /^(\d{4})-(\d{2})-(\d{2})_(\d{2})\.(\d{2})\.(\d{2})/
 
-export const fingerprintOf = (size: number, mtimeMs: number): string =>
-  `${size}-${Math.round(mtimeMs)}`
+/** The Companion sidecar's mtime is included: the mod may write it after the image. */
+export const fingerprintOf = (size: number, mtimeMs: number, companionMtimeMs?: number): string =>
+  `${size}-${Math.round(mtimeMs)}${companionMtimeMs === undefined ? '' : `-m${Math.round(companionMtimeMs)}`}`
 
 /**
  * The screenshots folder as a library: scanning, watching and every file
@@ -121,6 +123,7 @@ export class LibraryService extends EventEmitter<{ changed: [LibrarySnapshot] }>
       if (existsSync(to) && to.toLowerCase() !== from.toLowerCase())
         throw new Error(`Ya existe "${name}"`)
       await rename(from, to)
+      if (!isDir) await withSidecar(from, to, rename)
       this.metadata.move(from, to)
       return [this.toId(to)]
     })
@@ -133,6 +136,7 @@ export class LibraryService extends EventEmitter<{ changed: [LibrarySnapshot] }>
         if (!id) throw new Error('No se puede eliminar la carpeta raíz')
         const abs = this.resolveId(id)
         await shell.trashItem(abs)
+        await withSidecar(abs, null, (p) => shell.trashItem(p))
         this.metadata.remove(abs)
         done.push(id)
       }
@@ -155,9 +159,11 @@ export class LibraryService extends EventEmitter<{ changed: [LibrarySnapshot] }>
         const to = uniquePath(join(target, basename(from)))
         if (mode === 'cut') {
           await moveAcrossDevices(from, to)
+          await withSidecar(from, to, moveAcrossDevices)
           this.metadata.move(from, to)
         } else {
           await copyPreservingTimes(from, to)
+          await withSidecar(from, to, copyPreservingTimes)
           this.metadata.copy(from, to)
         }
         out.push(this.toId(to))
@@ -175,6 +181,7 @@ export class LibraryService extends EventEmitter<{ changed: [LibrarySnapshot] }>
         if (!st.isDirectory() && !IMAGE_RE.test(p)) continue
         const to = uniquePath(join(target, basename(p)))
         await copyPreservingTimes(p, to)
+        if (!st.isDirectory()) await withSidecar(p, to, copyPreservingTimes)
         out.push(this.toId(to))
       }
       if (!out.length) throw new Error('No se encontraron imágenes para importar')
@@ -244,7 +251,11 @@ export class LibraryService extends EventEmitter<{ changed: [LibrarySnapshot] }>
       const st = await stat(abs)
       const name = basename(abs)
       const stored = this.metadata.analysis(abs)
-      const fingerprint = fingerprintOf(st.size, st.mtimeMs)
+      const companionMtimeMs = await stat(companionPathFor(abs)).then(
+        (s) => s.mtimeMs,
+        () => undefined
+      )
+      const fingerprint = fingerprintOf(st.size, st.mtimeMs, companionMtimeMs)
       const { width, height } = readImageSize(abs)
       return {
         id: this.toId(abs),
@@ -252,6 +263,7 @@ export class LibraryService extends EventEmitter<{ changed: [LibrarySnapshot] }>
         folder,
         size: st.size,
         mtimeMs: st.mtimeMs,
+        companionMtimeMs,
         capturedAt: capturedAtFromName(name) ?? st.mtimeMs,
         width,
         height,
@@ -281,6 +293,22 @@ function uniquePath(path: string): string {
     const candidate = `${base} (${i})${ext}`
     if (!existsSync(candidate)) return candidate
   }
+}
+
+/**
+ * Applies the same operation to the Companion mod sidecar of an image, when it has one,
+ * so the exact game data follows the screenshot.
+ */
+async function withSidecar(
+  from: string,
+  to: string | null,
+  fn: (from: string, to: string) => Promise<void>
+): Promise<void> {
+  const src = companionPathFor(from)
+  if (!IMAGE_RE.test(from) || !existsSync(src)) return
+  const dst = to ? companionPathFor(to) : ''
+  if (to && existsSync(dst) && dst.toLowerCase() !== src.toLowerCase()) return
+  await fn(src, dst)
 }
 
 async function copyPreservingTimes(from: string, to: string): Promise<void> {

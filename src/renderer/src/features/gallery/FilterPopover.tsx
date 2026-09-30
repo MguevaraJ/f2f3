@@ -9,6 +9,7 @@ import { type Filters } from '../../lib/query'
 import { useUi } from '../../store/ui'
 
 const SOURCES: { id: InfoSource; label: string }[] = [
+  { id: 'mod', label: 'Mod (exacto)' },
   { id: 'f3', label: 'F3 (exacto)' },
   { id: 'local', label: 'Modelo local' },
   { id: 'vision', label: 'IA avanzada' },

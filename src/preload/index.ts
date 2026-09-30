@@ -54,6 +54,9 @@ const api: CraftshotApi = {
     openFolder: invoke(IPC.backup.openFolder),
     onStatus: (cb) => subscribe(IPC.events.backupStatus, cb)
   },
+  companion: {
+    saveMod: invoke(IPC.companion.saveMod)
+  },
   localModel: {
     status: invoke(IPC.localModel.status),
     enable: invoke(IPC.localModel.enable),

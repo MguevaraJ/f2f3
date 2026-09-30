@@ -121,7 +121,7 @@ export class AnalysisService extends EventEmitter<Events> {
     }
     const entry = this.library.entry(id)
     if (!entry || !existsSync(abs)) return
-    const fingerprint = fingerprintOf(entry.size, entry.mtimeMs)
+    const fingerprint = fingerprintOf(entry.size, entry.mtimeMs, entry.companionMtimeMs)
     const thumbPath = await this.thumbs.pathFor(abs)
     const priority = this.urgent.delete(id) ? 'high' : 'low'
     const reply = await this.pool.run(
@@ -146,10 +146,12 @@ export class AnalysisService extends EventEmitter<Events> {
             hasF3: false,
             f3: null,
             ocr: null,
+            mod: null,
             heuristic: { dimension: null, biome: null },
             local: null,
             vision: null,
             manualBiome: null,
+            location: null,
             dimension: null,
             biome: null,
             mobs: [],

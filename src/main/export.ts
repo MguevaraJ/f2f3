@@ -35,7 +35,7 @@ function cell(v: unknown): string {
 export function toCsv(entries: ScreenshotEntry[]): string {
   const rows = entries.map((e) => {
     const a = e.analysis
-    const f = a?.f3
+    const f = a?.location
     return [
       e.name,
       e.folder,
@@ -56,7 +56,7 @@ export function toCsv(entries: ScreenshotEntry[]): string {
       f?.facing?.yaw,
       f?.facing?.pitch,
       a?.mobs.map((m) => `${mobName(m.id)} x${m.count}`).join(' | '),
-      f?.version,
+      a?.f3?.version ?? a?.mod?.minecraft,
       e.meta.favorite ? 'si' : '',
       e.meta.note
     ]
@@ -76,7 +76,9 @@ export function toJson(entries: ScreenshotEntry[]): string {
       dimension: e.analysis?.dimension,
       biome: e.analysis?.biome,
       mobs: e.analysis?.mobs,
+      structures: e.analysis?.structures,
       f3: e.analysis?.f3 && { ...e.analysis.f3, lines: undefined },
+      mod: e.analysis?.mod ?? undefined,
       vision: e.analysis?.vision
     })),
     null,

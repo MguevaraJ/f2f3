@@ -14,6 +14,11 @@ export interface SourceInfo {
 }
 
 export const SOURCE_INFO: Record<InfoSource, SourceInfo> = {
+  mod: {
+    tag: 'Mod',
+    label: 'Exacto',
+    hint: 'Guardado por el mod Craftshot Companion en el momento de la captura. Es el dato real del juego.'
+  },
   f3: {
     tag: 'F3',
     label: 'Exacto',
@@ -47,6 +52,17 @@ export const PROVIDER_LABEL: Record<VisionProviderId, string> = {
   gemini: 'Gemini',
   ollama: 'Ollama'
 }
+
+/** Optional extra for Fabric players: exact data without the F3. */
+export const MOD_LEVEL = {
+  id: 'mod',
+  title: 'Mod Craftshot Companion',
+  badge: 'Exacto · Opcional · Fabric 26.3',
+  gives:
+    'Coordenadas, bioma, dimensión, orientación, mobs visibles, estructuras, semilla, hora y clima, sin abrir el F3.',
+  needs:
+    'Minecraft 26.3 con Fabric Loader. Guarda el mod y ponlo en la carpeta mods de ese perfil; al pulsar F2 deja un .craftshot.json junto a la captura.'
+} as const
 
 /** The levels as presented in onboarding and settings. */
 export const LEVELS = [

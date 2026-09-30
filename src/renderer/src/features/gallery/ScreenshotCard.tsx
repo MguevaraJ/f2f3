@@ -2,7 +2,7 @@ import { memo, type DragEvent, type MouseEvent } from 'react'
 import { thumbUrl } from '@shared/ipc'
 import { biomeById, biomeName, DIMENSIONS, dimensionName } from '@shared/catalog/biomes'
 import type { ScreenshotEntry } from '@shared/types'
-import { F3Badge, Icon } from '../../components/icons'
+import { F3Badge, Icon, ModBadge } from '../../components/icons'
 import { DRAG_MIME } from '../../components/Sidebar'
 import { formatTime } from '../../lib/format'
 
@@ -28,7 +28,7 @@ export const ScreenshotCard = memo(function ScreenshotCard({
   dragIds
 }: Props) {
   const a = shot.analysis
-  const pos = a?.f3?.block
+  const pos = a?.location?.block
   const dim = a?.dimension?.id
   const onDragStart = (e: DragEvent): void => {
     e.dataTransfer.setData(DRAG_MIME, JSON.stringify(dragIds(shot.id)))
@@ -65,7 +65,7 @@ export const ScreenshotCard = memo(function ScreenshotCard({
           <Icon name="check" size={14} />
         </button>
         <div className="card-badges">
-          {a?.hasF3 && <F3Badge />}
+          {a?.mod ? <ModBadge /> : a?.hasF3 && <F3Badge />}
           {shot.meta.favorite && (
             <span className="card-fav">
               <Icon name="star" size={14} fill="currentColor" />

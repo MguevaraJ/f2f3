@@ -1,4 +1,4 @@
-import type { F3Data, Vec3 } from '@shared/types'
+import type { F3Data, LocationData, Vec3 } from '@shared/types'
 import { formatNumber } from './format'
 
 export const DIRECTION_ES: Record<string, string> = {
@@ -14,7 +14,7 @@ export const blockString = (v: Vec3): string => `${v.x} ${v.y} ${v.z}`
 export const exactString = (v: Vec3): string =>
   `${formatNumber(v.x)} ${formatNumber(v.y)} ${formatNumber(v.z)}`
 
-export function tpCommand(f3: F3Data): string | null {
+export function tpCommand(f3: LocationData): string | null {
   const p = f3.position ?? f3.block
   if (!p) return null
   const rot =

@@ -1,0 +1,54 @@
+{
+  "format": "craftshot-companion",
+  "schema": 1,
+  "mod": {
+    "name": "Craftshot Companion",
+    "version": "1.0.0+26.3",
+    "loader": "fabric",
+    "minecraft": "26.3"
+  },
+  "capturedAt": "2026-09-30T01:45:00.632599540Z",
+  "world": {
+    "type": "singleplayer",
+    "name": "New World",
+    "seed": "-1844849896984713791",
+    "dimension": "minecraft:the_nether",
+    "day": 0,
+    "timeOfDay": 3835,
+    "weather": "clear"
+  },
+  "player": {
+    "position": {
+      "x": -2.5,
+      "y": 89.0,
+      "z": 0.5
+    },
+    "block": {
+      "x": -3,
+      "y": 89,
+      "z": 0
+    },
+    "chunk": {
+      "x": -1,
+      "y": 5,
+      "z": 0
+    },
+    "facing": {
+      "direction": "west",
+      "yaw": 90.0,
+      "pitch": 0.0
+    },
+    "gameMode": "creative"
+  },
+  "biome": "minecraft:crimson_forest",
+  "light": {
+    "sky": 0,
+    "block": 9
+  },
+  "target": {},
+  "entities": [],
+  "structures": {
+    "inside": [],
+    "target": []
+  }
+}

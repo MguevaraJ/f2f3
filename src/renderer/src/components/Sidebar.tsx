@@ -35,7 +35,7 @@ export function Sidebar() {
   const counts = {
     all: shots.length,
     favorites: shots.filter((s) => s.meta.favorite).length,
-    f3: shots.filter((s) => s.analysis?.hasF3).length,
+    f3: shots.filter((s) => s.analysis?.location).length,
     mobs: shots.filter((s) => s.analysis?.mobs.length).length
   }
 
@@ -77,7 +77,7 @@ export function Sidebar() {
           )}
           {item(
             { kind: 'f3' },
-            'Con datos F3',
+            'Con coordenadas',
             `${counts.f3} con coordenadas`,
             <span className="side-f3">F3</span>
           )}

@@ -1,6 +1,8 @@
 import { EventEmitter } from 'node:events'
+import { existsSync } from 'node:fs'
 import { stat } from 'node:fs/promises'
 import type { LibrarySnapshot, ScreenshotAnalysis, ScreenshotEntry } from '@shared/types'
+import { companionPathFor } from '@core/companion/parseCompanion'
 import type { AnalysisService } from './AnalysisService'
 import { capturedAtFromName, type LibraryService } from './LibraryService'
 
@@ -26,6 +28,8 @@ export class CaptureWatcher extends EventEmitter<Events> {
   private known: Set<string> | null = null
   private root: string | null = null
   private readonly waiting = new Map<string, { retried: boolean }>()
+  /** Set once a capture came with the Companion mod sidecar. */
+  private modSeen = false
 
   constructor(
     private readonly library: LibraryService,
@@ -63,7 +67,19 @@ export class CaptureWatcher extends EventEmitter<Events> {
     if (!/\.png$/i.test(entry.name)) return
     this.waiting.set(entry.id, { retried: false })
     await this.waitUntilWritten(entry.id)
+    if (this.modSeen) await this.waitForCompanion(entry.id)
     this.analysis.enqueueLocal([entry.id], true)
+  }
+
+  /**
+   * The Companion mod writes its sidecar right after the image (a bit later in
+   * singleplayer, while the server looks up structures). Only waited for once the
+   * mod has shown up, so players without it get the popup as fast as before.
+   */
+  private async waitForCompanion(id: string): Promise<void> {
+    const path = companionPathFor(this.library.resolveId(id))
+    for (let i = 0; i < 20 && !existsSync(path); i++)
+      await new Promise((r) => setTimeout(r, 120))
   }
 
   /** Minecraft writes the PNG in a background thread: wait until its size settles. */
@@ -84,8 +100,10 @@ export class CaptureWatcher extends EventEmitter<Events> {
   private onAnalyzed(id: string, analysis: ScreenshotAnalysis): void {
     const state = this.waiting.get(id)
     if (!state) return
-    // A read that raced the game still writing the file: try once more.
-    if (analysis.error && !state.retried) {
+    if (analysis.mod) this.modSeen = true
+    // A read that raced the game still writing the file (image or mod sidecar): try once more.
+    const lateSidecar = !analysis.mod && existsSync(companionPathFor(this.library.resolveId(id)))
+    if ((analysis.error || lateSidecar) && !state.retried) {
       state.retried = true
       setTimeout(() => this.analysis.enqueueLocal([id], true), 400)
       return

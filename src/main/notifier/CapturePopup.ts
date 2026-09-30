@@ -20,7 +20,7 @@ export const COPY_SHORTCUT = 'CommandOrControl+Shift+C'
 export const COPY_SHORTCUT_LABEL = process.platform === 'darwin' ? '⌘⇧C' : 'Ctrl+Shift+C'
 
 export const blockCoords = (e: ScreenshotEntry): string | null => {
-  const b = e.analysis?.f3?.block
+  const b = e.analysis?.location?.block
   return b ? `${b.x} ${b.y} ${b.z}` : null
 }
 

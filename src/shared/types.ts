@@ -70,10 +70,64 @@ export interface OcrStats {
 
 /**
  * Where a piece of information comes from, from most to least reliable:
- * manual (the user), f3 (read from the overlay: exact), vision (advanced AI),
- * local (on-device model: estimate), heuristic (colours: rough estimate).
+ * manual (the user), mod (Craftshot Companion: exact game state), f3 (read from
+ * the overlay: exact), vision (advanced AI), local (on-device model: estimate),
+ * heuristic (colours: rough estimate).
  */
-export type InfoSource = 'f3' | 'vision' | 'local' | 'heuristic' | 'manual'
+export type InfoSource = 'mod' | 'f3' | 'vision' | 'local' | 'heuristic' | 'manual'
+
+/**
+ * Exact game state written by the Craftshot Companion mod next to a screenshot
+ * ("name.craftshot.json", format "craftshot-companion" schema 1).
+ */
+export interface CompanionData {
+  modVersion: string
+  minecraft: string
+  /** ISO timestamp of the moment F2 was pressed. */
+  capturedAt: string
+  world: {
+    type: 'singleplayer' | 'multiplayer' | 'realms'
+    name: string
+    /** Singleplayer only; a string because 64-bit seeds exceed JS numbers. */
+    seed?: string
+    dimension: DimensionId
+    day: number
+    /** 0..23999 ticks. */
+    timeOfDay: number
+    weather: 'clear' | 'rain' | 'thunder'
+  }
+  player: {
+    position: Vec3
+    block: Vec3
+    chunk: Vec3
+    facing: { direction: string; yaw: number; pitch: number }
+    gameMode: string
+  }
+  biome: string
+  light?: { sky: number; block: number }
+  target: { block?: { id: string; pos: Vec3 }; entity?: { id: string; distance: number } }
+  /** Living entities visible in the picture, grouped by type. */
+  entities: { id: string; count: number; nearest: number }[]
+  /** Raw structure ids; absent when unknown (multiplayer). */
+  structures?: { inside: string[]; target: string[] }
+}
+
+/** Position data shown in the UI, from the mod (preferred) or the F3 overlay. */
+export type LocationData = Pick<
+  F3Data,
+  | 'position'
+  | 'block'
+  | 'chunk'
+  | 'chunkRelative'
+  | 'region'
+  | 'facing'
+  | 'light'
+  | 'localDifficulty'
+  | 'targetedBlock'
+  | 'targetedFluid'
+  | 'targetedEntity'
+  | 'dimension'
+> & { source: 'mod' | 'f3' }
 
 export type VisionProviderId = 'anthropic' | 'openai' | 'gemini' | 'ollama'
 
@@ -127,6 +181,8 @@ export interface ScreenshotAnalysis {
   hasF3: boolean
   f3: F3Data | null
   ocr: OcrStats | null
+  /** Sidecar written by the Craftshot Companion mod, when present. */
+  mod: CompanionData | null
   /** Colour-statistics estimate, kept as the last-resort source. */
   heuristic: { dimension: string | null; biome: { id: string; confidence: number } | null }
   local: LocalVisionResult | null
@@ -134,6 +190,8 @@ export interface ScreenshotAnalysis {
   /** Biome chosen by the user (overrides everything). */
   manualBiome: string | null
   // ── Resolved values (derived from the sources above by resolveAnalysis) ──
+  /** Coordinates, orientation and target: mod first, then F3. */
+  location: LocationData | null
   dimension: { id: DimensionId; source: InfoSource } | null
   biome: BiomeInfo | null
   mobs: MobInfo[]
@@ -157,6 +215,8 @@ export interface ScreenshotEntry {
   folder: string
   size: number
   mtimeMs: number
+  /** mtime of the Companion mod sidecar next to the image, when there is one. */
+  companionMtimeMs?: number
   /** Parsed from the Minecraft file name when possible, mtime otherwise. */
   capturedAt: number
   width: number

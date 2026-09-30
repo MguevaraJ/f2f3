@@ -51,6 +51,16 @@ describe('table export', () => {
 })
 
 describe('coordinates table', () => {
+  const f3 = {
+    position: { x: 1473.278, y: 44, z: -83.598 },
+    block: { x: 1473, y: 44, z: -84 },
+    chunk: { x: 92, y: 2, z: -6 },
+    region: 'r.2.-1.mca',
+    dimension: 'minecraft:the_nether',
+    facing: { direction: 'north', yaw: -167.2, pitch: -42.7 },
+    fields: [],
+    lines: { left: [], right: [] }
+  }
   const shot = {
     id: 'n.png',
     name: 'n.png',
@@ -76,16 +86,9 @@ describe('coordinates table', () => {
       heuristic: { dimension: null, biome: null },
       local: null,
       manualBiome: null,
-      f3: {
-        position: { x: 1473.278, y: 44, z: -83.598 },
-        block: { x: 1473, y: 44, z: -84 },
-        chunk: { x: 92, y: 2, z: -6 },
-        region: 'r.2.-1.mca',
-        dimension: 'minecraft:the_nether',
-        facing: { direction: 'north', yaw: -167.2, pitch: -42.7 },
-        fields: [],
-        lines: { left: [], right: [] }
-      }
+      mod: null,
+      f3,
+      location: { source: 'f3', ...f3 }
     }
   } as ScreenshotEntry
 

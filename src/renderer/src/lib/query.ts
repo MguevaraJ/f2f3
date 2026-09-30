@@ -67,7 +67,8 @@ export function searchableText(s: ScreenshotEntry): string {
   for (const m of a?.mobs ?? []) parts.push(m.id, mobName(m.id))
   for (const st of a?.structures ?? []) parts.push(st.id, structureName(st.id))
   if (a?.f3?.version) parts.push(a.f3.version)
-  if (a?.f3?.targetedBlock?.id) parts.push(a.f3.targetedBlock.id)
+  if (a?.mod) parts.push('mod', a.mod.minecraft, a.mod.world.name)
+  if (a?.location?.targetedBlock?.id) parts.push(a.location.targetedBlock.id)
   if (a?.vision) parts.push(a.vision.description)
   if (a?.hasF3) parts.push('f3')
   return parts.filter(Boolean).join(' ').toLowerCase()
@@ -85,7 +86,7 @@ function matchesSearch(s: ScreenshotEntry, search: string): boolean {
   return tokens.every((t) => {
     const c = COORD_RE.exec(t)
     if (c) {
-      const pos = s.analysis?.f3?.position
+      const pos = s.analysis?.location?.position
       if (!pos) return false
       const v = pos[c[1].toLowerCase() as 'x' | 'y' | 'z']
       const n = Number(c[3])
@@ -113,7 +114,7 @@ function inView(s: ScreenshotEntry, view: LibraryView): boolean {
     case 'favorites':
       return !!s.meta.favorite
     case 'f3':
-      return !!s.analysis?.hasF3
+      return !!s.analysis?.location
     case 'mobs':
       return !!s.analysis?.mobs.length
     case 'folder':
@@ -125,7 +126,7 @@ function inView(s: ScreenshotEntry, view: LibraryView): boolean {
 
 function matchesFilters(s: ScreenshotEntry, f: Filters): boolean {
   const a = s.analysis
-  if (f.onlyF3 && !a?.hasF3) return false
+  if (f.onlyF3 && !a?.location) return false
   if (f.onlyFavorites && !s.meta.favorite) return false
   if (f.dimensions.length && !(a?.dimension && f.dimensions.includes(a.dimension.id))) return false
   if (f.biomes.length && !(a?.biome && f.biomes.includes(a.biome.id))) return false
@@ -138,7 +139,7 @@ function matchesFilters(s: ScreenshotEntry, f: Filters): boolean {
 }
 
 function sortValue(s: ScreenshotEntry, key: SortKey): number | string | null {
-  const p = s.analysis?.f3?.position
+  const p = s.analysis?.location?.position
   switch (key) {
     case 'date':
       return s.capturedAt

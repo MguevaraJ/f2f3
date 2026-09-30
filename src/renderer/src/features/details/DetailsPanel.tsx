@@ -3,7 +3,14 @@ import { BIOMES, biomeById, biomeName, DIMENSIONS, dimensionName } from '@shared
 import { MOB_CATEGORY_LABEL, mobName } from '@shared/catalog/mobs'
 import { structureName } from '@shared/catalog/structures'
 import { biomeHiddenInF3 } from '@shared/f3Tips'
-import type { F3Data, InfoSource, ScreenshotEntry, VisionResult } from '@shared/types'
+import type {
+  CompanionData,
+  F3Data,
+  InfoSource,
+  LocationData,
+  ScreenshotEntry,
+  VisionResult
+} from '@shared/types'
 import { CreeperFace, Icon } from '../../components/icons'
 import { McText } from '../../components/McText'
 import {
@@ -58,7 +65,7 @@ export function DetailsPanel({
   compact?: boolean
 }) {
   const a = shot.analysis
-  const f3 = a?.f3
+  const loc = a?.location
   const openViewer = useUi((s) => s.openViewer)
   const viewerId = useUi((s) => s.viewerId)
 
@@ -138,7 +145,8 @@ export function DetailsPanel({
         <>
           {a.error && <div className="details-error">No se pudo analizar: {a.error}</div>}
           <SummaryChips shot={shot} />
-          {f3 ? <F3Sections shot={shot} f3={f3} /> : <NoF3Notice />}
+          {a.mod && <GameSection mod={a.mod} />}
+          {loc ? <LocationSections shot={shot} loc={loc} f3={a.f3} /> : <NoF3Notice />}
           <VisionSection shot={shot} />
         </>
       )}
@@ -300,6 +308,7 @@ function SourceLegend() {
   const openViewer = useUi((s) => s.openViewer)
   const aiOn = !!settings?.visionEnabled
   const rows: { source: InfoSource; on: boolean; state: string }[] = [
+    { source: 'mod', on: true, state: 'Si tienes el mod' },
     { source: 'f3', on: true, state: 'Siempre activo' },
     {
       source: 'local',
@@ -360,17 +369,30 @@ function F3BiomeTip() {
   )
 }
 
-function F3Sections({ shot, f3 }: { shot: ScreenshotEntry; f3: F3Data }) {
+function LocationSections({
+  shot,
+  loc,
+  f3
+}: {
+  shot: ScreenshotEntry
+  loc: LocationData
+  f3: F3Data | null
+}) {
   const [showRaw, setShowRaw] = useState(false)
-  const pos = f3.position
-  const block = f3.block
-  const converted = block ? convertDimension(block, f3.dimension) : null
-  const tp = tpCommand(f3)
+  const pos = loc.position
+  const block = loc.block
+  const converted = block ? convertDimension(block, loc.dimension) : null
+  const tp = tpCommand(loc)
   const ocr = shot.analysis?.ocr
 
   return (
     <>
-      <Section title="Coordenadas" icon="pin" accent>
+      <Section
+        title="Coordenadas"
+        icon="pin"
+        accent
+        action={<SourceTag source={loc.source} />}
+      >
         {block && (
           <div className="xyz">
             <Axis label="X" value={pos?.x ?? block.x} />
@@ -389,8 +411,8 @@ function F3Sections({ shot, f3 }: { shot: ScreenshotEntry; f3: F3Data }) {
               title={`${converted.label}: ${blockString(converted.pos)}`}
             />
           )}
-          {f3.chunk && <CopyButton label="Chunk" value={`${f3.chunk.x} ${f3.chunk.z}`} />}
-          {f3.region && <CopyButton label="Región" value={f3.region} />}
+          {loc.chunk && <CopyButton label="Chunk" value={`${loc.chunk.x} ${loc.chunk.z}`} />}
+          {loc.region && <CopyButton label="Región" value={loc.region} />}
         </div>
         {converted && (
           <p className="muted small convert-note">
@@ -403,11 +425,11 @@ function F3Sections({ shot, f3 }: { shot: ScreenshotEntry; f3: F3Data }) {
         <Rows>
           {pos && <Row k="XYZ" v={exactString(pos)} />}
           {block && <Row k="Bloque" v={blockString(block)} />}
-          {f3.chunk && (
-            <Row k="Chunk" v={`${f3.chunk.x} ${f3.chunk.y} ${f3.chunk.z}`} hint="x, sección y, z" />
+          {loc.chunk && (
+            <Row k="Chunk" v={`${loc.chunk.x} ${loc.chunk.y} ${loc.chunk.z}`} hint="x, sección y, z" />
           )}
-          {f3.chunkRelative && <Row k="Dentro del chunk" v={blockString(f3.chunkRelative)} />}
-          {f3.region && <Row k="Archivo de región" v={f3.region} />}
+          {loc.chunkRelative && <Row k="Dentro del chunk" v={blockString(loc.chunkRelative)} />}
+          {loc.region && <Row k="Archivo de región" v={loc.region} />}
           {block && (
             <Row
               k="Distancia a 0,0"
@@ -417,68 +439,70 @@ function F3Sections({ shot, f3 }: { shot: ScreenshotEntry; f3: F3Data }) {
         </Rows>
       </Section>
 
-      {f3.facing && (
+      {loc.facing && (
         <Section title="Orientación" icon="compass">
           <div className="facing">
-            <Compass yaw={f3.facing.yaw} />
+            <Compass yaw={loc.facing.yaw} />
             <Rows>
-              <Row k="Mirando al" v={DIRECTION_ES[f3.facing.direction] ?? f3.facing.direction} />
-              {f3.facing.towards && (
+              <Row k="Mirando al" v={DIRECTION_ES[loc.facing.direction] ?? loc.facing.direction} />
+              {loc.facing.towards && (
                 <Row
                   k="Hacia"
-                  v={f3.facing.towards.replace('positive', '+').replace('negative', '−')}
+                  v={loc.facing.towards.replace('positive', '+').replace('negative', '−')}
                 />
               )}
-              {f3.facing.yaw !== undefined && (
-                <Row k="Yaw" v={`${formatNumber(f3.facing.yaw, 1)}°`} />
+              {loc.facing.yaw !== undefined && (
+                <Row k="Yaw" v={`${formatNumber(loc.facing.yaw, 1)}°`} />
               )}
-              {f3.facing.pitch !== undefined && (
-                <Row k="Pitch" v={`${formatNumber(f3.facing.pitch, 1)}°`} />
+              {loc.facing.pitch !== undefined && (
+                <Row k="Pitch" v={`${formatNumber(loc.facing.pitch, 1)}°`} />
               )}
             </Rows>
           </div>
         </Section>
       )}
 
-      {(f3.light ||
-        f3.localDifficulty ||
-        f3.targetedBlock ||
-        f3.targetedFluid ||
-        f3.targetedEntity) && (
+      {(loc.light ||
+        loc.localDifficulty ||
+        loc.targetedBlock ||
+        loc.targetedFluid ||
+        loc.targetedEntity) && (
         <Section title="Entorno" icon="eye">
           <Rows>
-            {f3.light && (
+            {loc.light && (
               <Row
                 k="Luz"
-                v={`${f3.light.client ?? '—'}${f3.light.sky !== undefined ? ` (cielo ${f3.light.sky}, bloque ${f3.light.block})` : ''}`}
+                v={`${loc.light.client ?? '—'}${loc.light.sky !== undefined ? ` (cielo ${loc.light.sky}, bloque ${loc.light.block})` : ''}`}
               />
             )}
-            {f3.localDifficulty && (
+            {loc.localDifficulty && (
               <Row
                 k="Dificultad local"
-                v={`${f3.localDifficulty.value} // ${f3.localDifficulty.clamped ?? '—'}`}
+                v={`${loc.localDifficulty.value} // ${loc.localDifficulty.clamped ?? '—'}`}
               />
             )}
-            {f3.localDifficulty?.day !== undefined && (
-              <Row k="Día del mundo" v={String(f3.localDifficulty.day)} />
+            {loc.localDifficulty?.day !== undefined && (
+              <Row k="Día del mundo" v={String(loc.localDifficulty.day)} />
             )}
-            {f3.targetedBlock && (
+            {loc.targetedBlock && (
               <Row
                 k="Bloque apuntado"
-                v={`${f3.targetedBlock.id ?? ''} @ ${blockString(f3.targetedBlock.pos)}`}
+                v={`${loc.targetedBlock.id ?? ''} @ ${blockString(loc.targetedBlock.pos)}`}
               />
             )}
-            {f3.targetedFluid && (
+            {loc.targetedFluid && (
               <Row
                 k="Fluido apuntado"
-                v={`${f3.targetedFluid.id ?? ''} @ ${blockString(f3.targetedFluid.pos)}`}
+                v={`${loc.targetedFluid.id ?? ''} @ ${blockString(loc.targetedFluid.pos)}`}
               />
             )}
-            {f3.targetedEntity && <Row k="Entidad apuntada" v={f3.targetedEntity} />}
+            {loc.targetedEntity && <Row k="Entidad apuntada" v={loc.targetedEntity} />}
           </Rows>
         </Section>
       )}
 
+      {f3 && (
+        <>
       <Section title="Sistema" icon="gear" collapsed>
         <Rows>
           {f3.version && (
@@ -526,7 +550,49 @@ function F3Sections({ shot, f3 }: { shot: ScreenshotEntry; f3: F3Data }) {
           </p>
         )}
       </Section>
+        </>
+      )}
     </>
+  )
+}
+
+const GAME_MODE_ES: Record<string, string> = {
+  survival: 'Supervivencia',
+  creative: 'Creativo',
+  adventure: 'Aventura',
+  spectator: 'Espectador'
+}
+
+const WORLD_TYPE_ES: Record<CompanionData['world']['type'], string> = {
+  singleplayer: 'Un jugador',
+  multiplayer: 'Multijugador',
+  realms: 'Realms'
+}
+
+/** Ticks → in-game clock (tick 0 is 06:00). */
+function gameClock(ticks: number): string {
+  const minutes = Math.floor((((ticks + 6000) % 24000) / 1000) * 60)
+  return `${String(Math.floor(minutes / 60)).padStart(2, '0')}:${String(minutes % 60).padStart(2, '0')}`
+}
+
+/** What only the Companion mod knows: world, seed, time, weather, game mode. */
+function GameSection({ mod }: { mod: CompanionData }) {
+  const { world } = mod
+  return (
+    <Section title="Partida" icon="gear" action={<SourceTag source="mod" />}>
+      <Rows>
+        <Row k="Mundo" v={world.name ? `${world.name} · ${WORLD_TYPE_ES[world.type]}` : WORLD_TYPE_ES[world.type]} />
+        <Row k="Día" v={`${world.day + 1} · ${gameClock(world.timeOfDay)} (${world.timeOfDay} ticks)`} />
+        <Row k="Clima" v={WEATHER_ES[world.weather]} />
+        <Row k="Modo de juego" v={GAME_MODE_ES[mod.player.gameMode] ?? mod.player.gameMode} />
+        <Row k="Versión" v={`${mod.minecraft} · mod ${mod.modVersion}`} />
+      </Rows>
+      {world.seed && (
+        <div className="copy-grid">
+          <CopyButton label="Semilla" value={world.seed} title={world.seed} />
+        </div>
+      )}
+    </Section>
   )
 }
 
@@ -537,7 +603,7 @@ function NoF3Notice() {
       <div>
         <strong>Captura sin F3</strong>
         <p className="muted small">
-          Sin la pantalla F3 no hay coordenadas. El bioma y los mobs se estiman con el modelo local
+          Sin la pantalla F3 (ni el mod Craftshot Companion) no hay coordenadas. El bioma y los mobs se estiman con el modelo local
           (o con los colores si no lo tienes); la IA avanzada da el resultado más preciso.
         </p>
       </div>

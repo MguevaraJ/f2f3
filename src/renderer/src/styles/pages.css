@@ -494,6 +494,9 @@
 .level-card.active.level-f3 {
   border-left-color: #e0e0e0;
 }
+.level-card.active.level-mod {
+  border-left-color: #6ee08a;
+}
 .level-card.active.level-local {
   border-left-color: #6cc3ff;
 }

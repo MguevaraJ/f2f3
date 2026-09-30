@@ -46,6 +46,9 @@ export const IPC = {
     restore: 'backup:restore',
     openFolder: 'backup:open-folder'
   },
+  companion: {
+    saveMod: 'companion:save-mod'
+  },
   localModel: {
     status: 'local-model:status',
     enable: 'local-model:enable',
@@ -175,6 +178,10 @@ export interface CraftshotApi {
     restore(): Promise<{ restored: number; failed: number }>
     openFolder(): Promise<void>
     onStatus(cb: (status: BackupStatus) => void): Unsubscribe
+  }
+  companion: {
+    /** Saves the bundled Craftshot Companion mod (.jar) where the user chooses; null if cancelled. */
+    saveMod(): Promise<string | null>
   }
   localModel: {
     status(): Promise<LocalModelStatus>

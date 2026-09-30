@@ -33,6 +33,8 @@ function shot(
       manualBiome: null,
       vision: null,
       averageColor: '#000',
+      mod: null,
+      location: a.f3 ? { source: 'f3', ...a.f3 } : null,
       ...a
     }
   }

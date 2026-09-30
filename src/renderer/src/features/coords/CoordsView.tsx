@@ -29,7 +29,7 @@ export function CoordsView({ shots }: { shots: ScreenshotEntry[] }) {
   const withCoords = useMemo(
     () =>
       shots.filter(
-        (s) => s.analysis?.f3?.block && (!dimFilter || s.analysis.dimension?.id === dimFilter)
+        (s) => s.analysis?.location?.block && (!dimFilter || s.analysis.dimension?.id === dimFilter)
       ),
     [shots, dimFilter]
   )
@@ -40,7 +40,7 @@ export function CoordsView({ shots }: { shots: ScreenshotEntry[] }) {
 
   /** Position shown in the table: optionally converted to the other dimension's scale. */
   const shown = (s: ScreenshotEntry): Vec3 => {
-    const b = s.analysis!.f3!.block!
+    const b = s.analysis!.location!.block!
     if (!nether) return b
     return convertDimension(b, s.analysis?.dimension?.id)?.pos ?? b
   }
@@ -55,7 +55,7 @@ export function CoordsView({ shots }: { shots: ScreenshotEntry[] }) {
         (s.analysis?.biome && biomeName(s.analysis.biome.id).toLowerCase().includes(q))
     )
     const val = (s: ScreenshotEntry): number | string => {
-      const b = s.analysis!.f3!.block!
+      const b = s.analysis!.location!.block!
       switch (sort.col) {
         case 'date':
           return s.capturedAt
@@ -173,7 +173,7 @@ export function CoordsView({ shots }: { shots: ScreenshotEntry[] }) {
           <Icon name="pin" size={48} />
           <h3>Sin coordenadas todavía</h3>
           <p>
-            Las capturas hechas con la pantalla F3 abierta aparecerán aquí con su posición, bioma y
+            Las capturas hechas con la pantalla F3 abierta (o con el mod Craftshot Companion) aparecerán aquí con su posición, bioma y
             dimensión.
           </p>
         </div>
@@ -196,7 +196,7 @@ export function CoordsView({ shots }: { shots: ScreenshotEntry[] }) {
             </thead>
             <tbody>
               {rows.map((s) => {
-                const f3 = s.analysis!.f3!
+                const f3 = s.analysis!.location!
                 const p = shown(s)
                 const dim = s.analysis?.dimension?.id
                 const d = refPoint

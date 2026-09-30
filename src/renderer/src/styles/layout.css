@@ -732,6 +732,9 @@
 .onb-level.level-f3 {
   border-left-color: #e0e0e0;
 }
+.onb-level.level-mod {
+  border-left-color: #6ee08a;
+}
 .onb-level.level-local {
   border-left-color: #6cc3ff;
 }

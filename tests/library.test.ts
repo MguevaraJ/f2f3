@@ -91,6 +91,32 @@ describe('LibraryService file operations', () => {
     expect(() => lib.resolveId('../../etc/passwd')).toThrow()
   })
 
+  it('carries the Companion mod sidecar through rename, copy, cut and delete', async () => {
+    const side = (name: string): string => join(root, name.replace(/\.png$/, '.craftshot.json'))
+    writeFileSync(side('2026-09-20_05.19.44.png'), '{}')
+    await lib.refresh()
+    // The gallery ignores the .json; the fingerprint includes its mtime.
+    const snap = await lib.snapshot()
+    expect(snap.screenshots).toHaveLength(2)
+    const mc = snap.screenshots.find((s) => s.name.startsWith('2026'))!
+    expect(mc.companionMtimeMs).toBeGreaterThan(0)
+
+    await lib.createFolder('', 'Bases')
+    expect((await lib.rename('2026-09-20_05.19.44.png', 'aldea')).ok).toBe(true)
+    expect(existsSync(side('aldea.png'))).toBe(true)
+    expect(existsSync(side('2026-09-20_05.19.44.png'))).toBe(false)
+
+    await lib.paste(['aldea.png'], 'Bases', 'copy')
+    expect(existsSync(join(root, 'Bases', 'aldea.craftshot.json'))).toBe(true)
+    await lib.paste(['aldea.png'], 'Bases', 'cut')
+    // Name taken in Bases: the image becomes "aldea (2).png" and its sidecar follows.
+    expect(existsSync(join(root, 'Bases', 'aldea (2).craftshot.json'))).toBe(true)
+    expect(existsSync(side('aldea.png'))).toBe(false)
+
+    await lib.remove(['Bases/aldea.png'])
+    expect(existsSync(join(root, 'Bases', 'aldea.craftshot.json'))).toBe(false)
+  })
+
   it('deletes files and folders (to trash)', async () => {
     await lib.createFolder('', 'Old')
     await lib.paste(['other.png'], 'Old', 'cut')

@@ -6,6 +6,7 @@ import type { InfoSource, ScreenshotEntry, Vec3 } from '@shared/types'
 import { blockString, convertDimension, DIRECTION_ES, distance, tpCommand } from '../../lib/coords'
 
 const SOURCE: Record<InfoSource, string> = {
+  mod: 'Mod (exacto)',
   f3: 'F3 (exacto)',
   vision: 'IA avanzada',
   local: 'Modelo local (estimado)',
@@ -65,7 +66,7 @@ export function buildCoordsTable(rows: ScreenshotEntry[], opts: CoordsTableOptio
 
   const data: TableCell[][] = rows.map((s) => {
     const a = s.analysis!
-    const f3 = a.f3!
+    const f3 = a.location!
     const block = f3.block!
     const dim = a.dimension?.id
     const shown = opts.convert ? (convertDimension(block, dim)?.pos ?? block) : block
@@ -94,7 +95,7 @@ export function buildCoordsTable(rows: ScreenshotEntry[], opts: CoordsTableOptio
         .map((m) => (m.count > 1 ? `${mobName(m.id)} ×${m.count}` : mobName(m.id)))
         .join(', ') || null,
       a.structures.map((x) => structureName(x.id)).join(', ') || null,
-      f3.version ?? null,
+      a.f3?.version ?? a.mod?.minecraft ?? null,
       s.meta.note ?? null,
       tpCommand(f3)
     ]

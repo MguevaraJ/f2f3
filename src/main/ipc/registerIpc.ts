@@ -1,4 +1,4 @@
-import { writeFile } from 'node:fs/promises'
+import { copyFile, writeFile } from 'node:fs/promises'
 import { join } from 'node:path'
 import {
   app,
@@ -13,6 +13,7 @@ import { IPC, type ExportFormat } from '@shared/ipc'
 import type { AppSettings, ClipboardMode, UserMeta, VisionProviderId } from '@shared/types'
 import { loadFontFrom, ROW_OFFSET } from '@core/font/minecraftFont'
 import type { DataTable, FontGlyphs } from '@shared/ipc'
+import modJar from '../../../resources/craftshot-companion.jar?asset'
 import { copyImageToClipboard } from '../clipboardImage'
 import { toCsv, toJson } from '../export'
 import { tableToCsv, tableToXlsx } from '../tableExport'
@@ -154,6 +155,25 @@ export function registerIpc(services: Services): void {
       : `${res.filePath}.${fmt}`
     await writeFile(out, fmt === 'xlsx' ? tableToXlsx(table) : tableToCsv(table))
     return out
+  })
+
+  // Craftshot Companion mod: the .jar ships inside the app
+  handle(IPC.companion.saveMod, async (e) => {
+    const parent = BrowserWindow.fromWebContents(e.sender)
+    const options = {
+      title: 'Guardar el mod Craftshot Companion',
+      defaultPath: join(app.getPath('downloads'), 'craftshot-companion-1.0.0+26.3.jar'),
+      filters: [{ name: 'Mod de Fabric', extensions: ['jar'] }],
+      properties: ['showOverwriteConfirmation', 'createDirectory'] as (
+        'showOverwriteConfirmation' | 'createDirectory'
+      )[]
+    }
+    const res = parent
+      ? await dialog.showSaveDialog(parent, options)
+      : await dialog.showSaveDialog(options)
+    if (res.canceled || !res.filePath) return null
+    await copyFile(modJar, res.filePath)
+    return res.filePath
   })
 
   // On-device model (level 2)

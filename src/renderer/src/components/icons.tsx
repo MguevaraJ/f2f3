@@ -116,3 +116,12 @@ export function CreeperFace({ size = 16 }: { size?: number }) {
 export function F3Badge() {
   return <span className="f3-badge">F3</span>
 }
+
+/** Exact data from the Craftshot Companion mod. */
+export function ModBadge() {
+  return (
+    <span className="f3-badge mod-badge" title="Datos exactos del mod Craftshot Companion">
+      MOD
+    </span>
+  )
+}

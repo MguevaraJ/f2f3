@@ -22,6 +22,8 @@ function base(patch: Partial<ScreenshotAnalysis> = {}): ScreenshotAnalysis {
     hasF3: false,
     f3: null,
     ocr: null,
+    mod: null,
+    location: null,
     heuristic: {
       dimension: 'minecraft:overworld',
       biome: { id: 'minecraft:plains', confidence: 0.25 }

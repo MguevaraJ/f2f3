@@ -106,17 +106,16 @@ Versiones: minecraft 26.3, loader 0.19.5, fabric-api 0.161.0+26.3 (no es depende
 dentro del campo de visión de la cámara (FOV vertical de opciones + aspecto de ventana) y con línea de visión (clip a ojos o centro),
 ≤96 bloques, excluye jugador propio, ArmorStand e invisibles; agrupados por tipo.
 
-### Integración en la app (pendiente, después del mod)
-1. `src/core/companion/parseCompanion.ts` (puro, validar con zod, tests) → fuente nueva `mod` en `ScreenshotAnalysis` e `InfoSource`.
-2. Worker: leer `<base>.craftshot.json` junto al PNG y pasarlo a `analyzeImage`. Si no hay F3, sintetizar datos de posición
-   (coordenadas, chunk, región, orientación, dimensión, bioma, target) para que la UI de coordenadas/tabla/popup funcione.
-3. Fingerprint debe incluir el mtime del sidecar (el JSON puede escribirse después del PNG) → reanálisis automático.
-4. `resolveAnalysis`: prioridad `manual > mod > f3 > vision > local > heuristic`; mobs del mod son exactos (con conteo);
-   estructuras del mod: mapear variantes a ids del catálogo (village_* → village, ocean_ruin_* → ocean_ruin, ruined_portal_* → ruined_portal,
-   shipwreck_beached → shipwreck, mineshaft_mesa → mineshaft, nether_fossil → fossil; añadir buried_treasure si hace falta).
-5. LibraryService: renombrar/mover/copiar/eliminar debe llevar el sidecar junto con la imagen; la galería ignora los .json.
-6. UI: `SOURCE_INFO.mod` (etiqueta "Mod", "Exacto"), tarjeta en Ajustes › Análisis y paso en el onboarding explicando el mod
-   (opcional, solo Fabric 26.3). Ojo: `~/.minecraft/mods` es compartida entre perfiles del launcher; un jar que depende de
-   `minecraft ~26.3` hace fallar perfiles Fabric de otras versiones → no instalar automáticamente ahí; dar instrucciones.
-7. Probar de punta a punta: instalar Fabric loader 0.19.5 para 26.3 (perfil con carpeta de juego propia), jar en `mods/`, F2 en el juego,
-   verificar el JSON y que la app muestre "Mod · Exacto".
+### Integración en la app (hecha, 2026-09-29; probada en vivo juego+app)
+- `src/core/companion/parseCompanion.ts`: parser zod (`parseCompanion`), `companionPathFor`, `catalogStructureId`
+  (village_* → village…), `companionLocation` (chunk relativo, región, towards). Tests: `tests/companion.test.ts`
+  (+ fixture real `tests/fixtures/companion/`).
+- `ScreenshotAnalysis.mod` (fuente) y `location` (resuelto: mod > F3; la UI usa `location` para coordenadas,
+  no `f3.block`). `InfoSource` incluye `'mod'`. Prioridad: manual > mod > f3 > vision > local > heuristic;
+  con mod, los mobs son solo los del mod; estructuras del mod + las de la IA. `ANALYSIS_SCHEMA` = 6.
+- Worker lee el sidecar; fingerprint incluye `companionMtimeMs` (`-m<mtime>`); LibraryService arrastra el sidecar
+  al renombrar/mover/copiar/importar/eliminar. CaptureWatcher espera el sidecar (si ya vio el mod) y reintenta si llega tarde.
+- UI: etiqueta "Mod", badge MOD en la galería, sección "Partida" (mundo, día/hora, clima, modo, semilla),
+  tarjeta en Ajustes › Análisis con "Guardar el mod (.jar)" (IPC `companion.saveMod`, jar en `resources/`),
+  entrada en el onboarding. Nunca se instala solo en `~/.minecraft/mods` (compartida entre perfiles).
+- Tras cambiar el mod: `npm run build:mod` (compila y copia el jar a `resources/craftshot-companion.jar`).

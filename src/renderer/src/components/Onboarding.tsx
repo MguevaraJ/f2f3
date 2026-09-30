@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { api } from '../lib/api'
-import { LEVELS, SOURCE_INFO } from '../lib/sources'
+import { LEVELS, MOD_LEVEL, SOURCE_INFO } from '../lib/sources'
 import { useLocalModel } from '../store/localModel'
 import { useSettings } from '../store/settings'
 import { useUi } from '../store/ui'
@@ -71,7 +71,7 @@ export function Onboarding() {
 
           {step === 1 && (
             <div className="onb-levels">
-              <h2>Tres niveles de información</h2>
+              <h2>Tres niveles de información (y un extra)</h2>
               <p className="muted">
                 No todas las capturas dicen lo mismo. Por eso cada dato lleva una etiqueta que
                 indica de dónde viene:
@@ -93,6 +93,20 @@ export function Onboarding() {
                   </div>
                 )
               })}
+              <div className="onb-level level-mod">
+                <span className="level-number">+</span>
+                <div>
+                  <div className="onb-level-title">
+                    <strong>{MOD_LEVEL.title}</strong>
+                    <span className="source-tag mod">{SOURCE_INFO.mod.tag}</span>
+                    <span className="level-badge">{MOD_LEVEL.badge}</span>
+                  </div>
+                  <p>{MOD_LEVEL.gives}</p>
+                  <p className="muted small">
+                    Opcional, para Fabric 26.3. Lo encuentras en Ajustes › Análisis.
+                  </p>
+                </div>
+              </div>
               <p className="muted small">
                 Si ninguno responde, se usa una aproximación por colores con la etiqueta{' '}
                 <span className="source-tag heuristic">Colores</span>. Siempre puedes corregir el

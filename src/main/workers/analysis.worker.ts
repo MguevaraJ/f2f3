@@ -3,6 +3,7 @@ import { dirname } from 'node:path'
 import { parentPort } from 'node:worker_threads'
 import { PNG } from 'pngjs'
 import { analyzeImage } from '@core/analyze'
+import { companionPathFor, parseCompanion } from '@core/companion/parseCompanion'
 import { loadFontFrom, type MinecraftFont } from '@core/font/minecraftFont'
 import { downscale } from '@core/image/resize'
 import type { WorkerJob, WorkerReply } from './protocol'
@@ -33,6 +34,15 @@ function writeAtomic(path: string, data: Buffer): void {
   renameSync(tmp, path)
 }
 
+/** Exact game data from the Craftshot Companion mod, when it wrote a sidecar. */
+function companion(file: string): ReturnType<typeof parseCompanion> {
+  try {
+    return parseCompanion(readFileSync(companionPathFor(file), 'utf8'))
+  } catch {
+    return null
+  }
+}
+
 function run(job: WorkerJob): WorkerReply {
   const png = PNG.sync.read(readFileSync(job.file))
   const reply: WorkerReply = { jobId: job.jobId, ok: true, width: png.width, height: png.height }
@@ -42,7 +52,7 @@ function run(job: WorkerJob): WorkerReply {
     out.data = Buffer.from(small.data)
     writeAtomic(job.thumb.path, PNG.sync.write(out, { deflateLevel: 6, colorType: 2 }))
   }
-  if (job.analyze) reply.analysis = analyzeImage(png, font(job.fontSource), job.fingerprint)
+  if (job.analyze) reply.analysis = analyzeImage(png, font(job.fontSource), job.fingerprint, companion(job.file))
   return reply
 }
 

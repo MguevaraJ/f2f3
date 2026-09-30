@@ -292,6 +292,11 @@ button.fact-value:hover svg {
   color: #e0e0e0;
   font-family: var(--mono);
 }
+.source-tag.mod {
+  background: #1d4a2a;
+  color: #b6f5c4;
+  font-family: var(--mono);
+}
 .source-tag.vision {
   background: #3b2a5e;
   color: #d6c6ff;
@@ -522,6 +527,9 @@ button.fact-value:hover svg {
 }
 .source-dot.f3 {
   background: #e0e0e0;
+}
+.source-dot.mod {
+  background: #6ee08a;
 }
 .source-dot.vision {
   background: #b89cff;

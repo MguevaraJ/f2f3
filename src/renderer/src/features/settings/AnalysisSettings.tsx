@@ -3,7 +3,7 @@ import type { VisionProviderId } from '@shared/types'
 import { Icon } from '../../components/icons'
 import { Toggle } from '../../components/Toggle'
 import { api } from '../../lib/api'
-import { LEVELS, PROVIDER_LABEL } from '../../lib/sources'
+import { LEVELS, MOD_LEVEL, PROVIDER_LABEL } from '../../lib/sources'
 import { useLocalModel } from '../../store/localModel'
 import { useSettings } from '../../store/settings'
 import { toast } from '../../store/toasts'
@@ -89,6 +89,8 @@ export function AnalysisSettings({
         </p>
       </LevelCard>
 
+      <ModCard />
+
       <LevelCard level={1} active={settings.localModelEnabled}>
         <LocalModelPanel />
       </LevelCard>
@@ -131,6 +133,42 @@ function LevelCard({
         <b>Qué necesita:</b> {l.needs}
       </p>
       <div className="level-body">{children}</div>
+    </section>
+  )
+}
+
+/** The optional Fabric mod: exact data without the F3. Never installed automatically. */
+function ModCard() {
+  const onSave = async (): Promise<void> => {
+    const path = await api.companion.saveMod()
+    if (path) toast.success(`Mod guardado en ${path}`)
+  }
+  return (
+    <section className="level-card level-mod active">
+      <header className="level-head">
+        <span className="level-number">+</span>
+        <div className="level-title">
+          <strong>{MOD_LEVEL.title}</strong>
+          <span className="level-badge">{MOD_LEVEL.badge}</span>
+        </div>
+      </header>
+      <p className="level-gives">
+        <b>Qué obtienes:</b> {MOD_LEVEL.gives}
+        <br />
+        <b>Qué necesita:</b> {MOD_LEVEL.needs}
+      </p>
+      <div className="level-body">
+        <div className="path-row">
+          <button className="btn small primary" onClick={() => void onSave()}>
+            <Icon name="download" size={15} /> Guardar el mod (.jar)
+          </button>
+        </div>
+        <p className="muted small tip-line">
+          Solo funciona en 26.3. Si tus perfiles del launcher comparten la carpeta{' '}
+          <code>.minecraft/mods</code>, crea un perfil de Fabric 26.3 con su propia carpeta de
+          juego para que no falle en otras versiones.
+        </p>
+      </div>
     </section>
   )
 }

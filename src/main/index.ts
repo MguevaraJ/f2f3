@@ -102,8 +102,8 @@ app.whenReady().then(() => {
   })
   captures.on('analyzed', (entry) => {
     if (settings.value.notifyNewShots) void popup?.showAnalyzed(entry)
-    else if (settings.value.notifyAutoCopy && entry.analysis?.f3?.block) {
-      const b = entry.analysis.f3.block
+    else if (settings.value.notifyAutoCopy && entry.analysis?.location?.block) {
+      const b = entry.analysis.location.block
       clipboard.writeText(`${b.x} ${b.y} ${b.z}`)
     }
   })
