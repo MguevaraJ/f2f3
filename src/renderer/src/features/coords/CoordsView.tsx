@@ -173,8 +173,8 @@ export function CoordsView({ shots }: { shots: ScreenshotEntry[] }) {
           <Icon name="pin" size={48} />
           <h3>Sin coordenadas todavía</h3>
           <p>
-            Las capturas hechas con la pantalla F3 abierta (o con el mod Craftshot Companion) aparecerán aquí con su posición, bioma y
-            dimensión.
+            Las capturas hechas con la pantalla F3 abierta (o con el mod Craftshot Companion)
+            aparecerán aquí con su posición, bioma y dimensión.
           </p>
         </div>
       ) : (

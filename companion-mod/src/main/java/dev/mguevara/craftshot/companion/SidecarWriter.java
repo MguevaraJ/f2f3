@@ -112,12 +112,17 @@ public final class SidecarWriter {
 			? new BlockPos(s.targetBlock().pos().x(), s.targetBlock().pos().y(), s.targetBlock().pos().z())
 			: null;
 		Integer entityId = s.targetEntity() != null ? s.targetEntity().networkId() : null;
-		int buildRadius = CompanionConfig.get().wantsBuild(mc.player.isShiftKeyDown()) ? CompanionConfig.get().buildRadius() : 0;
-		boolean fromTarget = CompanionConfig.get().buildBase().equals("target");
+		// The box chosen in the preview (sneak+F2), or with "build": "always", the automatic one.
+		BuildRegion chosen = BuildPreview.takeChosen();
+		CompanionConfig config = CompanionConfig.get();
+		boolean auto = chosen == null && target != null && config.build().equals("always");
+		boolean fromTarget = config.buildBase().equals("target");
 		String author = mc.player.getGameProfile().name();
 		return server.submit(() -> {
 			ServerLevel level = server.getLevel(dim);
-			return level == null ? null : ServerCollector.collect(server, level, at, target, entityId, buildRadius, fromTarget, author);
+			if (level == null) return null;
+			BuildRegion region = auto ? BuildRegion.around(level, target, config.buildRadius(), fromTarget) : chosen;
+			return ServerCollector.collect(server, level, at, target, entityId, region, author);
 		});
 	}
 }

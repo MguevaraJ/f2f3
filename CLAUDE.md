@@ -168,6 +168,14 @@ dentro del campo de visión de la cámara (FOV vertical de opciones + aspecto de
    `buildPathFor`/`sidecarPathsFor` (el .nbt se busca por nombre y sigue a la imagen al mover/renombrar/borrar),
    IPC `companion.exportBuild` (diálogo en `.minecraft/schematics` si existe), `features/details/BuildSection.tsx`
    (área, materiales en stacks, copiar lista), búsqueda por bloques del build. Fixtures `tests/fixtures/companion/build-26.3.*`.
+   **Vista previa** (`BuildPreview`, `BuildRegion`): Mayús+F2 no captura; muestra la caja con gizmos de 26.x
+   (`Gizmos.cuboid` desde `Minecraft.tick()` TAIL, dentro de `collectPerTickGizmos`; aristas `setAlwaysOnTop`), sigue
+   la mira y se recalcula al cambiar de bloque/tamaño o cada 10 ticks. Rueda agachado = radio (2–48, mixin
+   `MouseHandler.onScroll`); F2 guarda esa caja exacta (la captura se retrasa 2 ticks para que no salga la caja y se
+   vacía la barra de acción); Esc/abrir cualquier pantalla cancela. Mixins: `Screenshot.grab(Minecraft,boolean)` HEAD
+   cancelable (la tecla, solo en pulsación), `Minecraft.tick`, `MouseHandler.onScroll`. `build: "always"` guarda sin
+   vista previa en cada F2 (caja calculada en el servidor). `Minecraft.screen` ahora es `mc.gui.screen()`.
+   `pkill -f '[j]ava.*Knot'` en un comando aparte: si la línea contiene "java…Knot" se mata la propia shell.
    Ojo: `run/saves/CraftshotTest` ya no carga (falta world_gen_settings) y el juego abre "New World (1)".
    No recompilar el mod (`build:mod`) con `runClient` abierto: el cliente se cerró al hacerlo.
 Ideas extra: aldeanos (profesión, trades, POI), cajas de estructuras, cubiomes-WASM (confirmar soporte 26.x).

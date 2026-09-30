@@ -51,7 +51,4 @@ public record CompanionConfig(String build, int buildRadius, String buildBase) {
 		}
 	}
 
-	public boolean wantsBuild(boolean sneaking) {
-		return build.equals("always") || (build.equals("sneak") && sneaking);
-	}
 }

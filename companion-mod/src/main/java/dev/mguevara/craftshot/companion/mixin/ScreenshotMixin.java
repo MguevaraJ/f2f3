@@ -1,9 +1,11 @@
 package dev.mguevara.craftshot.companion.mixin;
 
 import com.mojang.blaze3d.pipeline.RenderTarget;
+import dev.mguevara.craftshot.companion.BuildPreview;
 import dev.mguevara.craftshot.companion.SidecarWriter;
 import java.io.File;
 import java.util.function.Consumer;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.Screenshot;
 import net.minecraft.network.chat.Component;
 import org.spongepowered.asm.mixin.Mixin;
@@ -19,6 +21,12 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
  */
 @Mixin(Screenshot.class)
 public abstract class ScreenshotMixin {
+	/** The screenshot key: sneak+F2 opens the build preview instead of taking the picture. */
+	@Inject(method = "grab(Lnet/minecraft/client/Minecraft;Z)V", at = @At("HEAD"), cancellable = true)
+	private static void craftshot$onKey(Minecraft mc, boolean panorama, CallbackInfo ci) {
+		if (!panorama && BuildPreview.onScreenshotKey(mc)) ci.cancel();
+	}
+
 	@Inject(
 		method = "grab(Ljava/io/File;Ljava/lang/String;Lcom/mojang/blaze3d/pipeline/RenderTarget;ILjava/util/function/Consumer;)V",
 		at = @At("HEAD")

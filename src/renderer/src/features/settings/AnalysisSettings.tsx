@@ -165,8 +165,14 @@ function ModCard() {
         </div>
         <p className="muted small tip-line">
           Solo funciona en 26.3. Si tus perfiles del launcher comparten la carpeta{' '}
-          <code>.minecraft/mods</code>, crea un perfil de Fabric 26.3 con su propia carpeta de
-          juego para que no falle en otras versiones.
+          <code>.minecraft/mods</code>, crea un perfil de Fabric 26.3 con su propia carpeta de juego
+          para que no falle en otras versiones.
+        </p>
+        <p className="muted small tip-line">
+          <b>Guardar un build</b> (un jugador): pulsa <span className="kbd">Mayús+F2</span> mirando
+          la base de la construcción y verás la zona que se guardará. Agachado, la rueda del ratón
+          cambia el tamaño; <span className="kbd">F2</span> hace la captura con el build (.nbt) y{' '}
+          <span className="kbd">Esc</span> cancela.
         </p>
       </div>
     </section>
