@@ -238,6 +238,10 @@ p code {
 .day-group {
   content-visibility: auto;
   contain-intrinsic-size: auto 400px;
+  /* content-visibility clips painting to this box: leave room for the cards' selection
+     outline (2px outside them) without moving anything. */
+  padding: 0 3px 3px;
+  margin: 0 -3px -3px;
 }
 .day-heading {
   display: flex;
