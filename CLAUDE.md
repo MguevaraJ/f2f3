@@ -10,7 +10,7 @@ visor, carpetas, respaldo en Google Drive y avisos de capturas nuevas. **UI y te
 ```bash
 npm run dev            # desarrollo
 npm run build          # typecheck + build + scripts/check-preload.mjs (falla si un preload usa chunks)
-npm run typecheck && npx eslint . && npx vitest run    # verificación estándar (86 tests)
+npm run typecheck && npx eslint . && npx vitest run    # verificación estándar (149 tests)
 npm run dist:linux     # AppImage (el .env con MAIN_VITE_GOOGLE_CLIENT_ID/SECRET se incrusta)
 npm run ocr -- <png…>  # OCR del F3 desde terminal
 npm run eval:local -- <png…>   # evalúa el modelo local (CLIP); MODEL_CACHE=dir
@@ -148,6 +148,14 @@ dentro del campo de visión de la cámara (FOV vertical de opciones + aspecto de
    (Técnico ampliado, Aldeano, reglas, mods), primitivas en `parts.tsx`, catálogo `shared/catalog/villagers.ts`.
    Búsqueda: profesión, encantamientos de los tratos y contenido de contenedores. Fixtures: `tests/fixtures/companion/`.
    Pendiente sugerido: nombres de ítems en español leyendo `es_es.json` de `~/.minecraft/assets` (índice de la versión).
-4. Calculadora de punto AFK (esferas 24–128 y distancia de simulación) y planificador de enlace de portales (128/16).
+4. **Hecho** — Planificadores en el Mapa (botones "AFK" y "Portales"): lógica pura en `src/shared/planner.ts`
+   (tests `tests/planner.test.ts`), figuras en `features/map/planners.ts` (`Shape` genérico en `drawMap`), paneles en
+   `PlannerPanels.tsx`. Mecánicas verificadas en el bytecode de 26.3: mobs aparecen a 24–128 bloques (esfera 3D,
+   `NaturalSpawner` 576.0), un chunk genera mobs si su centro está a <128 bloques horizontales (`ChunkMap` 16384.0),
+   entidades en el cuadrado de chunks ≤ simulación (Chebyshev) y bloques/redstone un chunk más; portales: cuadrado
+   ±16 en el Nether / ±128 en el Overworld (`PortalForcer`, toda la altura), el más cercano en 3D y luego el más bajo.
+   AFK: modo "Granjas de mobs" (centro de la esfera mínima, elevado si una granja queda a <24) o "Solo carga" (chunk
+   central); simulación por defecto = la de la captura más reciente con mod, si no 12. Portales: A/B con comprobación
+   de ida y vuelta; las capturas que apuntan a `minecraft:nether_portal` cuentan como portales existentes.
 5. Snapshot `.litematic`/.nbt del build alrededor del bloque apuntado (solo un jugador).
 Ideas extra: aldeanos (profesión, trades, POI), cajas de estructuras, cubiomes-WASM (confirmar soporte 26.x).

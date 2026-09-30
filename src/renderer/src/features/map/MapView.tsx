@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { dimensionName } from '@shared/catalog/biomes'
 import { thumbUrl } from '@shared/ipc'
+import { DEFAULT_SIMULATION, isPortalDimension, otherPortalDimension } from '@shared/planner'
 import { parseSeed, slimeChecker } from '@shared/slime'
-import type { ScreenshotEntry } from '@shared/types'
+import type { ScreenshotEntry, Vec3 } from '@shared/types'
 import { listWorlds, mapPoint, NO_WORLD, worldOf } from '@shared/worlds'
 import { Icon } from '../../components/icons'
 import { api } from '../../lib/api'
@@ -10,6 +11,8 @@ import { useSettings } from '../../store/settings'
 import { toast } from '../../store/toasts'
 import { useUi } from '../../store/ui'
 import { drawMap, hitTest, type DrawPoint } from './drawMap'
+import { AfkPanel, PortalPanel, type KnownPortal } from './PlannerPanels'
+import { afkShapes, afkSpot, portalShapes, type AfkState, type PortalState } from './planners'
 import { convertXZ, fitView, scaleBar, toWorld, zoomAt, type View } from './view'
 
 const DIMENSIONS = ['minecraft:overworld', 'minecraft:the_nether', 'minecraft:the_end'] as const
@@ -36,7 +39,8 @@ export function MapView({ shots }: { shots: ScreenshotEntry[] }) {
   const [overlay, setOverlay] = useState(true)
   const [grid, setGrid] = useState(true)
   const [slimeOn, setSlimeOn] = useState(true)
-  const [measuring, setMeasuring] = useState(false)
+  const [tool, setTool] = useState<'none' | 'measure' | 'afk' | 'portal'>('none')
+  const measuring = tool === 'measure'
   const [measure, setMeasure] = useState<[number, number][]>([])
   const [editingSeed, setEditingSeed] = useState(false)
 
@@ -65,6 +69,65 @@ export function MapView({ shots }: { shots: ScreenshotEntry[] }) {
     [located, dimension, overlay]
   )
   const byId = useMemo(() => new Map(located.map((l) => [l.shot.id, l])), [located])
+
+  // ── planners ──
+  // Simulation distance of the newest capture that knows it (mod).
+  const simulation = useMemo(() => {
+    const withGame = located
+      .filter((l) => l.shot.analysis?.mod?.game)
+      .sort((a, b) => b.shot.capturedAt - a.shot.capturedAt)[0]
+    return withGame
+      ? {
+          value: withGame.shot.analysis!.mod!.game!.simulationDistance,
+          source: `De la captura ${withGame.shot.name} (mod).`
+        }
+      : {
+          value: DEFAULT_SIMULATION,
+          source: 'Valor por defecto en un jugador; cámbialo si usas otro.'
+        }
+  }, [located])
+  const [afk, setAfk] = useState<AfkState>({
+    farms: [],
+    kind: 'mobs',
+    simulation: simulation.value,
+    manual: null,
+    placing: false
+  })
+  const [portal, setPortal] = useState<PortalState>({
+    aDim: 'minecraft:overworld',
+    a: null,
+    b: null,
+    picking: 'a'
+  })
+  // Screenshots aimed at a portal block count as existing portals.
+  const knownPortals: KnownPortal[] = useMemo(
+    () =>
+      located.flatMap(({ shot, p }) => {
+        const t = shot.analysis?.location?.targetedBlock
+        return t?.id === 'minecraft:nether_portal' && isPortalDimension(p.dimension)
+          ? [{ id: shot.id, label: shot.name, dimension: p.dimension, pos: t.pos }]
+          : []
+      }),
+    [located]
+  )
+  // Plans belong to one world (and the AFK spot to one dimension): reset when they change.
+  const planKey = `${current?.name}|${simulation.value}`
+  const afkKey = `${planKey}|${dimension}`
+  const [planned, setPlanned] = useState({ planKey, afkKey })
+  if (planned.planKey !== planKey || planned.afkKey !== afkKey) {
+    setPlanned({ planKey, afkKey })
+    setAfk((s) => ({ ...s, farms: [], manual: null, placing: false, simulation: simulation.value }))
+    if (planned.planKey !== planKey) setPortal((s) => ({ ...s, a: null, b: null, picking: 'a' }))
+  }
+  const shapes = useMemo(
+    () =>
+      tool === 'afk'
+        ? afkShapes(afk, afkSpot(afk))
+        : tool === 'portal'
+          ? portalShapes(portal, dimension)
+          : [],
+    [tool, afk, portal, dimension]
+  )
 
   const seed = current?.seed ? parseSeed(current.seed) : null
   const slime = useMemo(() => (seed !== null ? slimeChecker(seed) : null), [seed])
@@ -121,10 +184,11 @@ export function MapView({ shots }: { shots: ScreenshotEntry[] }) {
       hovered,
       grid,
       slime: slimeOn && dimension === 'minecraft:overworld' ? slime : null,
-      measure
+      measure,
+      shapes
     })
     setSlimeHidden(r.slimeHidden)
-  }, [view, size, dimension, points, hovered, grid, slime, slimeOn, measure])
+  }, [view, size, dimension, points, hovered, grid, slime, slimeOn, measure, shapes])
 
   const local = (e: React.MouseEvent | React.WheelEvent): [number, number] => {
     const r = canvasRef.current!.getBoundingClientRect()
@@ -162,11 +226,70 @@ export function MapView({ shots }: { shots: ScreenshotEntry[] }) {
     if (!d || d.moved) return
     const [sx, sy] = local(e)
     const hit = hitTest(points, view, size.w, size.h, sx, sy)
+    const at: [number, number] = hit ? [hit.x, hit.z] : toWorld(view, size.w, size.h, sx, sy)
     if (measuring) {
       // Snap to a screenshot when clicking on one.
-      const at: [number, number] = hit ? [hit.x, hit.z] : toWorld(view, size.w, size.h, sx, sy)
       setMeasure((m) => (m.length >= 2 ? [at] : [...m, at]))
-    } else if (hit) openViewer(hit.id)
+    } else if (tool === 'afk') clickAfk(hit && !hit.overlay ? hit.id : null, at)
+    else if (tool === 'portal' && portal.picking) clickPortal(hit?.id ?? null, at)
+    else if (hit) openViewer(hit.id)
+  }
+
+  const block = ([x, z]: [number, number]): { x: number; z: number } => ({
+    x: Math.floor(x),
+    z: Math.floor(z)
+  })
+
+  const clickAfk = (shotId: string | null, at: [number, number]): void => {
+    const real = shotId ? byId.get(shotId) : undefined
+    if (afk.placing) {
+      const y = real?.p.y ?? afkSpot(afk)?.y ?? 64
+      setAfk({ ...afk, manual: { ...block(at), y: Math.floor(y) }, placing: false })
+      return
+    }
+    if (real && afk.farms.some((f) => f.shotId === real.shot.id)) {
+      setAfk({ ...afk, farms: afk.farms.filter((f) => f.shotId !== real.shot.id) })
+      return
+    }
+    const farm = real
+      ? {
+          key: real.shot.id,
+          shotId: real.shot.id,
+          label: real.shot.meta.note?.split('\n')[0] || real.shot.name,
+          x: Math.floor(real.p.x),
+          y: Math.floor(real.p.y),
+          z: Math.floor(real.p.z)
+        }
+      : { key: `p${Date.now()}`, label: 'Punto del mapa', ...block(at), y: null }
+    setAfk({ ...afk, farms: [...afk.farms, farm] })
+  }
+
+  const clickPortal = (shotId: string | null, at: [number, number]): void => {
+    const which = portal.picking
+    if (!which) return
+    const want = which === 'a' ? null : otherPortalDimension(portal.aDim)
+    const real = shotId ? byId.get(shotId) : undefined
+    const aim = real && knownPortals.find((k) => k.id === real.shot.id)
+    let dim = real && isPortalDimension(real.p.dimension) ? real.p.dimension : null
+    let pos: Vec3 | null =
+      real && dim ? (aim?.pos ?? { x: real.p.x, y: real.p.y, z: real.p.z }) : null
+    // A click on empty map (or a screenshot of the wrong dimension) uses the map's coordinates.
+    if (!pos || !dim || (want && dim !== want)) {
+      if (!isPortalDimension(dimension)) return
+      const target = want ?? dimension
+      const xz = convertXZ(at[0], at[1], dimension, target)
+      if (!xz) return
+      const y = which === 'b' ? (portal.a?.pos.y ?? 64) : 64
+      dim = target
+      pos = { ...block(xz), y }
+    }
+    const end = {
+      id: which.toUpperCase(),
+      label: real ? real.shot.name : 'Punto del mapa',
+      pos: { x: Math.floor(pos.x), y: Math.floor(pos.y), z: Math.floor(pos.z) }
+    }
+    if (which === 'a') setPortal({ aDim: dim, a: end, b: null, picking: 'b' })
+    else setPortal({ ...portal, b: end, picking: null })
   }
 
   const saveSeed = (value: string): void => {
@@ -284,12 +407,32 @@ export function MapView({ shots }: { shots: ScreenshotEntry[] }) {
         <button
           className={`btn small ${measuring ? 'primary' : ''}`}
           onClick={() => {
-            setMeasuring(!measuring)
+            setTool(measuring ? 'none' : 'measure')
             setMeasure([])
           }}
           title="Haz clic en dos puntos del mapa para medir la distancia"
         >
           <Icon name="pin" size={15} /> Medir
+        </button>
+        <button
+          className={`btn small ${tool === 'afk' ? 'primary' : ''}`}
+          onClick={() => {
+            setTool(tool === 'afk' ? 'none' : 'afk')
+            setMeasure([])
+          }}
+          title="Dónde quedarse AFK para que tus granjas funcionen a la vez"
+        >
+          <Icon name="gauge" size={15} /> AFK
+        </button>
+        <button
+          className={`btn small ${tool === 'portal' ? 'primary' : ''}`}
+          onClick={() => {
+            setTool(tool === 'portal' ? 'none' : 'portal')
+            setMeasure([])
+          }}
+          title="Planifica un portal del Nether y comprueba que enlaza en ambos sentidos"
+        >
+          <Icon name="layers" size={15} /> Portales
         </button>
         <button
           className="btn small"
@@ -355,7 +498,13 @@ export function MapView({ shots }: { shots: ScreenshotEntry[] }) {
       <div className="map-canvas-wrap" ref={wrapRef}>
         <canvas
           ref={canvasRef}
-          className={`map-canvas ${measuring ? 'measuring' : hovered ? 'pointing' : ''}`}
+          className={`map-canvas ${
+            measuring || (tool === 'afk' && afk.placing) || (tool === 'portal' && portal.picking)
+              ? 'measuring'
+              : hovered || tool === 'afk'
+                ? 'pointing'
+                : ''
+          }`}
           style={{ width: size.w, height: size.h }}
           onWheel={onWheel}
           onMouseDown={onDown}
@@ -385,6 +534,23 @@ export function MapView({ shots }: { shots: ScreenshotEntry[] }) {
               <span className="muted">{hot.shot.meta.note.split('\n')[0]}</span>
             )}
           </div>
+        )}
+
+        {tool === 'afk' && (
+          <AfkPanel
+            state={afk}
+            onChange={setAfk}
+            simulationSource={simulation.source}
+            onClose={() => setTool('none')}
+          />
+        )}
+        {tool === 'portal' && (
+          <PortalPanel
+            state={portal}
+            onChange={setPortal}
+            known={knownPortals}
+            onClose={() => setTool('none')}
+          />
         )}
 
         <div className="map-hud">

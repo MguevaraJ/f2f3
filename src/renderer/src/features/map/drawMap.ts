@@ -19,7 +19,31 @@ export interface DrawOptions {
   grid: boolean
   slime: ((cx: number, cz: number) => boolean) | null
   measure: [number, number][]
+  /** Planner overlays (AFK, portals) in world coordinates. */
+  shapes: Shape[]
 }
+
+export type Shape =
+  | {
+      kind: 'rect'
+      x0: number
+      z0: number
+      x1: number
+      z1: number
+      stroke: string
+      fill?: string
+      dash?: boolean
+    }
+  | {
+      kind: 'circle'
+      x: number
+      z: number
+      r: number
+      stroke: string
+      fill?: string
+      dash?: boolean
+    }
+  | { kind: 'marker'; x: number; z: number; color: string; label?: string }
 
 const BG: Record<string, string> = {
   'minecraft:overworld': '#17221a',
@@ -95,6 +119,28 @@ export function drawMap(ctx: CanvasRenderingContext2D, o: DrawOptions): { slimeH
   ctx.stroke()
   ctx.setLineDash([])
 
+  const areas = o.shapes.filter((sh) => sh.kind !== 'marker')
+  for (const sh of areas) {
+    ctx.beginPath()
+    if (sh.kind === 'rect') {
+      const [sx0, sy0] = toScreen(v, w, h, sh.x0, sh.z0)
+      const [sx1, sy1] = toScreen(v, w, h, sh.x1, sh.z1)
+      ctx.rect(sx0, sy0, sx1 - sx0, sy1 - sy0)
+    } else {
+      const [sx, sy] = toScreen(v, w, h, sh.x, sh.z)
+      ctx.arc(sx, sy, sh.r * v.scale, 0, Math.PI * 2)
+    }
+    if (sh.fill) {
+      ctx.fillStyle = sh.fill
+      ctx.fill()
+    }
+    ctx.strokeStyle = sh.stroke
+    ctx.lineWidth = 1.5
+    ctx.setLineDash(sh.dash ? [6, 4] : [])
+    ctx.stroke()
+  }
+  ctx.setLineDash([])
+
   // Screenshots: overlays (other dimension) first, hollow; the hovered one last.
   const color = POINT[o.dimension] ?? '#e0e0e0'
   const other =
@@ -129,6 +175,30 @@ export function drawMap(ctx: CanvasRenderingContext2D, o: DrawOptions): { slimeH
       ctx.strokeStyle = '#ffffff'
       ctx.lineWidth = 1.5
       ctx.stroke()
+    }
+  }
+
+  // Planner markers: diamonds with a label.
+  ctx.font = '600 12px system-ui, sans-serif'
+  for (const sh of o.shapes) {
+    if (sh.kind !== 'marker') continue
+    const [sx, sy] = toScreen(v, w, h, sh.x, sh.z)
+    ctx.beginPath()
+    ctx.moveTo(sx, sy - 8)
+    ctx.lineTo(sx + 8, sy)
+    ctx.lineTo(sx, sy + 8)
+    ctx.lineTo(sx - 8, sy)
+    ctx.closePath()
+    ctx.fillStyle = sh.color
+    ctx.fill()
+    ctx.strokeStyle = 'rgba(0,0,0,0.8)'
+    ctx.lineWidth = 1.5
+    ctx.stroke()
+    if (sh.label) {
+      ctx.lineWidth = 3
+      ctx.strokeText(sh.label, sx + 11, sy + 4)
+      ctx.fillStyle = '#fff'
+      ctx.fillText(sh.label, sx + 11, sy + 4)
     }
   }
 
