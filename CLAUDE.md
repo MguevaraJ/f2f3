@@ -119,3 +119,20 @@ dentro del campo de visión de la cámara (FOV vertical de opciones + aspecto de
   tarjeta en Ajustes › Análisis con "Guardar el mod (.jar)" (IPC `companion.saveMod`, jar en `resources/`),
   entrada en el onboarding. Nunca se instala solo en `~/.minecraft/mods` (compartida entre perfiles).
 - Tras cambiar el mod: `npm run build:mod` (compila y copia el jar a `resources/craftshot-companion.jar`).
+
+---
+
+## Hoja de ruta "Minecraft técnico" (acordada 2026-09-29, implementar en orden)
+1. **Hecho** — Parser F3 técnico (26.3): `server` (MSPT/TPS, estado /tick, brand), `spawnCounts` (mob caps, orden de
+   MobCategory: MO C AM AX UWC WC WA MI; en 1.20.1 letras ambiguas → por posición), `day`, `speed`, `heightmaps`
+   (CH/SH), `targetedBlock.state`/`tags`. UI: sección "Técnico" (DetailsPanel) + `lib/technical.ts` (caps escalados
+   por chunks/289, TPS, `/setblock`). Fixture real: `tests/fixtures/f3-26.3-technical-scale2.png`.
+   Formatos sacados del bytecode (`DebugEntry*`). Perfil del F3 del cliente de prueba: `companion-mod/run/debug-profile.json`
+   (`{"custom": {"minecraft:tps": "inOverlay", …}}`).
+2. Mapa de capturas (por dimensión, capa Nether ×8, grilla de chunks/regiones) + chunks slime (semilla del mod o manual)
+   + exportar waypoints a Xaero's Minimap / JourneyMap.
+3. Mod: mob caps reales, gamerules, mods cargados/brand/distancias de render y simulación, MSPT, entidades por tipo en el área,
+   estado y contenido del bloque apuntado (tolvas, cofres, comparadores). Campos opcionales en schema 1.
+4. Calculadora de punto AFK (esferas 24–128 y distancia de simulación) y planificador de enlace de portales (128/16).
+5. Snapshot `.litematic`/.nbt del build alrededor del bloque apuntado (solo un jugador).
+Ideas extra: aldeanos (profesión, trades, POI), cajas de estructuras, cubiomes-WASM (confirmar soporte 26.x).

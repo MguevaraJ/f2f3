@@ -23,6 +23,13 @@ import {
 } from '../../lib/coords'
 import { formatBytes, formatDateTime, formatNumber, formatRelative } from '../../lib/format'
 import { PROVIDER_LABEL, SOURCE_INFO } from '../../lib/sources'
+import {
+  blockStateString,
+  capRows,
+  HEIGHTMAP_LABEL,
+  setblockCommand,
+  tickInfo
+} from '../../lib/technical'
 import { useLocalModel } from '../../store/localModel'
 import { useSettings } from '../../store/settings'
 import { useLibrary } from '../../store/library'
@@ -147,6 +154,7 @@ export function DetailsPanel({
           <SummaryChips shot={shot} />
           {a.mod && <GameSection mod={a.mod} />}
           {loc ? <LocationSections shot={shot} loc={loc} f3={a.f3} /> : <NoF3Notice />}
+          {a.f3 && <TechnicalSection f3={a.f3} target={loc?.targetedBlock ?? a.f3.targetedBlock} />}
           <VisionSection shot={shot} />
         </>
       )}
@@ -362,7 +370,8 @@ function F3BiomeTip() {
           En esta versión de Minecraft viene oculto. Para que Craftshot lo lea exacto: en el juego
           pulsa <span className="kbd">F3</span> + <span className="kbd">F6</span>, busca la línea
           del <b>bioma</b> (Biome) y actívala. Haz lo mismo con la <b>entidad apuntada</b> para
-          registrar el mob que miras.
+          registrar el mob que miras. Para datos técnicos activa también <b>TPS</b>,{' '}
+          <b>conteo de spawns</b> y el <b>estado del bloque apuntado</b>.
         </p>
       </div>
     </div>
@@ -387,12 +396,7 @@ function LocationSections({
 
   return (
     <>
-      <Section
-        title="Coordenadas"
-        icon="pin"
-        accent
-        action={<SourceTag source={loc.source} />}
-      >
+      <Section title="Coordenadas" icon="pin" accent action={<SourceTag source={loc.source} />}>
         {block && (
           <div className="xyz">
             <Axis label="X" value={pos?.x ?? block.x} />
@@ -426,7 +430,11 @@ function LocationSections({
           {pos && <Row k="XYZ" v={exactString(pos)} />}
           {block && <Row k="Bloque" v={blockString(block)} />}
           {loc.chunk && (
-            <Row k="Chunk" v={`${loc.chunk.x} ${loc.chunk.y} ${loc.chunk.z}`} hint="x, sección y, z" />
+            <Row
+              k="Chunk"
+              v={`${loc.chunk.x} ${loc.chunk.y} ${loc.chunk.z}`}
+              hint="x, sección y, z"
+            />
           )}
           {loc.chunkRelative && <Row k="Dentro del chunk" v={blockString(loc.chunkRelative)} />}
           {loc.region && <Row k="Archivo de región" v={loc.region} />}
@@ -503,53 +511,54 @@ function LocationSections({
 
       {f3 && (
         <>
-      <Section title="Sistema" icon="gear" collapsed>
-        <Rows>
-          {f3.version && (
-            <Row k="Versión" v={`${f3.version}${f3.modLoader ? ` (${f3.modLoader})` : ''}`} />
-          )}
-          {f3.fps !== undefined && <Row k="FPS" v={String(f3.fps)} />}
-          {f3.java && <Row k="Java" v={f3.java} />}
-          {f3.memory && <Row k="Memoria" v={f3.memory} />}
-          {f3.cpu && <Row k="CPU" v={f3.cpu} />}
-          {f3.gpu && <Row k="GPU" v={f3.gpu} />}
-          {f3.display && <Row k="Pantalla" v={f3.display} />}
-        </Rows>
-      </Section>
+          <Section title="Sistema" icon="gear" collapsed>
+            <Rows>
+              {f3.version && (
+                <Row k="Versión" v={`${f3.version}${f3.modLoader ? ` (${f3.modLoader})` : ''}`} />
+              )}
+              {f3.fps !== undefined && <Row k="FPS" v={String(f3.fps)} />}
+              {f3.java && <Row k="Java" v={f3.java} />}
+              {f3.memory && <Row k="Memoria" v={f3.memory} />}
+              {f3.cpu && <Row k="CPU" v={f3.cpu} />}
+              {f3.gpu && <Row k="GPU" v={f3.gpu} />}
+              {f3.display && <Row k="Pantalla" v={f3.display} />}
+            </Rows>
+          </Section>
 
-      <Section title={`Todo el F3 (${f3.fields.length} campos)`} icon="hash" collapsed>
-        <div className="raw-toolbar">
-          <div className="segmented">
-            <button className={!showRaw ? 'on' : ''} onClick={() => setShowRaw(false)}>
-              Campos
-            </button>
-            <button className={showRaw ? 'on' : ''} onClick={() => setShowRaw(true)}>
-              Pantalla F3
-            </button>
-          </div>
-          <button
-            className="btn small"
-            onClick={() => void copyText(f3PlainText(f3), 'Texto del F3')}
-          >
-            <Icon name="copy" size={14} /> Copiar todo
-          </button>
-        </div>
-        {showRaw ? (
-          <F3Screen f3={f3} />
-        ) : (
-          <Rows>
-            {f3.fields.map((f, i) => (
-              <Row key={`${f.key}-${i}`} k={f.key} v={f.value} />
-            ))}
-          </Rows>
-        )}
-        {ocr && (
-          <p className="muted small">
-            Leído con la fuente de Minecraft · escala GUI {ocr.guiScale} · precisión{' '}
-            {(ocr.confidence * 100).toFixed(1)}% · {ocr.glyphs} caracteres en {ocr.durationMs} ms
-          </p>
-        )}
-      </Section>
+          <Section title={`Todo el F3 (${f3.fields.length} campos)`} icon="hash" collapsed>
+            <div className="raw-toolbar">
+              <div className="segmented">
+                <button className={!showRaw ? 'on' : ''} onClick={() => setShowRaw(false)}>
+                  Campos
+                </button>
+                <button className={showRaw ? 'on' : ''} onClick={() => setShowRaw(true)}>
+                  Pantalla F3
+                </button>
+              </div>
+              <button
+                className="btn small"
+                onClick={() => void copyText(f3PlainText(f3), 'Texto del F3')}
+              >
+                <Icon name="copy" size={14} /> Copiar todo
+              </button>
+            </div>
+            {showRaw ? (
+              <F3Screen f3={f3} />
+            ) : (
+              <Rows>
+                {f3.fields.map((f, i) => (
+                  <Row key={`${f.key}-${i}`} k={f.key} v={f.value} />
+                ))}
+              </Rows>
+            )}
+            {ocr && (
+              <p className="muted small">
+                Leído con la fuente de Minecraft · escala GUI {ocr.guiScale} · precisión{' '}
+                {(ocr.confidence * 100).toFixed(1)}% · {ocr.glyphs} caracteres en {ocr.durationMs}{' '}
+                ms
+              </p>
+            )}
+          </Section>
         </>
       )}
     </>
@@ -581,8 +590,16 @@ function GameSection({ mod }: { mod: CompanionData }) {
   return (
     <Section title="Partida" icon="gear" action={<SourceTag source="mod" />}>
       <Rows>
-        <Row k="Mundo" v={world.name ? `${world.name} · ${WORLD_TYPE_ES[world.type]}` : WORLD_TYPE_ES[world.type]} />
-        <Row k="Día" v={`${world.day + 1} · ${gameClock(world.timeOfDay)} (${world.timeOfDay} ticks)`} />
+        <Row
+          k="Mundo"
+          v={
+            world.name ? `${world.name} · ${WORLD_TYPE_ES[world.type]}` : WORLD_TYPE_ES[world.type]
+          }
+        />
+        <Row
+          k="Día"
+          v={`${world.day + 1} · ${gameClock(world.timeOfDay)} (${world.timeOfDay} ticks)`}
+        />
         <Row k="Clima" v={WEATHER_ES[world.weather]} />
         <Row k="Modo de juego" v={GAME_MODE_ES[mod.player.gameMode] ?? mod.player.gameMode} />
         <Row k="Versión" v={`${mod.minecraft} · mod ${mod.modVersion}`} />
@@ -596,6 +613,131 @@ function GameSection({ mod }: { mod: CompanionData }) {
   )
 }
 
+/** Redstone, farms and lag: what the debug screen tells a technical player. */
+function TechnicalSection({ f3, target }: { f3: F3Data; target?: F3Data['targetedBlock'] }) {
+  const [showTags, setShowTags] = useState(false)
+  const tick = f3.server && tickInfo(f3.server)
+  const caps = f3.spawnCounts ? capRows(f3.spawnCounts) : []
+  const hasState = !!target && (!!target.state || !!target.tags)
+  const heights = f3.heightmaps?.server ?? f3.heightmaps?.client
+  if (
+    !f3.server &&
+    !caps.length &&
+    !hasState &&
+    f3.day === undefined &&
+    f3.speed === undefined &&
+    !heights
+  )
+    return null
+  const state = target && blockStateString(target)
+  const setblock = target && setblockCommand(target)
+
+  return (
+    <Section title="Técnico" icon="gauge">
+      <Rows>
+        {tick && (
+          <Row
+            k="Servidor"
+            v={`${formatNumber(f3.server!.mspt!, 1)} ms/tick · ${formatNumber(tick.tps, 1)} TPS · ${tick.label}`}
+            hint="MSPT: milisegundos por tick. Por encima de 50 ms el juego va a menos de 20 TPS."
+          />
+        )}
+        {f3.server?.brand && <Row k="Servidor" v={f3.server.brand} />}
+        {f3.day !== undefined && <Row k="Día del mundo" v={String(f3.day)} />}
+        {f3.speed !== undefined && (
+          <Row
+            k="Velocidad"
+            v={`${formatNumber(f3.speed, 3)} bloques/tick (${formatNumber(f3.speed * 20, 2)} m/s)`}
+          />
+        )}
+        {heights && (
+          <Row
+            k="Alturas"
+            v={Object.entries(heights)
+              .map(([k, y]) => `${HEIGHTMAP_LABEL[k] ?? k} ${y}`)
+              .join(' · ')}
+            hint="Heightmaps del servidor: el bloque más alto de cada tipo en esta columna"
+          />
+        )}
+      </Rows>
+
+      {caps.length > 0 && (
+        <div className="mob-caps">
+          <div className="mobs-head">
+            <CreeperFace size={16} /> Límite de mobs
+            <span className="muted small"> · {f3.spawnCounts!.chunks} chunks de spawn</span>
+          </div>
+          {caps.map((c) => (
+            <div key={c.id} className={`cap-row ${c.full ? 'full' : ''}`} title={c.hint}>
+              <span className="cap-label">{c.label}</span>
+              <span className="cap-bar">
+                <span
+                  style={{ width: `${Math.min(100, (c.count / Math.max(1, c.cap)) * 100)}%` }}
+                />
+              </span>
+              <span className="cap-value">
+                {c.count}/{c.cap}
+              </span>
+            </div>
+          ))}
+          {caps.find((c) => c.id === 'monster')?.full && (
+            <p className="muted small">
+              El límite de monstruos está lleno: no aparecerán más hostiles. Ilumina cuevas cercanas
+              o elimina mobs persistentes para que tu granja rinda.
+            </p>
+          )}
+        </div>
+      )}
+
+      {target && hasState && (
+        <div className="block-state">
+          <div className="mobs-head">
+            <Icon name="layers" size={15} /> {target.id ?? 'Bloque apuntado'}
+          </div>
+          {target.state && (
+            <div className="chip-row">
+              {Object.entries(target.state).map(([k, v]) => (
+                <span
+                  key={k}
+                  className={`chip state ${v === 'true' ? 'on' : v === 'false' ? 'off' : ''}`}
+                >
+                  {k} <b>{v}</b>
+                </span>
+              ))}
+            </div>
+          )}
+          <div className="copy-grid">
+            {state && <CopyButton label="Estado" value={state} />}
+            {setblock && <CopyButton label="/setblock" value={setblock} />}
+          </div>
+          {target.tags && (
+            <>
+              <button
+                className="f3-tip-toggle"
+                onClick={() => setShowTags(!showTags)}
+                aria-expanded={showTags}
+              >
+                <u>
+                  {showTags ? 'Ocultar' : 'Ver'} {target.tags.length} etiquetas
+                </u>
+              </button>
+              {showTags && (
+                <div className="chip-row">
+                  {target.tags.map((t) => (
+                    <span key={t} className="chip tag">
+                      #{t}
+                    </span>
+                  ))}
+                </div>
+              )}
+            </>
+          )}
+        </div>
+      )}
+    </Section>
+  )
+}
+
 function NoF3Notice() {
   return (
     <div className="no-f3">
@@ -603,8 +745,9 @@ function NoF3Notice() {
       <div>
         <strong>Captura sin F3</strong>
         <p className="muted small">
-          Sin la pantalla F3 (ni el mod Craftshot Companion) no hay coordenadas. El bioma y los mobs se estiman con el modelo local
-          (o con los colores si no lo tienes); la IA avanzada da el resultado más preciso.
+          Sin la pantalla F3 (ni el mod Craftshot Companion) no hay coordenadas. El bioma y los mobs
+          se estiman con el modelo local (o con los colores si no lo tienes); la IA avanzada da el
+          resultado más preciso.
         </p>
       </div>
     </div>

@@ -537,6 +537,55 @@ button.fact-value:hover svg {
 .source-dot.local {
   background: #6cc3ff;
 }
+.mob-caps,
+.block-state {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 10px;
+}
+.cap-row {
+  display: grid;
+  grid-template-columns: 9.5em 1fr 4.5em;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+}
+.cap-bar {
+  height: 6px;
+  border-radius: 3px;
+  background: rgba(255, 255, 255, 0.08);
+  overflow: hidden;
+}
+.cap-bar > span {
+  display: block;
+  height: 100%;
+  background: var(--green);
+}
+.cap-row.full .cap-bar > span {
+  background: #e0553d;
+}
+.cap-value {
+  text-align: right;
+  font-family: var(--mono);
+}
+.cap-row.full .cap-value {
+  color: #ff8a73;
+}
+.chip.state b {
+  font-family: var(--mono);
+  margin-left: 4px;
+}
+.chip.state.on b {
+  color: #6ee08a;
+}
+.chip.state.off b {
+  color: #ff8a73;
+}
+.chip.tag {
+  font-family: var(--mono);
+  font-size: 11px;
+}
 .chip.structure {
   background: #2c2640;
   color: #e0d6ff;

@@ -20,6 +20,43 @@ export interface DebugField {
   side: DebugSide
 }
 
+export interface TargetedBlock {
+  pos: Vec3
+  id?: string
+  /** Block state properties, e.g. { delay: '3', facing: 'south' }. */
+  state?: Record<string, string>
+  /** Block tags, e.g. ['minecraft:mineable/pickaxe']. */
+  tags?: string[]
+}
+
+export interface ServerTick {
+  /** Milliseconds per tick (MSPT). */
+  mspt?: number
+  /** Target tick length (50 ms = 20 TPS; changes with /tick rate). */
+  targetMs?: number
+  /** /tick state: frozen, stepping or sprinting. */
+  tickState?: 'frozen' | 'stepping' | 'sprinting'
+  /** Multiplayer: the server brand (vanilla, Paper, Fabric…). */
+  brand?: string
+}
+
+/** Mob spawn categories as the game names them (MobCategory). */
+export type SpawnCategory =
+  | 'monster'
+  | 'creature'
+  | 'ambient'
+  | 'axolotls'
+  | 'underground_water_creature'
+  | 'water_creature'
+  | 'water_ambient'
+  | 'misc'
+
+export interface SpawnCounts {
+  /** Chunks eligible for spawning (289 = one player, full caps). */
+  chunks: number
+  counts: Partial<Record<SpawnCategory, number>>
+}
+
 /** Structured view of everything the F3 debug overlay showed. */
 export interface F3Data {
   version?: string
@@ -45,9 +82,19 @@ export interface F3Data {
   biome?: string
   light?: { client?: number; sky?: number; block?: number }
   localDifficulty?: { value: number; clamped?: number; day?: number }
-  targetedBlock?: { pos: Vec3; id?: string }
-  targetedFluid?: { pos: Vec3; id?: string }
+  targetedBlock?: TargetedBlock
+  targetedFluid?: TargetedBlock
   targetedEntity?: string
+  /** Integrated server tick time ("Integrated server @ 6.7/50.0 ms"), or the server brand in multiplayer. */
+  server?: ServerTick
+  /** Mob counts per spawn category ("SC: 289, MO: 70, C: 12…"): the mob caps. */
+  spawnCounts?: SpawnCounts
+  /** "Day #12". */
+  day?: number
+  /** Player speed in blocks per tick. */
+  speed?: number
+  /** Heightmaps at the player, client (CH) and server (SH): S, M, ML, O… → Y. */
+  heightmaps?: { client?: Record<string, number>; server?: Record<string, number> }
   java?: string
   memory?: string
   cpu?: string

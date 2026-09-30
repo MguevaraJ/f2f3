@@ -17,7 +17,7 @@ import { estimateScene } from './vision/sceneHeuristics'
 import { companionLocation, companionStructures } from './companion/parseCompanion'
 
 /** Bump when the local pipeline changes so cached analyses get recomputed. */
-export const ANALYSIS_SCHEMA = 6
+export const ANALYSIS_SCHEMA = 7
 
 /**
  * Offline analysis of one screenshot: Companion mod sidecar, F3 OCR + parsing and the colour estimate.
@@ -83,12 +83,12 @@ export function resolveAnalysis(a: ScreenshotAnalysis): ScreenshotAnalysis {
   const dimension: ScreenshotAnalysis['dimension'] = mod
     ? { id: mod.world.dimension, source: 'mod' }
     : f3?.dimension
-    ? { id: f3.dimension, source: 'f3' }
-    : vision?.dimension
-      ? { id: normalizeId(vision.dimension), source: 'vision' }
-      : heuristic.dimension
-        ? { id: heuristic.dimension, source: 'heuristic' }
-        : null
+      ? { id: f3.dimension, source: 'f3' }
+      : vision?.dimension
+        ? { id: normalizeId(vision.dimension), source: 'vision' }
+        : heuristic.dimension
+          ? { id: heuristic.dimension, source: 'heuristic' }
+          : null
 
   let biome: BiomeInfo | null = null
   if (a.manualBiome) biome = { id: normalizeId(a.manualBiome), source: 'manual', confidence: 1 }
@@ -118,16 +118,16 @@ export function resolveAnalysis(a: ScreenshotAnalysis): ScreenshotAnalysis {
   } else {
     if (f3?.targetedEntity) add(f3.targetedEntity, 1, 'f3')
     if (vision) for (const m of vision.mobs) if (m.count > 0) add(m.id, m.count, 'vision')
-  // The on-device guess only when nothing better looked at the image.
-    if (!vision && local?.targetedMob && !f3?.targetedEntity)
-      add(local.targetedMob.id, 1, 'local')
+    // The on-device guess only when nothing better looked at the image.
+    if (!vision && local?.targetedMob && !f3?.targetedEntity) add(local.targetedMob.id, 1, 'local')
   }
 
   // The mod knows the structures the player is in or looking at; the AI can
   // still spot distant ones in the picture.
-  const structures: StructureInfo[] = (mod ? (companionStructures(mod) ?? []) : []).map(
-    (id) => ({ id, source: 'mod' })
-  )
+  const structures: StructureInfo[] = (mod ? (companionStructures(mod) ?? []) : []).map((id) => ({
+    id,
+    source: 'mod'
+  }))
   for (const id of vision?.structures ?? []) {
     const nid = normalizeId(id)
     if (!structures.some((s) => s.id === nid)) structures.push({ id: nid, source: 'vision' })
@@ -162,8 +162,15 @@ function resolveLocation(
   if (!mod) return fromF3
   const loc = companionLocation(mod)
   if (!fromF3) return loc
+  const f3Target = fromF3.targetedBlock
+  const sameTarget =
+    f3Target &&
+    loc.targetedBlock &&
+    JSON.stringify(f3Target.pos) === JSON.stringify(loc.targetedBlock.pos)
   return {
     ...loc,
+    // The mod has the id; the F3 adds the block state and tags it showed.
+    targetedBlock: sameTarget ? { ...f3Target, ...loc.targetedBlock } : loc.targetedBlock,
     light: loc.light && { ...loc.light, client: fromF3.light?.client },
     localDifficulty: fromF3.localDifficulty,
     targetedFluid: fromF3.targetedFluid

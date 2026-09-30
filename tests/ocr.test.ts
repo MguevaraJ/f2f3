@@ -39,4 +39,21 @@ describe.skipIf(!jar)('F3 OCR with the real Minecraft font', () => {
     expect(a.hasF3).toBe(false)
     expect(a.f3).toBeNull()
   })
+
+  it('reads the technical entries of a 26.3 overlay (TPS, mob caps, block state)', () => {
+    const a = analyzeImage(fixture('f3-26.3-technical-scale2.png'), gameFont(), 'fp')
+    expect(a.hasF3).toBe(true)
+    expect(a.f3?.server).toMatchObject({ targetMs: 50 })
+    expect(a.f3?.server?.mspt).toBeGreaterThan(0)
+    expect(a.f3?.spawnCounts?.chunks).toBe(289)
+    expect(a.f3?.spawnCounts?.counts.monster).toBeGreaterThanOrEqual(0)
+    expect(a.f3?.day).toBe(0)
+    expect(a.f3?.speed).toBe(0)
+    expect(a.f3?.heightmaps?.server?.S).toBe(101)
+    expect(a.f3?.targetedBlock).toMatchObject({
+      pos: { x: -1020, y: 102, z: -702 },
+      id: 'minecraft:repeater',
+      state: { delay: '3', facing: 'south', locked: 'false', powered: 'false' }
+    })
+  })
 })
