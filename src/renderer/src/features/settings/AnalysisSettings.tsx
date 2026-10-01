@@ -180,6 +180,14 @@ function ModCard() {
           para que puedas moverte y revisarla, y <span className="kbd">Esc</span> vuelve un paso o
           cancela.
         </p>
+        <p className="muted small tip-line">
+          <b>Craftshot dentro del juego:</b> <span className="kbd">F6</span> abre tus capturas con
+          los mismos datos que ves aquí (notas, etiquetas y favoritas incluidas). Desde ahí,
+          «Guiarme hasta aquí» muestra una flecha y la distancia hasta el lugar de la captura, y se
+          quita sola al llegar; «Colocar el build» te deja ponerlo apuntando a un bloque (
+          <span className="kbd">Enter</span> lo coloca, gírate para rotarlo y se puede deshacer
+          desde la misma pantalla).
+        </p>
       </div>
     </section>
   )

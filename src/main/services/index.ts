@@ -4,6 +4,7 @@ import { DriveClient } from '../google/drive'
 import { GoogleAuth, type OAuthClient } from '../google/oauth'
 import { BackupService } from './BackupService'
 import { CaptureWatcher } from './CaptureWatcher'
+import { GameIndexExporter } from './GameIndexExporter'
 import { LocalVisionService } from './LocalVisionService'
 import { SecretStore } from './SecretStore'
 import { join } from 'node:path'
@@ -27,6 +28,7 @@ export interface Services {
   analysis: AnalysisService
   backup: BackupService
   captures: CaptureWatcher
+  gameIndex: GameIndexExporter
   localVision: LocalVisionService
   fontSource(): string | null
   dispose(): Promise<void>
@@ -115,7 +117,10 @@ export function createServices(
     analysis
   )
 
+  const gameIndex = new GameIndexExporter(library)
+  analysis.on('updated', () => gameIndex.schedule())
   library.on('changed', (snap) => {
+    gameIndex.schedule()
     captures.onSnapshot(snap)
     analysis.scheduleMissing(snap.screenshots)
     backup.scheduleAuto()
@@ -140,10 +145,12 @@ export function createServices(
     analysis,
     backup,
     captures,
+    gameIndex,
     localVision,
     fontSource,
     async dispose() {
       library.dispose()
+      gameIndex.dispose()
       metadata.flush()
       settings.flush()
       backup.cancel()

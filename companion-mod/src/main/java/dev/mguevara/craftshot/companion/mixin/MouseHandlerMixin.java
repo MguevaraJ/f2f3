@@ -1,5 +1,6 @@
 package dev.mguevara.craftshot.companion.mixin;
 
+import dev.mguevara.craftshot.companion.BuildPlacer;
 import dev.mguevara.craftshot.companion.BuildPreview;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.MouseHandler;
@@ -13,6 +14,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 public abstract class MouseHandlerMixin {
 	@Inject(method = "onScroll(JDD)V", at = @At("HEAD"), cancellable = true)
 	private void craftshot$onScroll(long window, double x, double y, CallbackInfo ci) {
-		if (BuildPreview.onScroll(Minecraft.getInstance(), y)) ci.cancel();
+		Minecraft mc = Minecraft.getInstance();
+		if (BuildPreview.onScroll(mc, y) || BuildPlacer.onScroll(mc, y)) ci.cancel();
 	}
 }

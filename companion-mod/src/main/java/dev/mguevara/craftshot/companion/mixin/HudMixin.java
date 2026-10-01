@@ -1,6 +1,8 @@
 package dev.mguevara.craftshot.companion.mixin;
 
+import dev.mguevara.craftshot.companion.BuildPlacer;
 import dev.mguevara.craftshot.companion.BuildPreview;
+import dev.mguevara.craftshot.companion.Guide;
 import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.Hud;
@@ -15,5 +17,7 @@ public abstract class HudMixin {
 	@Inject(method = "extractRenderState(Lnet/minecraft/client/gui/GuiGraphicsExtractor;Lnet/minecraft/client/DeltaTracker;)V", at = @At("TAIL"))
 	private void craftshot$hud(GuiGraphicsExtractor graphics, DeltaTracker delta, CallbackInfo ci) {
 		BuildPreview.drawHud(graphics);
+		BuildPlacer.drawHud(graphics);
+		Guide.drawHud(graphics);
 	}
 }

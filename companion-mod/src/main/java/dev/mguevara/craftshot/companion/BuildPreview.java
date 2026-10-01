@@ -101,6 +101,7 @@ public final class BuildPreview {
 		}
 		CompanionConfig config = CompanionConfig.get();
 		if (config.build().equals("sneak") && mc.player != null && mc.player.isShiftKeyDown() && mc.hasSingleplayerServer()) {
+			BuildPlacer.cancel();
 			active = true;
 			locked = false;
 			step = 1;
@@ -271,15 +272,20 @@ public final class BuildPreview {
 		};
 	}
 
-	/** Status and controls above the hotbar while the preview is on, each wrapped to the screen width. */
+	/** Status and controls above the hotbar while the preview is on. */
 	public static void drawHud(GuiGraphicsExtractor g) {
 		Minecraft mc = Minecraft.getInstance();
 		if (!active || mc.gui.screen() != null) return;
-		Font font = mc.font;
+		drawLines(g, hudStatus, hudControls);
+	}
+
+	/** A status line and its controls above the hotbar, each wrapped to the screen width. */
+	static void drawLines(GuiGraphicsExtractor g, String status, String controls) {
+		Font font = Minecraft.getInstance().font;
 		int max = Math.max(60, g.guiWidth() - 24);
-		List<FormattedCharSequence> lines = new ArrayList<>(font.split(Component.literal(hudStatus), max));
+		List<FormattedCharSequence> lines = new ArrayList<>(font.split(Component.literal(status), max));
 		int statusLines = lines.size();
-		lines.addAll(font.split(Component.literal(hudControls), max));
+		lines.addAll(font.split(Component.literal(controls), max));
 		int lineHeight = font.lineHeight + 2;
 		int widest = 0;
 		for (FormattedCharSequence line : lines) widest = Math.max(widest, font.width(line));
@@ -290,6 +296,11 @@ public final class BuildPreview {
 			FormattedCharSequence line = lines.get(i);
 			g.text(font, line, (g.guiWidth() - font.width(line)) / 2, top + i * lineHeight, i < statusLines ? 0xFFFFE066 : 0xFFFFFFFF);
 		}
+	}
+
+	/** Drops the preview without a message (another tool took over). */
+	static void cancel() {
+		active = false;
 	}
 
 	private static void message(Minecraft mc, String text) {

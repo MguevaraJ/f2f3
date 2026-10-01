@@ -92,6 +92,7 @@ export function registerIpc(services: Services): void {
     const next = services.metadata.setMeta(abs, clean)
     const entry = library.entry(str(id))
     if (entry) entry.meta = next
+    services.gameIndex.schedule()
   })
   handle(IPC.library.copyImage, (_e, id) => copyImageToClipboard(library.resolveId(str(id))))
   handle(IPC.library.exportData, async (e, ids, format) => {

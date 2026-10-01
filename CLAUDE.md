@@ -206,4 +206,31 @@ dentro del campo de visión de la cámara (FOV vertical de opciones + aspecto de
    La pantalla y `setScreen` están en `mc.gui` en 26.3. La app usa ese nombre; "Añadir a otro mundo" instala con el mismo id.
    Ojo: `run/saves/CraftshotTest` ya no carga (falta world_gen_settings) y el juego abre "New World (1)".
    No recompilar el mod (`build:mod`) con `runClient` abierto: el cliente se cerró al hacerlo.
+6. **Hecho** (2026-09-30) — **Craftshot dentro del juego** (tecla `galleryKey`, F6 por defecto; nombre tras
+   `key.keyboard.` en `config/craftshot_companion.json`; se detecta en el mixin de `KeyboardHandler`, sin KeyMapping).
+   - `GalleryScreen`: cuadrícula de capturas (filtro "Solo este mundo"/"Todos los mundos") + panel con los datos.
+     `CaptureIndex` recorre `screenshots/` (4 niveles) en `Util.ioPool()`; por captura usa la exportación de la app
+     si existe y, si no, el sidecar del mod (nombres con `Language.getInstance()`: `biome.*`, `block.*`, `entity.*`).
+     `Thumbnails`: `NativeImage.read` + `resizeSubRectTo` (480 px) fuera del hilo cliente, `DynamicTexture` +
+     `TextureManager.register/release`, LRU de 96, se liberan en `Screen.removed()`. Dibujo:
+     `g.blit(RenderPipelines.GUI_TEXTURED, id, x, y, 0, 0, w, h, w, h)`, `g.outline(x, y, w, h, color)`,
+     `mouseClicked(MouseButtonEvent, boolean)`, `mouseScrolled(x, y, dx, dy)`.
+   - **App → mod**: `src/shared/gameIndex.ts` (`buildGameIndex`, puro, test `tests/gameIndex.test.ts`) y
+     `GameIndexExporter` (main) escriben `<carpeta del juego>/craftshot/app-index.json` (solo si el padre de la
+     carpeta de capturas tiene `saves/` u `options.txt`), con retardo de 1,5 s tras `library changed`,
+     `analysis updated` y `setMeta`. Formato: `shots[id] {world, dimension, block, favorite, note, tags,
+     sections[{title, rows[[etiqueta, valor]]}]}`: las filas van ya redactadas en español; el mod solo las pinta.
+   - `Guide`: flecha en el HUD (`g.pose()` Matrix3x2fStack: translate + rotate; giro = yaw al destino − yaw del
+     jugador), distancia y "sube/baja N"; haz con `Gizmos.line` (a 48 bloques como mucho en esa dirección, porque
+     los gizmos lejanos no se dibujan). Se borra al llegar (≤3 bloques en horizontal y ≤12 de altura) o al salir del
+     mundo. Entre Overworld y Nether apunta a las coordenadas equivalentes (×8 / ÷8).
+   - `BuildPlacer` (solo un jugador): lee el `.craftshot.nbt` (`StructureTemplate.load(BuiltInRegistries.BLOCK, tag)`),
+     caja naranja con el bloque apuntado en la esquina cercana derecha (igual que al guardar), girada por cuartos
+     según hacia dónde mira el jugador ahora frente a la captura. Enter coloca en el hilo del servidor con
+     `placeInWorld` (no usa `/place`, funciona sin trucos); rueda agachado sube/baja; Esc cancela. Ancla por
+     rotación: 90° → min+(sz−1,0,0); 180° → min+(sx−1,0,sz−1); 270° → min+(0,0,sx−1) (probado en juego S/E/O).
+     Antes guarda la zona con `fillFromWorld` para "Deshacer la última colocación" (botón de la galería; las
+     entidades colocadas no se quitan).
+   - Pruebas con xdotool: mover el ratón para pulsar botones gira la cámara al cerrar la pantalla; un Esc sin
+     pantalla abierta abre el menú de pausa. En `New World` no hay trucos; `New World (1)` sí.
 Ideas extra: aldeanos (profesión, trades, POI), cajas de estructuras, cubiomes-WASM (confirmar soporte 26.x).
