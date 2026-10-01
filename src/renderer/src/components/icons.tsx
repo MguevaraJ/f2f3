@@ -118,10 +118,10 @@ export function F3Badge() {
   return <span className="f3-badge">F3</span>
 }
 
-/** Exact data from the Craftshot Companion mod. */
+/** Exact data from the F2+F3 Companion mod. */
 export function ModBadge() {
   return (
-    <span className="f3-badge mod-badge" title="Datos exactos del mod Craftshot Companion">
+    <span className="f3-badge mod-badge" title="Datos exactos del mod F2+F3 Companion">
       MOD
     </span>
   )

@@ -13,7 +13,7 @@ const STEPS = ['Inicio', 'Tu Minecraft', 'Niveles', 'Modelo local', 'Consejo F3'
 const FOLDER_STEP = 1
 
 /**
- * First-run introduction: what Craftshot does, which game folder it works with and where
+ * First-run introduction: what F2+F3 does, which game folder it works with and where
  * each piece of data comes from. The game folder is the one thing that cannot be skipped;
  * users from before that step existed are asked just that, once.
  */
@@ -41,8 +41,8 @@ export function Onboarding() {
     <div className="onb-folder">
       <h2>¿Dónde juegas?</h2>
       <p>
-        Craftshot trabaja con tus carpetas de juego: de ahí salen las capturas, los mundos y el
-        sitio del mod. Encontré estas, la más reciente primero. Marca todas las que quieras ver.
+        F2+F3 trabaja con tus carpetas de juego: de ahí salen las capturas, los mundos y el sitio
+        del mod. Encontré estas, la más reciente primero. Marca todas las que quieras ver.
       </p>
       <GameFolderPicker values={folders} onChange={setPicked} onLoaded={preselect} />
       <p className="muted small">Puedes añadir o quitar carpetas cuando quieras en Ajustes.</p>
@@ -83,12 +83,7 @@ export function Onboarding() {
 
   return (
     <div className="modal-backdrop onboarding-backdrop">
-      <div
-        className="modal onboarding"
-        role="dialog"
-        aria-modal
-        aria-label="Introducción a Craftshot"
-      >
+      <div className="modal onboarding" role="dialog" aria-modal aria-label="Introducción a F2+F3">
         <div className="onb-steps">
           {STEPS.map((s, i) => (
             <button
@@ -105,9 +100,9 @@ export function Onboarding() {
           {step === 0 && (
             <div className="onb-welcome">
               <GrassBlock size={64} />
-              <McText text="CRAFTSHOT" scale={4} />
+              <McText text="F2+F3" scale={4} />
               <p>
-                Tus capturas de Minecraft, organizadas. Craftshot lee la pantalla <b>F3</b> de cada
+                Tus capturas de Minecraft, organizadas. F2+F3 lee la pantalla <b>F3</b> de cada
                 captura y te da las coordenadas listas para copiar, además del bioma, los mobs y
                 más.
               </p>
@@ -227,7 +222,7 @@ export function Onboarding() {
               <h2>Consejo: activa el bioma en tu F3</h2>
               <p>
                 Desde Minecraft 1.21.9, la pantalla F3 ya no muestra el bioma por defecto. Actívalo
-                una vez y Craftshot lo leerá exacto en todas tus capturas:
+                una vez y F2+F3 lo leerá exacto en todas tus capturas:
               </p>
               <ol className="steps big">
                 <li>

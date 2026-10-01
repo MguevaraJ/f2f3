@@ -63,7 +63,7 @@ export function BackupSettings() {
       kind: 'confirm',
       title: 'Desconectar Google Drive',
       message:
-        'Craftshot dejará de respaldar y revocará su acceso a tu cuenta. Las copias que ya están en Drive no se borran.',
+        'F2+F3 dejará de respaldar y revocará su acceso a tu cuenta. Las copias que ya están en Drive no se borran.',
       confirm: 'Desconectar',
       danger: true,
       onConfirm: async () => {
@@ -202,10 +202,9 @@ export function BackupSettings() {
             </span>
           </label>
           <p className="muted small">
-            Las capturas se guardan en <b>Mi unidad › Craftshot</b>, con tus mismas carpetas y un
+            Las capturas se guardan en <b>Mi unidad › F2+F3</b>, con tus mismas carpetas y un
             archivo <code>craftshot-datos.json</code> con notas, favoritas y datos del F3. El
-            respaldo nunca borra nada de Drive. Craftshot solo puede ver los archivos que él mismo
-            crea.
+            respaldo nunca borra nada de Drive. F2+F3 solo puede ver los archivos que él mismo crea.
           </p>
         </>
       ) : (
@@ -216,8 +215,8 @@ export function BackupSettings() {
           <div className="backup-signin-text">
             <strong>Guarda tus capturas en la nube</strong>
             <span className="muted">
-              Inicia sesión con tu cuenta de Google y Craftshot guardará una copia de todas tus
-              capturas en tu Google Drive, y la mantendrá al día cada vez que hagas una nueva.
+              Inicia sesión con tu cuenta de Google y F2+F3 guardará una copia de todas tus capturas
+              en tu Google Drive, y la mantendrá al día cada vez que hagas una nueva.
             </span>
           </div>
           {connecting ? (
@@ -234,13 +233,13 @@ export function BackupSettings() {
             <GoogleButton onClick={() => void connect()} />
           ) : (
             <p className="muted small">
-              El inicio de sesión con Google no está disponible en esta versión de Craftshot.
+              El inicio de sesión con Google no está disponible en esta versión de F2+F3.
             </p>
           )}
           {status.error && <div className="details-error">{status.error}</div>}
           <p className="backup-privacy muted small">
-            Craftshot solo podrá ver y administrar los archivos que él mismo guarde en tu Drive;
-            nunca el resto de tus archivos. Puedes desconectarlo cuando quieras.
+            F2+F3 solo podrá ver y administrar los archivos que él mismo guarde en tu Drive; nunca
+            el resto de tus archivos. Puedes desconectarlo cuando quieras.
           </p>
         </div>
       )}

@@ -167,7 +167,7 @@ export class CapturePopup {
             ? 'panel'
             : 'toolbar',
       backgroundColor: '#262626',
-      title: 'Craftshot · Nueva captura',
+      title: 'F2+F3 · Nueva captura',
       webPreferences: {
         preload: join(here, '../preload/popup.cjs'),
         contextIsolation: true,

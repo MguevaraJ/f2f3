@@ -4,7 +4,7 @@ import { api } from '../lib/api'
 import { useSettings } from '../store/settings'
 import { Icon } from './icons'
 
-/** "Close Craftshot or keep it in the background?" — asked when the window is closed. */
+/** "Close F2+F3 or keep it in the background?" — asked when the window is closed. */
 export function CloseDialog() {
   const [open, setOpen] = useState(false)
   const [remember, setRemember] = useState(false)
@@ -42,7 +42,7 @@ export function CloseDialog() {
     ? platform === 'darwin'
       ? 'Lo encontrarás en la barra de menús, arriba a la derecha.'
       : 'Lo encontrarás en la bandeja del sistema, junto al reloj.'
-    : 'Para volver a abrirlo, ejecuta Craftshot de nuevo.'
+    : 'Para volver a abrirlo, ejecuta F2+F3 de nuevo.'
 
   return (
     <div
@@ -51,7 +51,7 @@ export function CloseDialog() {
     >
       <div className="modal close-modal" role="dialog" aria-modal aria-labelledby="close-title">
         <div className="modal-head">
-          <h2 id="close-title">¿Cerrar Craftshot?</h2>
+          <h2 id="close-title">¿Cerrar F2+F3?</h2>
           <button
             type="button"
             className="icon-btn"
@@ -80,7 +80,7 @@ export function CloseDialog() {
         </div>
         <div className="modal-foot">
           <button type="button" className="btn" onClick={() => answer('quit')}>
-            Cerrar Craftshot
+            Cerrar F2+F3
           </button>
           <button
             type="button"

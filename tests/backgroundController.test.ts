@@ -85,7 +85,7 @@ describe('closing the window', () => {
     expect(t.webContents.send).toHaveBeenCalledTimes(1)
   })
 
-  it('"Cerrar Craftshot" quits; cancelling does nothing', () => {
+  it('"Cerrar F2+F3" quits; cancelling does nothing', () => {
     const t = setup('ask')
     t.close()
     t.resolve('cancel', false)

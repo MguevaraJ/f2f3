@@ -5,7 +5,7 @@ import { app } from 'electron'
 import appIcon from '../../../resources/icon.png?asset'
 import { desktopEntry } from './desktopEntry'
 
-/** Passed to Craftshot when the OS starts it at login: start in the background. */
+/** Passed to F2+F3 when the OS starts it at login: start in the background. */
 export const HIDDEN_FLAG = '--hidden'
 
 /**

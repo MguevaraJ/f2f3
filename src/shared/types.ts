@@ -117,14 +117,14 @@ export interface OcrStats {
 
 /**
  * Where a piece of information comes from, from most to least reliable:
- * manual (the user), mod (Craftshot Companion: exact game state), f3 (read from
+ * manual (the user), mod (F2+F3 Companion: exact game state), f3 (read from
  * the overlay: exact), vision (advanced AI), local (on-device model: estimate),
  * heuristic (colours: rough estimate).
  */
 export type InfoSource = 'mod' | 'f3' | 'vision' | 'local' | 'heuristic' | 'manual'
 
 /**
- * Exact game state written by the Craftshot Companion mod next to a screenshot
+ * Exact game state written by the F2+F3 Companion mod next to a screenshot
  * ("name.craftshot.json", format "craftshot-companion" schema 1).
  */
 export interface CompanionData {
@@ -301,7 +301,7 @@ export interface ScreenshotAnalysis {
   hasF3: boolean
   f3: F3Data | null
   ocr: OcrStats | null
-  /** Sidecar written by the Craftshot Companion mod, when present. */
+  /** Sidecar written by the F2+F3 Companion mod, when present. */
   mod: CompanionData | null
   /** Colour-statistics estimate, kept as the last-resort source. */
   heuristic: { dimension: string | null; biome: { id: string; confidence: number } | null }
@@ -435,7 +435,7 @@ export interface AppSettings {
   closeAction: CloseAction
   /** Show an icon in the system tray while running in the background. */
   trayIcon: boolean
-  /** Start Craftshot (in the background) when the user logs in. Off by default. */
+  /** Start F2+F3 (in the background) when the user logs in. Off by default. */
   launchAtLogin: boolean
   /** Seeds typed by the user, by world name (the mod fills them in singleplayer). */
   worldSeeds: Record<string, string>

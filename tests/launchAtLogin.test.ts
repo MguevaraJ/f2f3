@@ -12,7 +12,7 @@ vi.mock('electron', () => ({
     getLoginItemSettings: () => ({ wasOpenedAtLogin: true })
   }
 }))
-vi.mock('../resources/icon.png?asset', () => ({ default: '/opt/Craftshot/resources/icon.png' }))
+vi.mock('../resources/icon.png?asset', () => ({ default: '/opt/F2+F3/resources/icon.png' }))
 
 const { desktopEntry, execLine } = await import('../src/main/autostart/desktopEntry')
 const { LaunchAtLogin, HIDDEN_FLAG } = await import('../src/main/autostart/LaunchAtLogin')
@@ -20,7 +20,7 @@ const { LaunchAtLogin, HIDDEN_FLAG } = await import('../src/main/autostart/Launc
 describe('XDG desktop entry', () => {
   it('quotes paths with spaces and escapes special characters', () => {
     expect(execLine(['/usr/bin/craftshot', '--hidden'])).toBe('/usr/bin/craftshot --hidden')
-    expect(execLine(['/home/a b/Craftshot.AppImage'])).toBe('"/home/a b/Craftshot.AppImage"')
+    expect(execLine(['/home/a b/F2+F3.AppImage'])).toBe('"/home/a b/F2+F3.AppImage"')
     expect(execLine(['/x/$HOME"q"'])).toBe('"/x/\\$HOME\\"q\\""')
     expect(execLine(['/x/100%'])).toBe('/x/100%%')
   })
@@ -57,10 +57,10 @@ describe('LaunchAtLogin', () => {
   })
 
   it('Linux AppImage: autostarts the AppImage itself, not the temporary mount', () => {
-    process.env.APPIMAGE = '/home/steve/Apps/Craftshot.AppImage'
+    process.env.APPIMAGE = '/home/steve/Apps/F2+F3.AppImage'
     new LaunchAtLogin('linux', dir).apply(true)
     expect(readFileSync(join(dir, 'autostart', 'craftshot.desktop'), 'utf8')).toContain(
-      'Exec=/home/steve/Apps/Craftshot.AppImage --hidden'
+      'Exec=/home/steve/Apps/F2+F3.AppImage --hidden'
     )
   })
 
@@ -82,6 +82,6 @@ describe('LaunchAtLogin', () => {
       true
     )
     expect(new LaunchAtLogin('linux', dir).startedAtLogin(['electron', '.'])).toBe(false)
-    expect(new LaunchAtLogin('darwin', dir).startedAtLogin(['Craftshot'])).toBe(true) // macOS login item
+    expect(new LaunchAtLogin('darwin', dir).startedAtLogin(['F2+F3'])).toBe(true) // macOS login item
   })
 })

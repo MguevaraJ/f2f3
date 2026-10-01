@@ -7,7 +7,7 @@ import java.util.Map;
 
 /**
  * Everything collected at the moment F2 was pressed. Serialised as the
- * "craftshot-companion" JSON format (schema 1), the contract with the Craftshot app.
+ * "craftshot-companion" JSON format (schema 1), the contract with the F2+F3 app.
  */
 public record CaptureSnapshot(
 	String capturedAt,
@@ -62,7 +62,7 @@ public record CaptureSnapshot(
 		root.addProperty("schema", SCHEMA);
 
 		JsonObject mod = new JsonObject();
-		mod.addProperty("name", "Craftshot Companion");
+		mod.addProperty("name", "F2+F3 Companion");
 		mod.addProperty("version", modVersion);
 		mod.addProperty("loader", "fabric");
 		mod.addProperty("minecraft", minecraftVersion);

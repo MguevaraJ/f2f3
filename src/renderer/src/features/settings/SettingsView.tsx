@@ -30,7 +30,7 @@ export function SettingsView() {
       <div className="settings-inner">
         <Group
           title="Carpetas de juego"
-          desc="Craftshot muestra juntas las capturas de las carpetas que marques, lee sus mundos y guarda en cada una los datos para el mod. Estas son las que hay en tu equipo, la más reciente primero."
+          desc="F2+F3 muestra juntas las capturas de las carpetas que marques, lee sus mundos y guarda en cada una los datos para el mod. Estas son las que hay en tu equipo, la más reciente primero."
         >
           <GameFolderPicker
             values={settings.screenshotsDirs}
@@ -40,7 +40,7 @@ export function SettingsView() {
 
         <Group
           title="Análisis de capturas"
-          desc="Craftshot combina tres niveles de información. Cada dato de una captura indica de cuál viene."
+          desc="F2+F3 combina tres niveles de información. Cada dato de una captura indica de cuál viene."
         >
           <AnalysisSettings
             fontSource={info?.fontSource ?? null}
@@ -58,7 +58,7 @@ export function SettingsView() {
 
         <Group
           title="Notificaciones"
-          desc="Mientras Craftshot esté abierto, te avisa en la esquina de la pantalla cada vez que haces una captura en Minecraft (F2), sin sacarte del juego."
+          desc="Mientras F2+F3 esté abierto, te avisa en la esquina de la pantalla cada vez que haces una captura en Minecraft (F2), sin sacarte del juego."
         >
           <Toggle
             label="Avisar de capturas nuevas"
@@ -97,10 +97,10 @@ export function SettingsView() {
 
         <Group
           title="Segundo plano e inicio"
-          desc="En segundo plano, Craftshot sigue avisándote de las capturas nuevas y respaldando en Google Drive."
+          desc="En segundo plano, F2+F3 sigue avisándote de las capturas nuevas y respaldando en Google Drive."
         >
           <Toggle
-            label="Iniciar Craftshot al encender el equipo"
+            label="Iniciar F2+F3 al encender el equipo"
             hint="Se abre en segundo plano, sin mostrar la ventana, para avisarte de tus capturas desde que empiezas a jugar."
             checked={settings.launchAtLogin}
             onChange={(v) => void update({ launchAtLogin: v })}
@@ -113,23 +113,23 @@ export function SettingsView() {
               onChange={(e) => void update({ closeAction: e.target.value as CloseAction })}
             >
               <option value="ask">Preguntar cada vez</option>
-              <option value="background">Dejar Craftshot en segundo plano</option>
-              <option value="quit">Cerrar Craftshot</option>
+              <option value="background">Dejar F2+F3 en segundo plano</option>
+              <option value="quit">Cerrar F2+F3</option>
             </select>
           </label>
           <Toggle
             label="Mostrar icono en la bandeja del sistema"
             hint={
               info?.platform === 'linux'
-                ? 'Solo si tu escritorio tiene bandeja (KDE, Cinnamon, XFCE…). Sin ella, vuelve a abrir Craftshot ejecutándolo de nuevo.'
-                : 'Para abrir Craftshot o salir de él mientras está en segundo plano.'
+                ? 'Solo si tu escritorio tiene bandeja (KDE, Cinnamon, XFCE…). Sin ella, vuelve a abrir F2+F3 ejecutándolo de nuevo.'
+                : 'Para abrir F2+F3 o salir de él mientras está en segundo plano.'
             }
             checked={settings.trayIcon}
             onChange={(v) => void update({ trayIcon: v })}
           />
           <div>
             <button className="btn" onClick={() => void api.system.quit()}>
-              <Icon name="logout" size={16} /> Salir de Craftshot
+              <Icon name="logout" size={16} /> Salir de F2+F3
             </button>
           </div>
         </Group>
@@ -168,7 +168,7 @@ export function SettingsView() {
 
         {info && (
           <p className="muted small about">
-            Craftshot {info.version} · Electron {info.electron} · {info.platform}
+            F2+F3 {info.version} · Electron {info.electron} · {info.platform}
           </p>
         )}
       </div>

@@ -1,4 +1,4 @@
-# Craftshot
+# F2+F3
 
 Gestor de capturas de Minecraft con la estética del Minecraft Launcher. Lee automáticamente
 la pantalla **F3** de cada captura y la muestra organizada (coordenadas, chunk, región, orientación,
@@ -37,7 +37,7 @@ completo y gestión de archivos.
   **Excel (.xlsx)** o **CSV** tal como se ve (filtro, orden, conversión Nether ⇄ Overworld, distancia),
   con columnas extra: XYZ exacto, chunk, región, orientación, mobs, nota y comando `/tp`.
 
-- **Copia de seguridad en Google Drive**: conecta tu cuenta y Craftshot sube tus capturas a
+- **Copia de seguridad en Google Drive**: conecta tu cuenta y F2+F3 sube tus capturas a
   *Mi unidad › Craftshot › minecraft* con tus mismas carpetas, más `craftshot-datos.json` (notas,
   favoritas, datos del F3). Es incremental (compara MD5), verifica cada subida, detecta renombres y
   movimientos (mueve el archivo en Drive en vez de volver a subirlo), nunca borra nada de Drive, puede
@@ -49,9 +49,9 @@ completo y gestión de archivos.
   visible, **Ctrl+Shift+C** copia las coordenadas sin salir del juego. Opcionalmente, las coordenadas
   se copian solas.
 
-- **Segundo plano**: al cerrar la ventana, Craftshot pregunta si cerrarse o seguir en segundo plano
+- **Segundo plano**: al cerrar la ventana, F2+F3 pregunta si cerrarse o seguir en segundo plano
   (con avisos de capturas y respaldos activos). En Windows/macOS queda un icono en la bandeja; en Linux,
-  sin bandeja por defecto: se vuelve a abrir ejecutando Craftshot otra vez (instancia única). La
+  sin bandeja por defecto: se vuelve a abrir ejecutando F2+F3 otra vez (instancia única). La
   elección se puede recordar y cambiar en Ajustes.
 - **Iniciar con el sistema** (desactivado por defecto): arranca en segundo plano al iniciar sesión.
   Windows/macOS usan los elementos de inicio del sistema; Linux, `~/.config/autostart/craftshot.desktop`
@@ -75,14 +75,14 @@ Para la visión IA: Ajustes → *Visión con IA* → pega tu API key de Anthropi
 llavero del sistema vía `safeStorage`) o define `ANTHROPIC_API_KEY`. Cada captura analizada es una
 petición a la API con coste; los lotes de más de 3 piden confirmación.
 
-### Google Drive: registro de la app (una sola vez, lo hace quien publica Craftshot)
+### Google Drive: registro de la app (una sola vez, lo hace quien publica F2+F3)
 
 Los usuarios solo ven **"Continuar con Google"**. Para que ese botón funcione, la app debe estar
 registrada ante Google una vez, igual que cualquier app con "Iniciar sesión con Google":
 
 1. [Google Cloud Console](https://console.cloud.google.com/apis/credentials): crea un proyecto y
    activa la **Google Drive API**.
-2. *Pantalla de consentimiento*: tipo **Externo**, nombre "Craftshot", logo y correo de soporte;
+2. *Pantalla de consentimiento*: tipo **Externo**, nombre "F2+F3", logo y correo de soporte;
    agrega el permiso `…/auth/drive.file`. Mientras esté en modo *Prueba* solo pueden entrar los
    usuarios de prueba que agregues (y la sesión caduca a los 7 días); para uso público pulsa
    **Publicar app**.

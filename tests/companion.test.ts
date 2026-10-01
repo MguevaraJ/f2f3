@@ -17,7 +17,7 @@ const real = readFileSync(join(__dirname, 'fixtures/companion/real-26.3.craftsho
 const village = {
   format: 'craftshot-companion',
   schema: 1,
-  mod: { name: 'Craftshot Companion', version: '1.0.0+26.3', loader: 'fabric', minecraft: '26.3' },
+  mod: { name: 'F2+F3 Companion', version: '1.0.0+26.3', loader: 'fabric', minecraft: '26.3' },
   capturedAt: '2026-09-30T01:42:55.100Z',
   world: {
     type: 'singleplayer',

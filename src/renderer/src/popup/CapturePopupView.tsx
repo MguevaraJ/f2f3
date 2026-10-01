@@ -88,7 +88,7 @@ export function CapturePopupView() {
         <button
           className="popup-thumb"
           onClick={() => void popup.open(entry.id)}
-          title="Ver en Craftshot"
+          title="Ver en F2+F3"
         >
           <img src={thumbUrl(entry.id, entry.mtimeMs)} alt="" />
         </button>

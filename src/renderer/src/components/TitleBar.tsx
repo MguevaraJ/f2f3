@@ -5,7 +5,7 @@ import { Icon } from './icons'
 export function TitleBar() {
   return (
     <div className="titlebar">
-      <div className="titlebar-title">Craftshot</div>
+      <div className="titlebar-title">F2+F3</div>
       <div className="titlebar-controls">
         <button
           className="titlebar-btn"

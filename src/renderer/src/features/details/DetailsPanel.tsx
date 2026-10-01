@@ -471,9 +471,9 @@ function F3BiomeTip() {
           Tu F3 no muestra el bioma · <u>{open ? 'Ocultar' : 'Cómo activarlo'}</u>
         </button>
         <p className="muted small" hidden={!open}>
-          En esta versión de Minecraft viene oculto. Para que Craftshot lo lea exacto: en el juego
-          pulsa <span className="kbd">F3</span> + <span className="kbd">F6</span>, busca la línea
-          del <b>bioma</b> (Biome) y actívala. Haz lo mismo con la <b>entidad apuntada</b> para
+          En esta versión de Minecraft viene oculto. Para que F2+F3 lo lea exacto: en el juego pulsa{' '}
+          <span className="kbd">F3</span> + <span className="kbd">F6</span>, busca la línea del{' '}
+          <b>bioma</b> (Biome) y actívala. Haz lo mismo con la <b>entidad apuntada</b> para
           registrar el mob que miras. Para datos técnicos activa también <b>TPS</b>,{' '}
           <b>conteo de spawns</b> y el <b>estado del bloque apuntado</b>.
         </p>
@@ -752,8 +752,8 @@ function NoF3Notice() {
       <div>
         <strong>Captura sin F3</strong>
         <p className="muted small">
-          Sin la pantalla F3 (ni el mod Craftshot Companion) no hay coordenadas. El bioma y los mobs
-          se estiman con el modelo local (o con los colores si no lo tienes); la IA avanzada da el
+          Sin la pantalla F3 (ni el mod F2+F3 Companion) no hay coordenadas. El bioma y los mobs se
+          estiman con el modelo local (o con los colores si no lo tienes); la IA avanzada da el
           resultado más preciso.
         </p>
       </div>

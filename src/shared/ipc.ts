@@ -186,7 +186,7 @@ export interface CraftshotApi {
     onStatus(cb: (status: BackupStatus) => void): Unsubscribe
   }
   companion: {
-    /** Saves the bundled Craftshot Companion mod (.jar) where the user chooses; null if cancelled. */
+    /** Saves the bundled F2+F3 Companion mod (.jar) where the user chooses; null if cancelled. */
     saveMod(): Promise<string | null>
     /** Saves the build (.nbt) captured with a screenshot; null if cancelled. */
     exportBuild(id: string): Promise<string | null>

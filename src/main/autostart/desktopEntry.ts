@@ -19,7 +19,7 @@ export function desktopEntry(opts: { argv: string[]; icon: string }): string {
     '[Desktop Entry]',
     'Type=Application',
     'Version=1.0',
-    'Name=Craftshot',
+    'Name=F2+F3',
     'Comment=Avisos y respaldo de tus capturas de Minecraft',
     `Exec=${execLine(opts.argv)}`,
     `Icon=${opts.icon}`,

@@ -12,7 +12,7 @@ interface Deps {
 }
 
 /**
- * Decides what closing the main window means: quit, or keep Craftshot running in
+ * Decides what closing the main window means: quit, or keep F2+F3 running in
  * the background (capture popups, auto-backup) — with a tray icon where the
  * platform has one. The question itself is asked by the renderer (launcher-style
  * dialog); OS shutdown/logout always goes through untouched.
@@ -90,7 +90,7 @@ export class BackgroundController {
     if (this.tray && !this.hintShown && process.platform === 'win32') {
       this.hintShown = true
       this.tray.displayBalloon({
-        title: 'Craftshot sigue funcionando',
+        title: 'F2+F3 sigue funcionando',
         content: 'Te avisará de las capturas nuevas. Ábrelo desde aquí cuando quieras.',
         iconType: 'info'
       })
@@ -114,13 +114,13 @@ export class BackgroundController {
       this.tray = new Tray(
         nativeImage.createFromPath(trayIconPath).resize({ width: size, height: size })
       )
-      this.tray.setToolTip('Craftshot')
+      this.tray.setToolTip('F2+F3')
       this.tray.on('click', () => this.deps.showWindow())
     }
     const { notifyNewShots } = this.deps.settings.value
     this.tray.setContextMenu(
       Menu.buildFromTemplate([
-        { label: 'Abrir Craftshot', click: () => this.deps.showWindow() },
+        { label: 'Abrir F2+F3', click: () => this.deps.showWindow() },
         {
           label: 'Avisar de capturas nuevas',
           type: 'checkbox',
@@ -133,7 +133,7 @@ export class BackgroundController {
           click: () => this.deps.testNotification()
         },
         { type: 'separator' },
-        { label: 'Salir de Craftshot', click: () => this.quit() }
+        { label: 'Salir de F2+F3', click: () => this.quit() }
       ])
     )
   }

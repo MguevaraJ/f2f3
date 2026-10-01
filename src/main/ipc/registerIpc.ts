@@ -208,7 +208,7 @@ export function registerIpc(services: Services): void {
       : await dialog.showSaveDialog(options)
     if (res.canceled || !res.filePath) return null
     const readme = [
-      `Waypoints de Craftshot · ${worldName} · ${waypoints.length} capturas`,
+      `Waypoints de F2+F3 · ${worldName} · ${waypoints.length} capturas`,
       '',
       "Xaero's Minimap:",
       `  Copia cada carpeta dim%… dentro de .minecraft/xaero/minimap/<tu mundo>/`,
@@ -231,7 +231,7 @@ export function registerIpc(services: Services): void {
     return { path: res.filePath, count: waypoints.length }
   })
 
-  // Craftshot Companion mod: the .jar ships inside the app
+  // F2+F3 Companion mod: the .jar ships inside the app
   // The dialog opens in the game folder's mods/ (of the ticked folders, the first that
   // has one; else the first), so nobody has to browse there. Still the user's click.
   const modsDirOrDownloads = (): string => {
@@ -246,7 +246,7 @@ export function registerIpc(services: Services): void {
   handle(IPC.companion.saveMod, async (e) => {
     const parent = BrowserWindow.fromWebContents(e.sender)
     const options = {
-      title: 'Guardar el mod Craftshot Companion',
+      title: 'Guardar el mod F2+F3 Companion',
       defaultPath: join(modsDirOrDownloads(), 'craftshot-companion-1.0.0+26.3.jar'),
       filters: [{ name: 'Mod de Fabric', extensions: ['jar'] }],
       properties: ['showOverwriteConfirmation', 'createDirectory'] as (

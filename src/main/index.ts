@@ -1,4 +1,5 @@
 import { app, BrowserWindow, clipboard, globalShortcut, ipcMain, session } from 'electron'
+import { join } from 'node:path'
 import { IPC } from '@shared/ipc'
 import { LaunchAtLogin } from './autostart/LaunchAtLogin'
 import { BackgroundController } from './BackgroundController'
@@ -11,6 +12,10 @@ import { createMainWindow } from './window'
 
 registerSchemePrivileges()
 
+// The app was called Craftshot: its data folder keeps that name so nothing is lost
+// (unless one is given explicitly, as the tests do).
+if (!app.commandLine.hasSwitch('user-data-dir'))
+  app.setPath('userData', join(app.getPath('appData'), 'Craftshot'))
 if (!app.requestSingleInstanceLock()) app.quit()
 
 let services: Services | null = null

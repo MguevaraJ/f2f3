@@ -416,7 +416,7 @@ function F3BiomeBanner({ shots }: { shots: ScreenshotEntry[] }) {
         <span>
           Tu versión de Minecraft lo oculta por defecto. En el juego pulsa{' '}
           <span className="kbd">F3</span> + <span className="kbd">F6</span>, busca la línea del{' '}
-          <b>bioma</b> (Biome) y actívala: desde tu próxima captura Craftshot lo leerá exacto.
+          <b>bioma</b> (Biome) y actívala: desde tu próxima captura F2+F3 lo leerá exacto.
         </span>
       </div>
       <button

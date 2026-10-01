@@ -60,7 +60,7 @@ export function Sidebar() {
           <GrassBlock size={28} />
         </div>
         <div className="side-account-text">
-          <div className="side-account-name">Craftshot</div>
+          <div className="side-account-name">F2+F3</div>
           <div className="side-account-sub" title={snapshot?.roots.map((r) => r.path).join('\n')}>
             {!snapshot
               ? 'Cargando…'

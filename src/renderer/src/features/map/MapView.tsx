@@ -326,8 +326,8 @@ export function MapView({ shots }: { shots: ScreenshotEntry[] }) {
           <Icon name="compass" size={48} />
           <h3>El mapa está vacío</h3>
           <p>
-            Las capturas con coordenadas (con el F3 abierto o con el mod Craftshot Companion)
-            aparecerán aquí como puntos sobre el mundo.
+            Las capturas con coordenadas (con el F3 abierto o con el mod F2+F3 Companion) aparecerán
+            aquí como puntos sobre el mundo.
           </p>
         </div>
       </div>

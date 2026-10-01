@@ -1,4 +1,12 @@
-# Craftshot — contexto para agentes
+# F2+F3 (antes Craftshot) — contexto para agentes
+
+**Nombre (2026-09-30):** la app se llama **F2+F3** y el mod **F2+F3 Companion** (ya existía otra "Craftshot").
+Solo cambió lo visible (títulos, textos, `productName`, nombre del mod y de su pantalla). Se conservan a propósito los
+identificadores internos: carpeta de datos `~/.config/Craftshot` (fijada con `app.setPath('userData', …)` salvo que se
+pase `--user-data-dir`), `appId`, protocolo `craftshot://`, sufijos `.craftshot.json/.nbt`, formato
+`craftshot-companion`, id del mod `craftshot_companion`, jar `craftshot-companion-*.jar`, espacio `craftshot:` de las
+plantillas, `craftshot/app-index.json`, carpeta "Craftshot" de Google Drive, variables `CRAFTSHOT_*` y el repo.
+
 
 App de escritorio (Electron + React + TypeScript) que gestiona las capturas de Minecraft (`~/.minecraft/screenshots`)
 con estética del Minecraft Launcher. Lee el F3 de cada captura por OCR, muestra coordenadas/bioma/mobs/estructuras,
@@ -67,7 +75,7 @@ cada instancia es una carpeta de juego y `versions/`/`assets/` están más arrib
 - En scripts de prueba poner `onboardingDone` **y** `gameDirConfirmed` en settings.json.
 
 ## Gotchas
-- El usuario usa **i3** (tiling). Para capturar la ventana: `i3-msg '[title="^Craftshot$"] floating enable, resize set W H'`;
+- El usuario usa **i3** (tiling). Para capturar la ventana: `i3-msg '[title="^F2\\+F3$"] floating enable, resize set W H'`;
   captura de pantalla con `import -window root -crop …`; clics con `xdotool`. Probar con `--user-data-dir=<tmp>` para no tocar sus datos.
 - Modo debug: `CRAFTSHOT_CAPTURE=out.png CRAFTSHOT_SIZE=1440x900 [CRAFTSHOT_SCRIPT=js] npx electron .`
 - Minecraft del usuario: 26.3 vanilla (GUI scale 2; el F3 de 1.21.9+ oculta el bioma por defecto) y 1.20.1 Forge.

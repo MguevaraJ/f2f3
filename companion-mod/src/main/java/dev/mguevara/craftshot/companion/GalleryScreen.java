@@ -20,7 +20,7 @@ import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.util.FormattedCharSequence;
 
 /**
- * Craftshot inside the game: the screenshots as a grid and, for the chosen one, what the
+ * F2+F3 inside the game: the screenshots as a grid and, for the chosen one, what the
  * app shows about it. From here a screenshot's spot can be followed with the guide and
  * its saved build placed back.
  */
@@ -53,7 +53,7 @@ public final class GalleryScreen extends Screen {
 	private Button filterButton, guideButton, copyButton, placeButton, undoButton;
 
 	public GalleryScreen() {
-		super(Component.literal("Craftshot"));
+		super(Component.literal("F2+F3"));
 		Minecraft mc = Minecraft.getInstance();
 		ServerData server = mc.getCurrentServer();
 		world = mc.getSingleplayerServer() != null ? mc.getSingleplayerServer().getWorldData().getLevelName()
@@ -212,8 +212,8 @@ public final class GalleryScreen extends Screen {
 	@Override
 	public void extractRenderState(GuiGraphicsExtractor g, int mouseX, int mouseY, float partial) {
 		String count = loading ? "Cargando…" : shown.size() + (shown.size() == 1 ? " captura" : " capturas");
-		g.text(font, "Craftshot", MARGIN, 11, ACCENT);
-		g.text(font, "· " + count, MARGIN + font.width("Craftshot "), 11, WHITE);
+		g.text(font, "F2+F3", MARGIN, 11, ACCENT);
+		g.text(font, "· " + count, MARGIN + font.width("F2+F3 "), 11, WHITE);
 
 		g.enableScissor(MARGIN - 2, TOP - 2, MARGIN + gridWidth + 2, bottom);
 		for (int i = 0; i < shown.size(); i++) {

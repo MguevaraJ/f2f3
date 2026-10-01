@@ -35,7 +35,7 @@ function writeAtomic(path: string, data: Buffer): void {
   renameSync(tmp, path)
 }
 
-/** Exact game data from the Craftshot Companion mod, when it wrote a sidecar. */
+/** Exact game data from the F2+F3 Companion mod, when it wrote a sidecar. */
 function companion(file: string): ReturnType<typeof parseCompanion> {
   try {
     return parseCompanion(readFileSync(companionPathFor(file), 'utf8'))

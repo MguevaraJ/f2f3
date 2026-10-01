@@ -15,7 +15,7 @@ export function createMainWindow({ visible = true }: { visible?: boolean } = {})
     show: false,
     frame: false,
     backgroundColor: '#1e1e1e',
-    title: 'Craftshot',
+    title: 'F2+F3',
     icon: appIcon,
     webPreferences: {
       preload: join(here, '../preload/index.cjs'),

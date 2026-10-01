@@ -15,7 +15,7 @@ export function Header() {
   return (
     <header className="header">
       <div className="header-title">
-        <McText text="CRAFTSHOT" scale={3} color="#ffffff" />
+        <McText text="F2+F3" scale={3} color="#ffffff" />
         <span className="header-edition">SCREENSHOT EDITION</span>
       </div>
       <nav className="tabs" role="tablist">

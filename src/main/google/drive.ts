@@ -19,7 +19,7 @@ export interface DriveItem {
 
 export interface DriveApi {
   account(): Promise<{ email: string; name: string }>
-  /** The app's top folder ("Craftshot"), created on demand. */
+  /** The app's top folder ("F2+F3"), created on demand. */
   ensureAppFolder(): Promise<string>
   listSource(source: string): Promise<DriveItem[]>
   createFolder(source: string, path: string, name: string, parentId: string): Promise<string>

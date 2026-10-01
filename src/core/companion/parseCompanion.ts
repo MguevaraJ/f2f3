@@ -2,7 +2,7 @@ import { z } from 'zod'
 import type { CompanionData, LocationData, Vec3 } from '@shared/types'
 
 /**
- * Sidecar written by the Craftshot Companion mod (Fabric) next to each screenshot:
+ * Sidecar written by the F2+F3 Companion mod (Fabric) next to each screenshot:
  * "2026-09-29_21.38.54.png" → "2026-09-29_21.38.54.craftshot.json".
  * Pure module — the caller reads the file.
  */

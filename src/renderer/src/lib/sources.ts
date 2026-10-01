@@ -17,7 +17,7 @@ export const SOURCE_INFO: Record<InfoSource, SourceInfo> = {
   mod: {
     tag: 'Mod',
     label: 'Exacto',
-    hint: 'Guardado por el mod Craftshot Companion en el momento de la captura. Es el dato real del juego.'
+    hint: 'Guardado por el mod F2+F3 Companion en el momento de la captura. Es el dato real del juego.'
   },
   f3: {
     tag: 'F3',
@@ -56,7 +56,7 @@ export const PROVIDER_LABEL: Record<VisionProviderId, string> = {
 /** Optional extra for Fabric players: exact data without the F3. */
 export const MOD_LEVEL = {
   id: 'mod',
-  title: 'Mod Craftshot Companion',
+  title: 'Mod F2+F3 Companion',
   badge: 'Exacto · Opcional · Fabric 26.3',
   gives:
     'Coordenadas, bioma, mobs visibles, estructuras, semilla, hora y clima sin abrir el F3; y para técnico: TPS, límite de mobs, reglas del juego, contenido de cofres y tolvas, señal de redstone y tratos de aldeanos.',

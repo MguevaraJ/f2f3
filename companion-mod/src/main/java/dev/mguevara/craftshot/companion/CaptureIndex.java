@@ -18,7 +18,7 @@ import net.minecraft.util.Util;
 
 /**
  * The screenshots the in-game gallery shows: every image of the screenshots folder with
- * what is known about it. The Craftshot app's export ("craftshot/app-index.json": notes,
+ * what is known about it. The F2+F3 app's export ("craftshot/app-index.json": notes,
  * tags, and its analysis already worded) wins; without it the mod's own sidecar is used.
  */
 public final class CaptureIndex {

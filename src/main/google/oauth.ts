@@ -203,9 +203,9 @@ export class GoogleAuth {
 function resultPage(ok: boolean, error: string | null): string {
   const title = ok ? 'Cuenta conectada' : 'No se pudo conectar'
   const msg = ok
-    ? 'Ya puedes cerrar esta pestaña y volver a Craftshot.'
-    : `Vuelve a Craftshot e inténtalo de nuevo.${error ? ` (${error.replace(/[^\w-]/g, '')})` : ''}`
-  return `<!doctype html><html lang="es"><meta charset="utf-8"><title>Craftshot · ${title}</title>
+    ? 'Ya puedes cerrar esta pestaña y volver a F2+F3.'
+    : `Vuelve a F2+F3 e inténtalo de nuevo.${error ? ` (${error.replace(/[^\w-]/g, '')})` : ''}`
+  return `<!doctype html><html lang="es"><meta charset="utf-8"><title>F2+F3 · ${title}</title>
 <body style="margin:0;height:100vh;display:grid;place-items:center;background:#1e1e1e;color:#fff;font:16px system-ui,sans-serif">
 <div style="text-align:center;padding:40px 56px;background:#2a2a2a;border-radius:6px;border-bottom:5px solid ${ok ? '#1d4d13' : '#7d1d1d'}">
 <div style="font-size:44px">${ok ? '✔' : '✖'}</div><h1 style="margin:8px 0;font-size:22px">${title}</h1>
