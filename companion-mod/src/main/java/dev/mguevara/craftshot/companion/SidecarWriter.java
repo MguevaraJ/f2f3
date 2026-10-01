@@ -128,7 +128,7 @@ public final class SidecarWriter {
 		return server.submit(() -> {
 			ServerLevel level = server.getLevel(dim);
 			if (level == null) return null;
-			BuildRegion region = auto ? config.region(level, target, config.buildSize(), facing) : chosen;
+			BuildRegion region = auto ? config.region(level, target, config.buildSize(), facing, 0) : chosen;
 			return ServerCollector.collect(server, level, at, target, entityId, region, name, author);
 		});
 	}

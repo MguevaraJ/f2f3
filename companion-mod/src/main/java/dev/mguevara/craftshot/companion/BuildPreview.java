@@ -40,6 +40,12 @@ public final class BuildPreview {
 	private static Direction facing;
 	private static BlockPos target;
 	private static int computedSize;
+	/** 1: choosing the base (width and depth); 2: choosing the height, with the box pinned. */
+	private static int step = 1;
+	/** Height chosen in step 2; 0 = as tall as the highest block inside. */
+	private static int height;
+	private static int computedHeight;
+	private static boolean lockedBeforeHeight;
 	private static BuildRegion region;
 	private static int age;
 	private static String hudStatus = "";
@@ -64,6 +70,15 @@ public final class BuildPreview {
 				message(mc, "Apunta a la base del build para guardarlo (Esc cancela)");
 				return true;
 			}
+			if (step == 1) {
+				// Base done: pin the box and let the wheel set its height, from what it had.
+				step = 2;
+				height = region.size().getY();
+				lockedBeforeHeight = locked;
+				locked = true;
+				age = 0;
+				return true;
+			}
 			// Ask for a name first; the screenshot is taken once the screen is gone.
 			chosen = region;
 			active = false;
@@ -86,6 +101,8 @@ public final class BuildPreview {
 		if (config.build().equals("sneak") && mc.player != null && mc.player.isShiftKeyDown() && mc.hasSingleplayerServer()) {
 			active = true;
 			locked = false;
+			step = 1;
+			height = 0;
 			// The size chosen with the wheel is kept for the next build of this session.
 			if (size == 0) size = config.buildSize();
 			target = null;
@@ -113,6 +130,14 @@ public final class BuildPreview {
 	/** Esc with the preview on screen (and nothing else open) cancels it; true consumes the key. */
 	public static boolean onEscape(Minecraft mc) {
 		if (!active || mc.gui.screen() != null) return false;
+		if (step == 2) {
+			// Back to the base.
+			step = 1;
+			height = 0;
+			locked = lockedBeforeHeight;
+			age = 0;
+			return true;
+		}
 		active = false;
 		message(mc, "Guardado del build cancelado");
 		return true;
@@ -133,7 +158,9 @@ public final class BuildPreview {
 	/** Scrolling while sneaking in the preview resizes the box; true consumes the scroll. */
 	public static boolean onScroll(Minecraft mc, double amount) {
 		if (!active || amount == 0 || mc.player == null || !mc.player.isShiftKeyDown()) return false;
-		size = Math.max(CompanionConfig.MIN_SIZE, Math.min(CompanionConfig.MAX_SIZE, size + (amount > 0 ? 1 : -1)));
+		int delta = amount > 0 ? 1 : -1;
+		if (step == 2) height = Math.max(1, Math.min(BuildRegion.MAX_HEIGHT, height + delta));
+		else size = Math.max(CompanionConfig.MIN_SIZE, Math.min(CompanionConfig.MAX_SIZE, size + delta));
 		age = 0;
 		return true;
 	}
@@ -175,11 +202,12 @@ public final class BuildPreview {
 		// The scan is up to 97³ blocks: redo it when the aim or the size changes, or twice a second.
 		if (aimed == null) {
 			region = null;
-		} else if (!aimed.equals(target) || computedSize != size || looking != facing || age % 10 == 0) {
-			BuildRegion fresh = CompanionConfig.get().region(mc.level, aimed, size, looking);
+		} else if (!aimed.equals(target) || computedSize != size || computedHeight != height || looking != facing || age % 10 == 0) {
+			BuildRegion fresh = CompanionConfig.get().region(mc.level, aimed, size, looking, height);
 			// Far from a pinned box its chunks unload and it looks empty: keep the last one.
 			if (fresh != null || !locked) region = fresh;
 			computedSize = size;
+			computedHeight = height;
 		}
 		facing = looking;
 		target = aimed;
@@ -191,10 +219,17 @@ public final class BuildPreview {
 		}
 		if (aimed != null) Gizmos.cuboid(aimed, TARGET).setAlwaysOnTop();
 		// Shown by drawHud: the action bar is a single line and cut the text on narrow windows.
-		hudStatus = region == null ? "Apunta a la base del build"
-			: (locked ? "FIJADA · " : "") + "Build " + region.sizeText() + " · " + region.blocks() + " bloques";
-		hudControls = region == null ? "Esc cancela"
-			: "F2 guarda · Enter " + (locked ? "suelta" : "fija") + " · rueda agachado: tamaño (" + size + ") · Esc cancela";
+		String pin = "Enter " + (locked ? "suelta" : "fija");
+		if (region == null) {
+			hudStatus = "Apunta a la base del build";
+			hudControls = "Esc cancela";
+		} else if (step == 1) {
+			hudStatus = "Paso 1 de 2: la base · " + (locked ? "FIJADA · " : "") + "Build " + region.sizeText() + " · " + region.blocks() + " bloques";
+			hudControls = "Rueda agachado: ancho (" + size + ") · F2 siguiente · " + pin + " · Esc cancela";
+		} else {
+			hudStatus = "Paso 2 de 2: la altura · Build " + region.sizeText() + " · " + region.blocks() + " bloques";
+			hudControls = "Rueda agachado: altura (" + height + ") · F2 guardar · " + pin + " · Esc vuelve a la base";
+		}
 		age++;
 	}
 

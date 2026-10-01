@@ -59,7 +59,8 @@ public record CompanionConfig(String build, int buildSize, String buildBase) {
 
 	/** The box for a target, as configured. */
 	public BuildRegion region(net.minecraft.world.level.Level level, net.minecraft.core.BlockPos target, int size,
-			net.minecraft.core.Direction facing) {
-		return buildBase.equals("center") ? BuildRegion.centred(level, target, size) : BuildRegion.corner(level, target, size, facing);
+			net.minecraft.core.Direction facing, int height) {
+		return buildBase.equals("center") ? BuildRegion.centred(level, target, size)
+			: BuildRegion.corner(level, target, size, facing, height);
 	}
 }

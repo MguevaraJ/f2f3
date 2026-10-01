@@ -171,13 +171,14 @@ function ModCard() {
         <p className="muted small tip-line">
           <b>Guardar un build</b> (un jugador): desde fuera, apunta a la esquina inferior de la
           construcción más cercana a ti, a tu derecha, y pulsa <span className="kbd">Mayús+F2</span>
-          : verás la zona que se guardará, que crece desde ahí hacia el fondo, a la izquierda y
-          hacia arriba. Agachado, la rueda del ratón cambia el tamaño;{' '}
-          <span className="kbd">Enter</span> fija la zona para que puedas moverte y revisarla;{' '}
-          <span className="kbd">F2</span> te pide un nombre (p. ej. «Casa del Lago»), hace la
-          captura y guarda el build en el mundo como <code>craftshot:casa_del_lago</code> (vacío:{' '}
-          <code>build_1</code>, <code>build_2</code>…). El chat te da el comando para pegarlo y{' '}
-          <span className="kbd">Esc</span> cancela.
+          . <b>Paso 1:</b> agachado, la rueda del ratón cambia el ancho de la zona (hacia el fondo y
+          a tu izquierda). <span className="kbd">F2</span> pasa al <b>paso 2</b>, donde la rueda
+          cambia la altura. Otro <span className="kbd">F2</span> te pide un nombre (p. ej. «Casa del
+          Lago»), hace la captura y guarda el build en el mundo como{' '}
+          <code>craftshot:casa_del_lago</code> (vacío: <code>build_1</code>, <code>build_2</code>…);
+          el chat te da el comando para pegarlo. <span className="kbd">Enter</span> fija la zona
+          para que puedas moverte y revisarla, y <span className="kbd">Esc</span> vuelve un paso o
+          cancela.
         </p>
       </div>
     </section>
