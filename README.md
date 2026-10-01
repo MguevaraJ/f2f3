@@ -5,6 +5,9 @@ la pantalla **F3** de cada captura y la muestra organizada (coordenadas, chunk, 
 dimensión, bioma, entidad apuntada, sistema…), con botones para copiar cada dato, un visor de imágenes
 completo y gestión de archivos.
 
+El mod opcional de Fabric que guarda los datos exactos del juego junto a cada captura está en
+[f2f3-companion](https://github.com/MguevaraJ/f2f3-companion).
+
 ## Funciones
 
 - **Galería** de `.minecraft/screenshots` agrupada por día, con miniaturas en caché y vigilancia de la

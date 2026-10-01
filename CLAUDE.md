@@ -5,8 +5,8 @@ Launcher, más un mod Fabric para Minecraft 26.3 (**F2+F3 Companion**, en el rep
 del juego junto a cada captura y lleva la app dentro del juego. **UI y textos en español. Código y comentarios en inglés.**
 
 **Estado (2026-09-30):** app y mod estables; la hoja de ruta "Minecraft técnico" (6 fases) está completa. Árbol de
-trabajo limpio en la rama `mod-planes-materiales-ports`, 167 tests; el mod se movió a su propio repo
-(`../f2f3-companion`). Sin remoto configurado todavía. Pendientes y decisiones abiertas al final.
+trabajo limpio, 167 tests. Repo: github.com/MguevaraJ/f2f3 (`master`); el mod va en su propio repo
+(`../f2f3-companion`, github.com/MguevaraJ/f2f3-companion). Pendientes y decisiones abiertas al final.
 
 ## Nombre
 La app se llama **F2+F3** y el mod **F2+F3 Companion** (ya existía otra "Craftshot"). Solo cambió lo visible: títulos,
