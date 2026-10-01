@@ -4,17 +4,43 @@ import { api } from '../lib/api'
 import { LEVELS, MOD_LEVEL, SOURCE_INFO } from '../lib/sources'
 import { useLocalModel } from '../store/localModel'
 import { useSettings } from '../store/settings'
+import { toast } from '../store/toasts'
 import { useUi } from '../store/ui'
 import { GameFolderPicker } from './GameFolderPicker'
 import { GrassBlock, Icon } from './icons'
 import { McText } from './McText'
 
-const STEPS = ['Inicio', 'Tu Minecraft', 'Niveles', 'Modelo local', 'Consejo F3'] as const
+const STEPS = ['Inicio', 'Tu Minecraft', 'Los datos', 'El mod', 'Avanzado'] as const
 const FOLDER_STEP = 1
 
+/** The technical side, one line each: enough to know it is there. */
+const ADVANCED = [
+  {
+    icon: 'compass',
+    title: 'Mapa',
+    text: 'Tus capturas sobre un mapa por mundo y dimensión, con chunks de slime, Nether ⇄ Overworld y exportación de waypoints.'
+  },
+  {
+    icon: 'grid',
+    title: 'Planificadores',
+    text: 'El mejor punto AFK para tus granjas y el enlace de portales, comprobado de ida y vuelta.'
+  },
+  {
+    icon: 'gauge',
+    title: 'Datos técnicos',
+    text: 'TPS y MSPT, límites de mobs, señal de redstone, contenedores y los tratos de los aldeanos.'
+  },
+  {
+    icon: 'layers',
+    title: 'Builds',
+    text: 'Lista de materiales de cada construcción guardada, exportación a .nbt y pegado en otro mundo.'
+  }
+] as const
+
 /**
- * First-run introduction: what F2+F3 does, which game folder it works with and where
- * each piece of data comes from. The game folder is the one thing that cannot be skipped;
+ * First-run introduction, from the basics to the technical side: what F2+F3 does, which
+ * game folders it works with, where each piece of data comes from, the mod and the
+ * advanced tools. Short on purpose. The game folder is the one thing that cannot be skipped;
  * users from before that step existed are asked just that, once.
  */
 export function Onboarding() {
@@ -79,6 +105,10 @@ export function Onboarding() {
     else if (to > FOLDER_STEP && !settings.gameDirConfirmed) to = FOLDER_STEP
     setStep(to)
   }
+  const saveMod = async (): Promise<void> => {
+    const path = await api.companion.saveMod()
+    if (path) toast.success(`Mod guardado en ${path}`)
+  }
   const last = step === STEPS.length - 1
 
   return (
@@ -102,22 +132,26 @@ export function Onboarding() {
               <GrassBlock size={64} />
               <McText text="F2+F3" scale={4} />
               <p>
-                Tus capturas de Minecraft, organizadas. F2+F3 lee la pantalla <b>F3</b> de cada
-                captura y te da las coordenadas listas para copiar, además del bioma, los mobs y
-                más.
+                Tus capturas de Minecraft, con todo lo que el juego sabía en ese momento: dónde
+                estabas, qué bioma era, qué había alrededor.
               </p>
               <ul className="onb-list">
                 <li>
-                  <Icon name="pin" size={16} /> Coordenadas, chunk, región y comando /tp en un clic
+                  <Icon name="pin" size={16} /> Coordenadas listas para copiar, con chunk, región y
+                  /tp
                 </li>
                 <li>
-                  <Icon name="eye" size={16} /> Visor con zoom, filtros, búsqueda y carpetas
+                  <Icon name="eye" size={16} /> Galería con visor, búsqueda, filtros, notas y
+                  carpetas
                 </li>
                 <li>
                   <Icon name="cloud" size={16} /> Aviso al hacer una captura y respaldo en Google
                   Drive
                 </li>
               </ul>
+              <p className="muted small">
+                Con eso basta para empezar. Lo avanzado está ahí cuando lo necesites.
+              </p>
             </div>
           )}
 
@@ -125,10 +159,9 @@ export function Onboarding() {
 
           {step === 2 && (
             <div className="onb-levels">
-              <h2>Tres niveles de información (y un extra)</h2>
+              <h2>De dónde sale cada dato</h2>
               <p className="muted">
-                No todas las capturas dicen lo mismo. Por eso cada dato lleva una etiqueta que
-                indica de dónde viene:
+                Cada dato lleva una etiqueta con su origen, del más fiable al más aproximado:
               </p>
               {LEVELS.map((l, i) => {
                 const source = (['f3', 'local', 'vision'] as const)[i]
@@ -142,105 +175,120 @@ export function Onboarding() {
                         <span className="level-badge">{l.badge}</span>
                       </div>
                       <p>{l.gives}</p>
-                      <p className="muted small">{l.needs}</p>
+                      {l.id === 'local' && (
+                        <div className="onb-inline">
+                          {local?.state === 'ready' ? (
+                            <span className="state-pill on">
+                              <Icon name="check" size={14} /> Modelo listo
+                            </span>
+                          ) : local?.state === 'downloading' || local?.state === 'loading' ? (
+                            <span className="muted small">
+                              {local.state === 'loading'
+                                ? 'Preparando…'
+                                : `Descargando… ${Math.round(local.progress * 100)}% (sigue en segundo plano)`}
+                            </span>
+                          ) : (
+                            <>
+                              <button
+                                className="btn small"
+                                onClick={() => void api.localModel.enable()}
+                              >
+                                <Icon name="download" size={14} /> Descargar (~
+                                {local?.sizeMB ?? 170} MB)
+                              </button>
+                              <span className="muted small">Opcional. Nada sale de tu equipo.</span>
+                            </>
+                          )}
+                          {local?.state === 'error' && (
+                            <span className="details-error">{local.error}</span>
+                          )}
+                        </div>
+                      )}
                     </div>
                   </div>
                 )
               })}
-              <div className="onb-level level-mod">
-                <span className="level-number">+</span>
-                <div>
-                  <div className="onb-level-title">
-                    <strong>{MOD_LEVEL.title}</strong>
-                    <span className="source-tag mod">{SOURCE_INFO.mod.tag}</span>
-                    <span className="level-badge">{MOD_LEVEL.badge}</span>
-                  </div>
-                  <p>{MOD_LEVEL.gives}</p>
-                  <p className="muted small">
-                    Opcional, para Fabric 26.3. Lo encuentras en Ajustes › Análisis.
-                  </p>
-                </div>
-              </div>
               <p className="muted small">
-                Si ninguno responde, se usa una aproximación por colores con la etiqueta{' '}
-                <span className="source-tag heuristic">Colores</span>. Siempre puedes corregir el
-                bioma a mano.
+                Haz las capturas (<span className="kbd">F2</span>) con el{' '}
+                <span className="kbd">F3</span> abierto. Desde Minecraft 1.21.9 el F3 oculta el
+                bioma: pulsa <span className="kbd">F3</span> + <span className="kbd">F6</span> y
+                activa la línea <b>Biome</b> una vez.
               </p>
             </div>
           )}
 
           {step === 3 && (
-            <div className="onb-local">
-              <h2>¿Descargar el modelo local?</h2>
+            <div className="onb-mod">
+              <h2>
+                {MOD_LEVEL.title} <span className="source-tag mod">{SOURCE_INFO.mod.tag}</span>
+              </h2>
               <p>
-                Reconoce de forma básica el <b>bioma</b> y el <b>mob que tienes en la mira</b> en
-                capturas sin F3. Funciona en tu equipo: gratis, sin internet y sin enviar tus
-                capturas a nadie.
+                Opcional, para <b>Fabric 26.3</b>. Con él, cada captura guarda los datos reales del
+                juego sin abrir el F3, y F2+F3 entra en la partida:
               </p>
-              <p className="muted small">
-                Es conservador: solo da un resultado cuando está bastante seguro. Descarga única de
-                ~{local?.sizeMB ?? 170} MB.
-              </p>
-              {local?.state === 'ready' ? (
-                <div className="state-pill on big">
-                  <Icon name="check" size={16} /> Modelo listo
-                </div>
-              ) : local?.state === 'downloading' || local?.state === 'loading' ? (
-                <div className="onb-progress">
+              <ul className="onb-list">
+                <li>
+                  <Icon name="check" size={16} />
                   <span>
-                    {local.state === 'loading'
-                      ? 'Preparando…'
-                      : `Descargando… ${Math.round(local.progress * 100)}%`}
+                    <b>Datos exactos</b> en cada <span className="kbd">F2</span>: posición, bioma,
+                    mobs a la vista y estructuras.
                   </span>
-                  <div className="progress">
-                    <div className="progress-fill" style={{ width: `${local.progress * 100}%` }} />
-                  </div>
-                  <span className="muted small">
-                    Puedes continuar; la descarga sigue en segundo plano.
+                </li>
+                <li>
+                  <Icon name="image" size={16} />
+                  <span>
+                    <b>Tus capturas dentro del juego</b> con <span className="kbd">F6</span>, con
+                    sus notas y datos.
                   </span>
-                </div>
-              ) : (
-                <div className="onb-actions">
-                  <button className="btn primary" onClick={() => void api.localModel.enable()}>
-                    <Icon name="download" size={16} /> Descargar ahora
-                  </button>
-                  <button className="btn" onClick={() => go(step + 1)}>
-                    Ahora no
-                  </button>
-                  {local?.state === 'error' && <div className="details-error">{local.error}</div>}
-                </div>
-              )}
+                </li>
+                <li>
+                  <Icon name="compass" size={16} />
+                  <span>
+                    <b>Guía</b>: una flecha te lleva al lugar de cualquier captura.
+                  </span>
+                </li>
+                <li>
+                  <Icon name="layers" size={16} />
+                  <span>
+                    <b>Builds</b>: <span className="kbd">Mayús+F2</span> guarda una construcción y
+                    luego la colocas donde quieras.
+                  </span>
+                </li>
+              </ul>
+              <div className="onb-actions">
+                <button className="btn primary" onClick={() => void saveMod()}>
+                  <Icon name="download" size={16} /> Guardar el mod (.jar)
+                </button>
+                <button className="btn" onClick={() => go(step + 1)}>
+                  Ahora no
+                </button>
+              </div>
               <p className="muted small">
-                ¿Quieres más? La <b>IA avanzada</b> (nivel 3) detecta también estructuras como
-                aldeas o templos. Es opcional y se configura en Ajustes.
+                Se guarda en la carpeta <code>mods</code> de tu juego. Lo tienes también en Ajustes
+                › Análisis.
               </p>
             </div>
           )}
 
           {step === 4 && (
-            <div className="onb-tip">
-              <h2>Consejo: activa el bioma en tu F3</h2>
-              <p>
-                Desde Minecraft 1.21.9, la pantalla F3 ya no muestra el bioma por defecto. Actívalo
-                una vez y F2+F3 lo leerá exacto en todas tus capturas:
+            <div className="onb-advanced">
+              <h2>Para cuando quieras ir más lejos</h2>
+              <p className="muted">
+                No hay nada que configurar: estas herramientas aparecen solas cuando tus capturas
+                traen los datos.
               </p>
-              <ol className="steps big">
-                <li>
-                  En el juego pulsa <span className="kbd">F3</span> +{' '}
-                  <span className="kbd">F6</span>.
-                </li>
-                <li>
-                  Busca la línea del <b>bioma</b> (Biome) y actívala.
-                </li>
-                <li>
-                  Opcional: activa también la <b>entidad apuntada</b> para registrar el mob que
-                  miras.
-                </li>
-              </ol>
-              <p className="muted small">
-                Y recuerda: haz las capturas (<span className="kbd">F2</span>) con el F3 abierto
-                para guardar las coordenadas.
-              </p>
+              <div className="onb-grid">
+                {ADVANCED.map((a) => (
+                  <div key={a.title} className="onb-card">
+                    <Icon name={a.icon} size={18} />
+                    <div>
+                      <strong>{a.title}</strong>
+                      <p>{a.text}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <p className="muted small">Puedes volver a ver esta introducción desde Ajustes.</p>
             </div>
           )}
         </div>

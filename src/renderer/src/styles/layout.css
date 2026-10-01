@@ -772,3 +772,48 @@
   gap: 8px;
   margin: 8px 0 12px;
 }
+
+/* Onboarding: mod and advanced steps */
+.onb-inline {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+}
+.onb-mod .onb-list {
+  margin: 4px 0 14px;
+}
+.onb-mod .onb-list li {
+  align-items: flex-start;
+}
+.onb-mod .onb-list svg {
+  flex: none;
+  margin-top: 2px;
+  color: var(--green);
+}
+.onb-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 8px;
+  margin-bottom: 12px;
+}
+.onb-card {
+  display: flex;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: var(--radius);
+  background: #232323;
+}
+.onb-card svg {
+  flex: none;
+  margin-top: 2px;
+  color: var(--green);
+}
+.onb-card strong {
+  color: #fff;
+}
+.onb-card p {
+  margin: 4px 0 0;
+  font-size: 13px;
+}

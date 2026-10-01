@@ -73,6 +73,9 @@ cada instancia es una carpeta de juego y `versions/`/`assets/` están más arrib
   primera raíz conserva rutas sin prefijo para no volver a subir nada al añadir una segunda. `worldOf` salta el
   mount al deducir el mundo por carpeta. El selector (`GameFolderPicker`) es de casillas; siempre queda una marcada.
 - En scripts de prueba poner `onboardingDone` **y** `gameDirConfirmed` en settings.json.
+- Onboarding (5 pasos, `components/Onboarding.tsx`): Inicio (lo básico) → Tu Minecraft (obligatorio) → Los datos
+  (niveles F3/local/IA con la descarga del modelo en línea y el consejo del bioma) → El mod (qué añade + "Guardar el
+  mod") → Avanzado (`ADVANCED`: mapa, planificadores, datos técnicos, builds). Breve a propósito: una línea por cosa.
 
 ## Gotchas
 - El usuario usa **i3** (tiling). Para capturar la ventana: `i3-msg '[title="^F2\\+F3$"] floating enable, resize set W H'`;
