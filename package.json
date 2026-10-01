@@ -22,7 +22,8 @@
     "dist": "npm run build && electron-builder",
     "dist:linux": "npm run build && electron-builder --linux AppImage",
     "build:labels": "tsx --tsconfig tsconfig.node.json scripts/build-clip-labels.ts",
-    "eval:local": "tsx --tsconfig tsconfig.node.json scripts/eval-local-vision.ts"
+    "eval:local": "tsx --tsconfig tsconfig.node.json scripts/eval-local-vision.ts",
+    "eval:dataset": "tsx --tsconfig tsconfig.node.json scripts/eval-local-dataset.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.129.0",

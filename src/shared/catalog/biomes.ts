@@ -16,7 +16,10 @@ export const localName = (id: string, spanish: string): string =>
 
 const b = (id: string, name: string, dimension: BiomeDimension, color: string): BiomeDef => ({
   id: `minecraft:${id}`,
-  name: localName(id, name),
+  // A getter: the main process loads this module before it knows the language.
+  get name() {
+    return localName(id, name)
+  },
   dimension,
   color
 })

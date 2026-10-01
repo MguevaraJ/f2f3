@@ -38,6 +38,9 @@ español. Todo texto nuevo de la interfaz va dentro de `tr()` y su traducción e
 - Números y fechas usan `getLang()` como locale. Los tests fijan español (`tests/setup.ts`).
 - Las filas de `app-index.json` para el mod salen en el idioma de la app. El mod tiene su propio diccionario (`Tr.java`)
   y sigue el idioma del juego. `MOD_RELEASE` (`shared/modVersions.ts`) es la versión del mod incluida.
+- **Ojo en el proceso principal:** los catálogos viven en un chunk compartido con el worker que se evalúa *antes* de
+  `setLang`; por eso el `name` de biomas, mobs y estructuras es un getter (`localName` en cada lectura). No guardar
+  ahí textos traducidos en constantes de módulo.
 - Sin revisar pantalla a pantalla en inglés: onboarding, mapa y planificadores, coordenadas, respaldo, popup y diálogos.
 
 ## Comandos
@@ -51,6 +54,7 @@ npm run dist:linux     # AppImage (el .env con MAIN_VITE_GOOGLE_CLIENT_ID/SECRET
 npm run ocr -- <png…>  # OCR del F3 desde terminal
 npm run eval:local -- <png…>   # evalúa el modelo local (CLIP); MODEL_CACHE=dir
 npm run build:labels   # regenera src/core/localvision/labels.json tras cambiar prompts
+npm run eval:dataset -- <dir> <manifest.tsv> [out.json]   # mide el modelo local contra capturas etiquetadas por el mod
 ```
 Commits: autor "Moises Guevara <mguevaraj27@gmail.com>", terminar con `Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>`.
 
@@ -196,7 +200,17 @@ visibles (dentro del campo de visión y con línea de visión, ≤96 bloques). M
 - Preferencia del usuario: **ahorrar tokens** — pocas capturas de pantalla (recortadas), salidas filtradas, mensajes breves.
 - Nunca instalar el jar por cuenta propia en una carpeta `mods` del usuario.
 
+## Medición del modelo local (2026-10-01)
+`scripts/eval-local-dataset.ts` (+ `embed-dataset.ts`) contra 248 capturas etiquetadas por el mod (en
+`~/Proyectos/f2f3-eval-set`, manifiesto y resultado en `../f2f3-web/eval/`): **mobs 85 % de precisión** (17 de 20
+respuestas; responde en el 28 % de los casos; 2 falsas alarmas en 177), **biomas 42 %** (30 de 71; sin umbral el
+top-1 ronda el 31 % en el Overworld, así que subir umbrales no lo arregla). Mejorar los biomas pide otro enfoque
+(p. ej. un clasificador entrenado sobre embeddings con capturas etiquetadas por el mod en muchos sitios por bioma).
+La landing (`../f2f3-web`) publica estas cifras tal cual.
+
 ## Pendientes y decisiones abiertas
+- Sin publicar (posteriores a la 1.0.1): traducción de los niveles de Ajustes › Análisis y de las fichas de
+  `app-index.json` en inglés (salían en español), y los scripts de evaluación.
 - Ports 1.21.1 y 1.20.1 sin probar: multijugador, guía, deshacer, villagers/cofres apuntados, gráficos "Fabulosos",
   el selector de versión de "Guardar el mod" en pantalla y `installTemplate` en un mundo 1.20.1. Forge: no hay port.
 - Nombres de ítems y bloques en español en la app (leer `es_es.json` de los assets de la versión); hoy salen en inglés

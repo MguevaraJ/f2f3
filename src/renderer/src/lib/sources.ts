@@ -64,11 +64,13 @@ export const PROVIDER_LABEL: Record<VisionProviderId, string> = {
 export const MOD_LEVEL = {
   id: 'mod',
   title: 'Mod F2+F3 Companion',
-  badge: 'Exacto · Opcional · Fabric 26.3',
-  gives:
-    'Coordenadas, bioma, mobs visibles, estructuras, semilla, hora y clima sin abrir el F3; y para técnico: TPS, límite de mobs, reglas del juego, contenido de cofres y tolvas, señal de redstone y tratos de aldeanos.',
-  needs:
-    'Minecraft 26.3 con Fabric Loader. Guarda el mod y ponlo en la carpeta mods de ese perfil; al pulsar F2 deja un .f2f3.json junto a la captura.'
+  badge: tr('Exacto · Opcional · Fabric'),
+  gives: tr(
+    'Coordenadas, bioma, mobs visibles, estructuras, semilla, hora y clima sin abrir el F3; y para técnico: TPS, límite de mobs, reglas del juego, contenido de cofres y tolvas, señal de redstone y tratos de aldeanos.'
+  ),
+  needs: tr(
+    'Minecraft 26.3, 1.21.1 o 1.20.1 con Fabric Loader. Guarda el mod y ponlo en la carpeta mods de ese perfil; al pulsar F2 deja un .f2f3.json junto a la captura.'
+  )
 } as const
 
 /** The levels as presented in onboarding and settings. */
@@ -76,26 +78,29 @@ export const LEVELS = [
   {
     id: 'f3',
     number: 1,
-    title: 'Pantalla F3',
-    badge: 'Exacto · Gratis',
-    gives: 'Coordenadas, dimensión, orientación, bioma y el mob que apuntas.',
-    needs: 'Hacer la captura con el F3 abierto. Funciona sin internet.'
+    title: tr('Pantalla F3'),
+    badge: tr('Exacto · Gratis'),
+    gives: tr('Coordenadas, dimensión, orientación, bioma y el mob que apuntas.'),
+    needs: tr('Hacer la captura con el F3 abierto. Funciona sin internet.')
   },
   {
     id: 'local',
     number: 2,
-    title: 'Modelo local',
-    badge: 'Estimado · Gratis · Privado',
-    gives: 'Bioma aproximado y el mob que tienes en la mira, cuando no hay F3.',
-    needs:
+    title: tr('Modelo local'),
+    badge: tr('Estimado · Gratis · Privado'),
+    gives: tr('Bioma aproximado y el mob que tienes en la mira, cuando no hay F3.'),
+    needs: tr(
       'Una descarga única de unos 170 MB. Luego funciona sin internet y nada sale de tu equipo.'
+    )
   },
   {
     id: 'vision',
     number: 3,
-    title: 'IA avanzada',
-    badge: 'Opcional · Tu servicio',
-    gives: 'Bioma preciso, todos los mobs visibles, estructuras (aldeas, templos…), clima y hora.',
-    needs: 'Una cuenta de Claude, Gemini u OpenAI, o Ollama instalado en tu equipo (gratis).'
+    title: tr('IA avanzada'),
+    badge: tr('Opcional · Tu servicio'),
+    gives: tr(
+      'Bioma preciso, todos los mobs visibles, estructuras (aldeas, templos…), clima y hora.'
+    ),
+    needs: tr('Una cuenta de Claude, Gemini u OpenAI, o Ollama instalado en tu equipo (gratis).')
   }
 ] as const

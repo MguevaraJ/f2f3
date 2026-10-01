@@ -1101,5 +1101,27 @@ export const EN: Record<string, string> = {
   'Carpeta "{0}" creada': 'Folder "{0}" created',
   '{0} copiado': '{0} copied',
   ', {0} reorganizadas': ', {0} reorganized',
+  'Exacto · Opcional · Fabric': 'Exact · Optional · Fabric',
+  'Coordenadas, bioma, mobs visibles, estructuras, semilla, hora y clima sin abrir el F3; y para técnico: TPS, límite de mobs, reglas del juego, contenido de cofres y tolvas, señal de redstone y tratos de aldeanos.':
+    'Coordinates, biome, visible mobs, structures, seed, time and weather without opening F3; and for technical play: TPS, mob caps, gamerules, chest and hopper contents, redstone signal and villager trades.',
+  'Minecraft 26.3, 1.21.1 o 1.20.1 con Fabric Loader. Guarda el mod y ponlo en la carpeta mods de ese perfil; al pulsar F2 deja un .f2f3.json junto a la captura.':
+    'Minecraft 26.3, 1.21.1 or 1.20.1 with Fabric Loader. Save the mod and put it in the mods folder of that profile; pressing F2 leaves a .f2f3.json next to the screenshot.',
+  'Exacto · Gratis': 'Exact · Free',
+  'Coordenadas, dimensión, orientación, bioma y el mob que apuntas.':
+    'Coordinates, dimension, facing, biome and the mob you are aiming at.',
+  'Hacer la captura con el F3 abierto. Funciona sin internet.':
+    'Take the screenshot with F3 open. Works offline.',
+  'Estimado · Gratis · Privado': 'Estimated · Free · Private',
+  'Bioma aproximado y el mob que tienes en la mira, cuando no hay F3.':
+    'Approximate biome and the mob at your crosshair, when there is no F3.',
+  'Una descarga única de unos 170 MB. Luego funciona sin internet y nada sale de tu equipo.':
+    'A one-time download of about 170 MB. After that it works offline and nothing leaves your computer.',
+  'Opcional · Tu servicio': 'Optional · Your service',
+  'Bioma preciso, todos los mobs visibles, estructuras (aldeas, templos…), clima y hora.':
+    'Accurate biome, every visible mob, structures (villages, temples…), weather and time.',
+  'Una cuenta de Claude, Gemini u OpenAI, o Ollama instalado en tu equipo (gratis).':
+    'A Claude, Gemini or OpenAI account, or Ollama installed on your computer (free).',
+  Entidad: 'Entity',
+  Modo: 'Mode',
   Hoy: 'Today'
 }

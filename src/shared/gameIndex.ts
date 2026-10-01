@@ -91,7 +91,7 @@ function sectionsOf(e: ScreenshotEntry): GameIndexSection[] {
   const world = worldOf(e).name
 
   push(tr('Ubicación'), [
-    world && ['Mundo', world],
+    world && [tr('Mundo'), world],
     a.dimension && [tr('Dimensión'), tagged(dimensionName(a.dimension.id), a.dimension.source)],
     loc?.block && [tr('Coordenadas'), `${loc.block.x} ${loc.block.y} ${loc.block.z}`],
     loc?.chunk && ['Chunk', `${loc.chunk.x} ${loc.chunk.z}`],
@@ -100,26 +100,26 @@ function sectionsOf(e: ScreenshotEntry): GameIndexSection[] {
       FACING[loc.facing.direction] ?? loc.facing.direction
     ],
     a.biome && [tr('Bioma'), tagged(biomeName(a.biome.id), a.biome.source)],
-    loc?.light && ['Luz', tr('cielo {0} · bloque {1}', loc.light.sky, loc.light.block)]
+    loc?.light && [tr('Luz'), tr('cielo {0} · bloque {1}', loc.light.sky, loc.light.block)]
   ])
 
   const mod = a.mod
   if (mod) {
-    push('Partida', [
+    push(tr('Partida'), [
       [tr('Día'), `${mod.world.day + 1} · ${gameClock(mod.world.timeOfDay)}`],
-      ['Clima', WEATHER[mod.world.weather] ?? mod.world.weather],
-      ['Modo', GAME_MODE[mod.player.gameMode] ?? mod.player.gameMode],
+      [tr('Clima'), WEATHER[mod.world.weather] ?? mod.world.weather],
+      [tr('Modo'), GAME_MODE[mod.player.gameMode] ?? mod.player.gameMode],
       mod.game?.difficulty && [
-        'Dificultad',
+        tr('Dificultad'),
         DIFFICULTY[mod.game.difficulty] ?? mod.game.difficulty
       ],
-      mod.world.seed && ['Semilla', mod.world.seed]
+      mod.world.seed && [tr('Semilla'), mod.world.seed]
     ])
     const target = mod.target.block
     push(tr('Apuntando a'), [
-      target && ['Bloque', prettifyId(target.id)],
+      target && [tr('Bloque'), prettifyId(target.id)],
       target && [tr('Posición'), `${target.pos.x} ${target.pos.y} ${target.pos.z}`],
-      mod.target.entity && ['Entidad', mobName(mod.target.entity.id)]
+      mod.target.entity && [tr('Entidad'), mobName(mod.target.entity.id)]
     ])
   }
 
@@ -138,7 +138,7 @@ function sectionsOf(e: ScreenshotEntry): GameIndexSection[] {
     const { size, blocks, materials } = a.build
     push('Build', [
       [tr('Tamaño'), `${size.x}×${size.y}×${size.z}`],
-      ['Bloques', String(blocks)],
+      [tr('Bloques'), String(blocks)],
       ...materials.slice(0, 8).map((m): [string, string] => [prettifyId(m.id), `×${m.count}`])
     ])
   }
