@@ -4,6 +4,7 @@ import dev.mguevara.craftshot.companion.BuildPlacer;
 import dev.mguevara.craftshot.companion.BuildPreview;
 import dev.mguevara.craftshot.companion.CompanionConfig;
 import dev.mguevara.craftshot.companion.GalleryScreen;
+import dev.mguevara.craftshot.companion.Guide;
 import net.minecraft.client.KeyboardHandler;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.input.KeyEvent;
@@ -14,7 +15,8 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 /**
  * While a build is being framed or placed, Esc cancels instead of opening the pause menu and
- * Enter pins or places. In game, the gallery key opens the gallery.
+ * Enter pins or places. In game, the gallery key opens the gallery and
+ * the guide key shows or hides the guide.
  */
 @Mixin(KeyboardHandler.class)
 public abstract class KeyboardHandlerMixin {
@@ -29,6 +31,6 @@ public abstract class KeyboardHandlerMixin {
 		else if (event.key() == CompanionConfig.get().galleryKeyCode() && mc.player != null && mc.gui.screen() == null) {
 			mc.gui.setScreen(new GalleryScreen());
 			ci.cancel();
-		}
+		} else if (event.key() == CompanionConfig.get().guideKeyCode() && mc.gui.screen() == null && Guide.toggle(mc)) ci.cancel();
 	}
 }

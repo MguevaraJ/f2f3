@@ -15,11 +15,12 @@ import net.fabricmc.loader.api.FabricLoader;
  * blocks, and where the targeted block sits in it: "corner" (bottom corner nearest to the
  * player, on their right; the box is that many blocks away and to the left, as tall as
  * what is inside) or "center" (a cube trimmed to its blocks). "galleryKey" opens the
- * in-game gallery ("f6", "g"…: the name after "key.keyboard.").
+ * in-game gallery and "guideKey" shows or hides the guide ("f6", "h"…: the name after
+ * "key.keyboard.").
  * Read once at startup; a missing or broken file falls back to the defaults.
  */
-public record CompanionConfig(String build, int buildSize, String buildBase, String galleryKey) {
-	public static final CompanionConfig DEFAULTS = new CompanionConfig("sneak", 16, "corner", "f6");
+public record CompanionConfig(String build, int buildSize, String buildBase, String galleryKey, String guideKey) {
+	public static final CompanionConfig DEFAULTS = new CompanionConfig("sneak", 16, "corner", "f6", "h");
 	public static final int MIN_SIZE = 3;
 	/** 97 blocks per side at most: bigger areas would stall the server on F2. */
 	public static final int MAX_SIZE = 97;
@@ -43,13 +44,15 @@ public record CompanionConfig(String build, int buildSize, String buildBase, Str
 				String base = o.has("buildBase") ? o.get("buildBase").getAsString() : DEFAULTS.buildBase();
 				if (!base.equals("center")) base = DEFAULTS.buildBase();
 				String key = o.has("galleryKey") ? o.get("galleryKey").getAsString() : DEFAULTS.galleryKey();
-				current = new CompanionConfig(build, Math.max(MIN_SIZE, Math.min(MAX_SIZE, size)), base, key);
+				String guide = o.has("guideKey") ? o.get("guideKey").getAsString() : DEFAULTS.guideKey();
+				current = new CompanionConfig(build, Math.max(MIN_SIZE, Math.min(MAX_SIZE, size)), base, key, guide);
 			} else {
 				JsonObject o = new JsonObject();
 				o.addProperty("build", DEFAULTS.build());
 				o.addProperty("buildSize", DEFAULTS.buildSize());
 				o.addProperty("buildBase", DEFAULTS.buildBase());
 				o.addProperty("galleryKey", DEFAULTS.galleryKey());
+				o.addProperty("guideKey", DEFAULTS.guideKey());
 				Files.createDirectories(file.getParent());
 				Files.writeString(file, new GsonBuilder().setPrettyPrinting().create().toJson(o), StandardCharsets.UTF_8);
 			}
@@ -60,10 +63,19 @@ public record CompanionConfig(String build, int buildSize, String buildBase, Str
 	}
 	/** GLFW code of the gallery key; F6 when the name is not a key. */
 	public int galleryKeyCode() {
+		return keyCode(galleryKey, DEFAULTS.galleryKey());
+	}
+
+	/** GLFW code of the key that shows or hides the guide; H when the name is not a key. */
+	public int guideKeyCode() {
+		return keyCode(guideKey, DEFAULTS.guideKey());
+	}
+
+	private static int keyCode(String name, String fallback) {
 		try {
-			return com.mojang.blaze3d.platform.InputConstants.getKey("key.keyboard." + galleryKey.toLowerCase()).getValue();
+			return com.mojang.blaze3d.platform.InputConstants.getKey("key.keyboard." + name.toLowerCase()).getValue();
 		} catch (RuntimeException e) {
-			return com.mojang.blaze3d.platform.InputConstants.getKey("key.keyboard.f6").getValue();
+			return com.mojang.blaze3d.platform.InputConstants.getKey("key.keyboard." + fallback).getValue();
 		}
 	}
 

@@ -11,33 +11,48 @@ import net.minecraft.util.Mth;
 import net.minecraft.world.phys.Vec3;
 
 /**
- * Leads the player to where a screenshot was taken: an arrow on the HUD that turns with
- * the view, the distance, and a beam at the spot. It clears itself on arrival. From the
+ * Leads the player to where a screenshot was taken: a small arrow on the HUD that turns
+ * with the view, the distance, and a dot at the spot, joined to the player by a line once
+ * near. It clears itself on arrival and can be hidden with the guide key. From the
  * other side of a Nether portal it points at the matching coordinates (×8 / ÷8).
  * Client thread only.
  */
 public final class Guide {
 	private static final int COLOR = 0xFFFFD24A;
 	private static final GizmoStyle SPOT = GizmoStyle.stroke(COLOR, 2.5f);
+	private static final float HUD_SCALE = 0.7f;
+	/** Within this many blocks a line joins the player and the spot. */
+	private static final double NEAR = 24;
 	/** Horizontal blocks from the spot that count as being there. */
 	private static final double ARRIVED = 3;
 	private static final double ARRIVED_HEIGHT = 12;
-	/** Gizmos beyond the view distance are not drawn: far beams are shown this close, in line. */
-	private static final double BEAM_DISTANCE = 48;
+	/** Gizmos beyond the view distance are not drawn: a far spot is shown this close, in line. */
+	private static final double DOT_DISTANCE = 48;
 	private static final String OVERWORLD = "minecraft:overworld";
 	private static final String NETHER = "minecraft:the_nether";
 
 	private static CaptureIndex.Capture capture;
+	private static boolean hidden;
 
 	private Guide() {}
 
 	public static void start(Minecraft mc, CaptureIndex.Capture c) {
 		capture = c;
-		if (mc.player != null) mc.player.sendOverlayMessage(Component.literal("Guía activada: sigue la flecha"));
+		hidden = false;
+		String key = CompanionConfig.get().guideKey().toUpperCase();
+		if (mc.player != null) mc.player.sendOverlayMessage(Component.literal("Guía activada: sigue la flecha (" + key + " la oculta)"));
 	}
 
 	public static void clear() {
 		capture = null;
+	}
+
+	/** Shows or hides the arrow and the spot without dropping the guide; false when there is none. */
+	public static boolean toggle(Minecraft mc) {
+		if (capture == null) return false;
+		hidden = !hidden;
+		if (mc.player != null) mc.player.sendOverlayMessage(Component.literal(hidden ? "Guía oculta" : "Guía visible"));
+		return true;
 	}
 
 	public static boolean isActive() {
@@ -81,21 +96,34 @@ public final class Guide {
 			mc.player.sendOverlayMessage(Component.literal("Has llegado al lugar de la captura"));
 			return;
 		}
-		double x = goal.x, z = goal.z;
-		if (flat > BEAM_DISTANCE) {
-			x = me.x + dx / flat * BEAM_DISTANCE;
-			z = me.z + dz / flat * BEAM_DISTANCE;
+		if (hidden) return;
+		Vec3 spot = here ? new Vec3(goal.x, capture.pos().getY() + 0.5, goal.z) : goal;
+		Vec3 eyes = mc.player.getEyePosition();
+		Vec3 away = spot.subtract(eyes);
+		double distance = away.length();
+		if (distance > DOT_DISTANCE) spot = eyes.add(away.scale(DOT_DISTANCE / distance));
+		Gizmos.point(spot, COLOR, 9f).setAlwaysOnTop();
+		if (here && distance <= NEAR) {
+			Gizmos.cuboid(capture.pos(), SPOT).setAlwaysOnTop();
+			// From the feet: a line from the eyes would be seen end-on.
+			Gizmos.line(me.add(0, 0.1, 0), spot, COLOR, 2f).setAlwaysOnTop();
 		}
-		Gizmos.line(new Vec3(x, me.y - 64, z), new Vec3(x, me.y + 128, z), COLOR, 3f).setAlwaysOnTop();
-		if (here && flat <= BEAM_DISTANCE) Gizmos.cuboid(capture.pos(), SPOT).setAlwaysOnTop();
 	}
 
 	/** The arrow and the distance, at the top of the HUD. */
 	public static void drawHud(GuiGraphicsExtractor g) {
 		Minecraft mc = Minecraft.getInstance();
-		if (capture == null || mc.player == null || mc.level == null || mc.gui.screen() != null) return;
+		if (capture == null || hidden || mc.player == null || mc.level == null || mc.gui.screen() != null) return;
 		Font font = mc.font;
-		int cx = g.guiWidth() / 2;
+		// Drawn smaller than the rest of the HUD: it stays on screen for the whole trip.
+		g.pose().pushMatrix();
+		g.pose().scale(HUD_SCALE, HUD_SCALE);
+		int cx = Math.round(g.guiWidth() / 2 / HUD_SCALE);
+		hud(g, mc, font, cx);
+		g.pose().popMatrix();
+	}
+
+	private static void hud(GuiGraphicsExtractor g, Minecraft mc, Font font, int cx) {
 		Vec3 goal = goal(mc);
 		String place = sameDimension(mc) ? "" : " · en " + CaptureIndex.dimensionName(capture.dimension());
 		if (goal == null) {
@@ -110,7 +138,7 @@ public final class Guide {
 		float turn = Mth.wrapDegrees((float) Math.toDegrees(Math.atan2(-dx, dz)) - mc.player.getYRot());
 
 		g.pose().pushMatrix();
-		g.pose().translate(cx, 20);
+		g.pose().translate(cx, 16);
 		g.pose().rotate((float) Math.toRadians(turn));
 		arrow(g, 0xFF000000, 1);
 		arrow(g, COLOR, 0);
@@ -123,7 +151,7 @@ public final class Guide {
 		} else {
 			text += " · portal en " + (int) Math.floor(goal.x) + " " + (int) Math.floor(goal.z);
 		}
-		centred(g, font, text, cx, 36, 0xFFFFFFFF);
+		centred(g, font, text, cx, 31, 0xFFFFFFFF);
 	}
 
 	/** Pointing up, around the origin; `grow` fattens it for the outline. */

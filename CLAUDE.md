@@ -221,9 +221,12 @@ dentro del campo de visión de la cámara (FOV vertical de opciones + aspecto de
      `analysis updated` y `setMeta`. Formato: `shots[id] {world, dimension, block, favorite, note, tags,
      sections[{title, rows[[etiqueta, valor]]}]}`: las filas van ya redactadas en español; el mod solo las pinta.
    - `Guide`: flecha en el HUD (`g.pose()` Matrix3x2fStack: translate + rotate; giro = yaw al destino − yaw del
-     jugador), distancia y "sube/baja N"; haz con `Gizmos.line` (a 48 bloques como mucho en esa dirección, porque
-     los gizmos lejanos no se dibujan). Se borra al llegar (≤3 bloques en horizontal y ≤12 de altura) o al salir del
-     mundo. Entre Overworld y Nether apunta a las coordenadas equivalentes (×8 / ÷8).
+     jugador), distancia y "sube/baja N", todo a escala 0,7. En el mundo solo un punto (`Gizmos.point`, a 48 bloques
+     como mucho en esa dirección, porque los gizmos lejanos no se dibujan); a ≤24 bloques, además el bloque y una
+     línea desde los pies del jugador. La tecla `guideKey` (H) oculta/muestra flecha y punto sin quitar la guía.
+     Se borra al llegar (≤3 bloques en horizontal y ≤12 de altura) o al salir del mundo. Entre Overworld y Nether
+     apunta a las coordenadas equivalentes (×8 / ÷8). La galería tiene "Copiar coordenadas"
+     (`mc.keyboardHandler.setClipboard`).
    - `BuildPlacer` (solo un jugador): lee el `.craftshot.nbt` (`StructureTemplate.load(BuiltInRegistries.BLOCK, tag)`),
      caja naranja con el bloque apuntado en la esquina cercana derecha (igual que al guardar), girada por cuartos
      según hacia dónde mira el jugador ahora frente a la captura. Enter coloca en el hilo del servidor con

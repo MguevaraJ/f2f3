@@ -49,7 +49,7 @@ public final class GalleryScreen extends Screen {
 	private double detailScroll;
 
 	private int gridWidth, columns, cellWidth, imageHeight, panelX, panelWidth, bottom, detailTop, detailBottom;
-	private Button filterButton, guideButton, placeButton, undoButton;
+	private Button filterButton, guideButton, copyButton, placeButton, undoButton;
 
 	public GalleryScreen() {
 		super(Component.literal("Craftshot"));
@@ -76,6 +76,11 @@ public final class GalleryScreen extends Screen {
 
 		int x = panelX + 4, w = panelWidth - 8, y = 0;
 		guideButton = addRenderableWidget(Button.builder(Component.empty(), b -> guide()).bounds(x, y, w, 20).build());
+		copyButton = addRenderableWidget(Button.builder(Component.literal("Copiar coordenadas"), b -> {
+			BlockPos p = selected.pos();
+			minecraft.keyboardHandler.setClipboard(p.getX() + " " + p.getY() + " " + p.getZ());
+			b.setMessage(Component.literal("Coordenadas copiadas"));
+		}).bounds(x, y, w, 20).build());
 		placeButton = addRenderableWidget(Button.builder(Component.literal("Colocar el build"), b -> {
 			minecraft.gui.setScreen(null);
 			BuildPlacer.start(minecraft, selected);
@@ -119,6 +124,8 @@ public final class GalleryScreen extends Screen {
 		guideButton.active = blocked == null;
 		guideButton.setTooltip(blocked == null ? null : Tooltip.create(Component.literal(blocked)));
 
+		copyButton.visible = capture != null && capture.pos() != null;
+		copyButton.setMessage(Component.literal("Copiar coordenadas"));
 		placeButton.visible = capture != null && capture.build() != null;
 		placeButton.active = minecraft.hasSingleplayerServer();
 		placeButton.setTooltip(placeButton.active ? null : Tooltip.create(Component.literal("Solo en mundos de un jugador")));
@@ -126,7 +133,7 @@ public final class GalleryScreen extends Screen {
 
 		// Stacked from the bottom of the panel; the details take the rest.
 		int y = bottom - 4;
-		for (Button button : new Button[] { undoButton, placeButton, guideButton }) {
+		for (Button button : new Button[] { undoButton, placeButton, copyButton, guideButton }) {
 			if (!button.visible) continue;
 			y -= 20;
 			button.setY(y);
