@@ -97,6 +97,14 @@ public final class BuildPreview {
 		return n;
 	}
 
+	/** Esc with the preview on screen (and nothing else open) cancels it; true consumes the key. */
+	public static boolean onEscape(Minecraft mc) {
+		if (!active || mc.gui.screen() != null) return false;
+		active = false;
+		message(mc, "Guardado del build cancelado");
+		return true;
+	}
+
 	/** Scrolling while sneaking in the preview resizes the box; true consumes the scroll. */
 	public static boolean onScroll(Minecraft mc, double amount) {
 		if (!active || amount == 0 || mc.player == null || !mc.player.isShiftKeyDown()) return false;
