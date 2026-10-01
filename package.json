@@ -1,8 +1,8 @@
 {
   "name": "f2f3",
   "productName": "F2+F3",
-  "version": "1.0.0",
-  "description": "Gestor de capturas de Minecraft con extracci\u00f3n autom\u00e1tica del F3, detecci\u00f3n de bioma y mobs.",
+  "version": "1.0.1",
+  "description": "Gestor de capturas de Minecraft con extracción automática del F3, detección de bioma y mobs.",
   "author": "Moises Guevara <mguevaraj27@gmail.com>",
   "license": "MIT",
   "main": "./out/main/index.js",
