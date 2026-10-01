@@ -12,7 +12,15 @@ import { toast } from '../../store/toasts'
 import { useUi } from '../../store/ui'
 import { drawMap, hitTest, type DrawPoint } from './drawMap'
 import { AfkPanel, PortalPanel, type KnownPortal } from './PlannerPanels'
-import { afkShapes, afkSpot, portalShapes, type AfkState, type PortalState } from './planners'
+import {
+  afkShapes,
+  afkSpot,
+  gameAfkPlan,
+  gamePortalPlan,
+  portalShapes,
+  type AfkState,
+  type PortalState
+} from './planners'
 import { convertXZ, fitView, scaleBar, toWorld, zoomAt, type View } from './view'
 
 const DIMENSIONS = ['minecraft:overworld', 'minecraft:the_nether', 'minecraft:the_end'] as const
@@ -292,6 +300,28 @@ export function MapView({ shots }: { shots: ScreenshotEntry[] }) {
     else setPortal({ ...portal, b: end, picking: null })
   }
 
+  // The plan goes to the mod, with the seed for slime chunks where it cannot read it.
+  const sendPlan = async (which: 'afk' | 'portals', show: boolean): Promise<void> => {
+    if (!current) return
+    const plan = !show
+      ? null
+      : which === 'afk'
+        ? gameAfkPlan(afk, dimension)
+        : gamePortalPlan(portal)
+    try {
+      const n = await api.companion.sendPlan(current.name, {
+        [which]: plan,
+        seed: current.seed ?? null
+      })
+      if (!n) toast.error('Ninguna de tus carpetas de juego está lista para recibir planes.')
+      else if (show)
+        toast.success(`Enviado al juego: pulsa J en «${current.name || 'el mundo'}» para verlo`)
+      else toast.success('Quitado del juego')
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'No se pudo enviar al juego')
+    }
+  }
+
   const saveSeed = (value: string): void => {
     if (!current) return
     const v = value.trim()
@@ -541,6 +571,7 @@ export function MapView({ shots }: { shots: ScreenshotEntry[] }) {
             state={afk}
             onChange={setAfk}
             simulationSource={simulation.source}
+            onSend={(show) => void sendPlan('afk', show)}
             onClose={() => setTool('none')}
           />
         )}
@@ -549,6 +580,7 @@ export function MapView({ shots }: { shots: ScreenshotEntry[] }) {
             state={portal}
             onChange={setPortal}
             known={knownPortals}
+            onSend={(show) => void sendPlan('portals', show)}
             onClose={() => setTool('none')}
           />
         )}

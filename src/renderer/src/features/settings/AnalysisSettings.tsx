@@ -1,6 +1,7 @@
 import { useState, type ReactNode } from 'react'
 import type { VisionProviderId } from '@shared/types'
 import { Icon } from '../../components/icons'
+import { SaveModButton } from '../../components/SaveModButton'
 import { Toggle } from '../../components/Toggle'
 import { api } from '../../lib/api'
 import { LEVELS, MOD_LEVEL, PROVIDER_LABEL } from '../../lib/sources'
@@ -139,10 +140,6 @@ function LevelCard({
 
 /** The optional Fabric mod: exact data without the F3. Never installed automatically. */
 function ModCard() {
-  const onSave = async (): Promise<void> => {
-    const path = await api.companion.saveMod()
-    if (path) toast.success(`Mod guardado en ${path}`)
-  }
   return (
     <section className="level-card level-mod active">
       <header className="level-head">
@@ -159,14 +156,12 @@ function ModCard() {
       </p>
       <div className="level-body">
         <div className="path-row">
-          <button className="btn small primary" onClick={() => void onSave()}>
-            <Icon name="download" size={15} /> Guardar el mod (.jar)
-          </button>
+          <SaveModButton small />
         </div>
         <p className="muted small tip-line">
-          Solo funciona en 26.3. Si tus perfiles del launcher comparten la carpeta{' '}
-          <code>.minecraft/mods</code>, crea un perfil de Fabric 26.3 con su propia carpeta de juego
-          para que no falle en otras versiones.
+          Hay un .jar para cada versión (Fabric 26.3, 1.21.1 y 1.20.1): elige la de tu perfil. Si
+          tus perfiles del launcher comparten la carpeta <code>.minecraft/mods</code>, crea un
+          perfil de Fabric con su propia carpeta de juego para que no falle en otras versiones.
         </p>
         <p className="muted small tip-line">
           <b>Guardar un build</b> (un jugador): desde fuera, apunta a la esquina inferior de la

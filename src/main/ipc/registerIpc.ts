@@ -4,6 +4,7 @@ import { basename, join } from 'node:path'
 import { buildPathFor } from '@core/companion/parseCompanion'
 import { templateId } from '@shared/placement'
 import { screenshotsDirFor } from '../minecraft/gameDirs'
+import { isGameDir, writeGamePlans } from '../minecraft/plans'
 import { installTemplate, listSaves, savesDirFor } from '../minecraft/worlds'
 import {
   app,
@@ -19,6 +20,9 @@ import type { AppSettings, ClipboardMode, UserMeta, VisionProviderId } from '@sh
 import { loadFontFrom, ROW_OFFSET } from '@core/font/minecraftFont'
 import type { DataTable, FontGlyphs } from '@shared/ipc'
 import modJar from '../../../resources/craftshot-companion.jar?asset'
+import modJar1211 from '../../../resources/craftshot-companion-1.21.1.jar?asset'
+import modJar1201 from '../../../resources/craftshot-companion-1.20.1.jar?asset'
+import { isModVersion, type ModVersion } from '@shared/modVersions'
 import { copyImageToClipboard } from '../clipboardImage'
 import { strToU8, zipSync } from 'fflate'
 import { xaeroFiles, XAERO_COLOR, XAERO_FILE } from '@core/export/xaero'
@@ -243,11 +247,17 @@ export function registerIpc(services: Services): void {
     mkdirSync(mods, { recursive: true })
     return mods
   }
-  handle(IPC.companion.saveMod, async (e) => {
+  const MOD_JARS: Record<ModVersion, string> = {
+    '26.3': modJar,
+    '1.21.1': modJar1211,
+    '1.20.1': modJar1201
+  }
+  handle(IPC.companion.saveMod, async (e, wanted) => {
+    const version: ModVersion = isModVersion(wanted) ? wanted : '26.3'
     const parent = BrowserWindow.fromWebContents(e.sender)
     const options = {
       title: 'Guardar el mod F2+F3 Companion',
-      defaultPath: join(modsDirOrDownloads(), 'craftshot-companion-1.0.0+26.3.jar'),
+      defaultPath: join(modsDirOrDownloads(), `craftshot-companion-1.0.0+${version}.jar`),
       filters: [{ name: 'Mod de Fabric', extensions: ['jar'] }],
       properties: ['showOverwriteConfirmation', 'createDirectory'] as (
         'showOverwriteConfirmation' | 'createDirectory'
@@ -257,7 +267,7 @@ export function registerIpc(services: Services): void {
       ? await dialog.showSaveDialog(parent, options)
       : await dialog.showSaveDialog(options)
     if (res.canceled || !res.filePath) return null
-    await copyFile(modJar, res.filePath)
+    await copyFile(MOD_JARS[version], res.filePath)
     return res.filePath
   })
 
@@ -298,6 +308,12 @@ export function registerIpc(services: Services): void {
     // The mod's name (craftshot:build_3) when it saved one, so the same command works everywhere.
     const name = typeof template === 'string' && template ? template : templateId(basename(image))
     return installTemplate(saves, str(folder), name, src)
+  })
+  // The plans go to every game folder: the app cannot tell which one a world is played from.
+  handle(IPC.companion.sendPlan, async (_e, world, patch) => {
+    const dirs = settings.value.screenshotsDirs.map((d) => locator.gameDirOf(d)).filter(isGameDir)
+    for (const dir of new Set(dirs)) await writeGamePlans(dir, str(world), patch)
+    return new Set(dirs).size
   })
 
   // On-device model (level 2)

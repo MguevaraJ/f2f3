@@ -73,3 +73,49 @@ describe('build snapshot (real 26.3 file, sneak+F2 at a chest)', () => {
     expect(sidecarPathsFor('/s/x.png')).toEqual(['/s/x.craftshot.json', '/s/x.craftshot.nbt'])
   })
 })
+
+describe('build snapshot (real 1.21.1 file, from the Fabric 1.21.1 port)', () => {
+  const json = parseCompanion(fixture('build-1.21.1.craftshot.json').toString('utf8'))!
+
+  it('parses the sidecar the port writes', () => {
+    expect(json.minecraft).toBe('1.21.1')
+    expect(json.modVersion).toBe('1.0.0+1.21.1')
+    expect(json.build).toMatchObject({
+      size: { x: 16, y: 12, z: 16 },
+      template: 'craftshot:prueba'
+    })
+    expect(json.gamerules?.['minecraft:random_tick_speed']).toEqual({ value: 3, default: 3 })
+    expect(json.spawn?.chunks).toBeGreaterThan(0)
+  })
+
+  it('summarizes its structure file (palette written with "Name")', () => {
+    const s = summarizeStructure(fixture('build-1.21.1.craftshot.nbt'))!
+    expect(s.size).toEqual({ x: 16, y: 12, z: 16 })
+    expect(s.blocks).toBe(json.build!.blocks)
+    expect(s.materials.map((m) => m.id)).toEqual(
+      expect.arrayContaining(['minecraft:spruce_leaves', 'minecraft:spruce_log'])
+    )
+  })
+})
+
+describe('build snapshot (real 1.20.1 file, from the Fabric 1.20.1 port)', () => {
+  const json = parseCompanion(fixture('build-1.20.1.craftshot.json').toString('utf8'))!
+
+  it('parses the sidecar the port writes', () => {
+    expect(json.minecraft).toBe('1.20.1')
+    expect(json.game?.tick).toMatchObject({ rate: 20, state: 'normal' })
+    expect(json.build).toMatchObject({
+      size: { x: 16, y: 14, z: 16 },
+      template: 'craftshot:prueba'
+    })
+    expect(json.target?.block?.id).toBe('minecraft:stone')
+  })
+
+  it('summarizes its structure file', () => {
+    const s = summarizeStructure(fixture('build-1.20.1.craftshot.nbt'))!
+    expect(s.blocks).toBe(json.build!.blocks)
+    expect(s.materials.map((m) => m.id)).toEqual(
+      expect.arrayContaining(['minecraft:oak_leaves', 'minecraft:stone'])
+    )
+  })
+})

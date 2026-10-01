@@ -14,6 +14,8 @@ import type {
   UserMeta,
   VisionProviderId
 } from './types'
+import type { GamePlanPatch } from './gamePlans'
+import type { ModVersion } from './modVersions'
 
 /**
  * Single source of truth for the renderer ⇄ main contract.
@@ -51,7 +53,8 @@ export const IPC = {
     saveMod: 'companion:save-mod',
     exportBuild: 'companion:export-build',
     listSaves: 'companion:list-saves',
-    installBuild: 'companion:install-build'
+    installBuild: 'companion:install-build',
+    sendPlan: 'companion:send-plan'
   },
   localModel: {
     status: 'local-model:status',
@@ -187,13 +190,18 @@ export interface CraftshotApi {
   }
   companion: {
     /** Saves the bundled F2+F3 Companion mod (.jar) where the user chooses; null if cancelled. */
-    saveMod(): Promise<string | null>
+    saveMod(version?: ModVersion): Promise<string | null>
     /** Saves the build (.nbt) captured with a screenshot; null if cancelled. */
     exportBuild(id: string): Promise<string | null>
     /** Singleplayer worlds of the .minecraft the screenshots belong to. */
     listSaves(id?: string): Promise<{ folder: string; name: string }[]>
     /** Copies the build into a world so `/place template <templateId>` finds it; returns the file. */
     installBuild(id: string, folder: string, template?: string): Promise<string>
+    /**
+     * Puts a world's plans (or removes them) in "craftshot/plans.json" of every game folder,
+     * for the mod to draw in the world; returns how many folders were written.
+     */
+    sendPlan(world: string, patch: GamePlanPatch): Promise<number>
   }
   localModel: {
     status(): Promise<LocalModelStatus>

@@ -17,7 +17,7 @@
     "format": "prettier --write .",
     "test": "vitest run",
     "test:watch": "vitest",
-    "build:mod": "cd companion-mod && ./gradlew build -q && cp build/libs/craftshot-companion-1.0.0+26.3.jar ../resources/craftshot-companion.jar",
+    "build:mod": "cd companion-mod && ./gradlew build -q && cp build/libs/craftshot-companion-1.0.0+26.3.jar ../resources/craftshot-companion.jar && cd ../companion-mod-1.21.1 && ./gradlew build -q && cp build/libs/craftshot-companion-1.0.0+1.21.1.jar ../resources/craftshot-companion-1.21.1.jar && cd ../companion-mod-1.20.1 && ./gradlew build -q && cp build/libs/craftshot-companion-1.0.0+1.20.1.jar ../resources/craftshot-companion-1.20.1.jar",
     "ocr": "tsx --tsconfig tsconfig.node.json scripts/ocr-cli.ts",
     "dist": "npm run build && electron-builder",
     "dist:linux": "npm run build && electron-builder --linux AppImage",

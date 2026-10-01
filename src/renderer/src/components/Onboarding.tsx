@@ -4,11 +4,11 @@ import { api } from '../lib/api'
 import { LEVELS, MOD_LEVEL, SOURCE_INFO } from '../lib/sources'
 import { useLocalModel } from '../store/localModel'
 import { useSettings } from '../store/settings'
-import { toast } from '../store/toasts'
 import { useUi } from '../store/ui'
 import { GameFolderPicker } from './GameFolderPicker'
 import { GrassBlock, Icon } from './icons'
 import { McText } from './McText'
+import { SaveModButton } from './SaveModButton'
 
 const STEPS = ['Inicio', 'Tu Minecraft', 'Los datos', 'El mod', 'Avanzado'] as const
 const FOLDER_STEP = 1
@@ -104,10 +104,6 @@ export function Onboarding() {
     if (step === FOLDER_STEP && to > step) void confirmFolder()
     else if (to > FOLDER_STEP && !settings.gameDirConfirmed) to = FOLDER_STEP
     setStep(to)
-  }
-  const saveMod = async (): Promise<void> => {
-    const path = await api.companion.saveMod()
-    if (path) toast.success(`Mod guardado en ${path}`)
   }
   const last = step === STEPS.length - 1
 
@@ -223,8 +219,8 @@ export function Onboarding() {
                 {MOD_LEVEL.title} <span className="source-tag mod">{SOURCE_INFO.mod.tag}</span>
               </h2>
               <p>
-                Opcional, para <b>Fabric 26.3</b>. Con él, cada captura guarda los datos reales del
-                juego sin abrir el F3, y F2+F3 entra en la partida:
+                Opcional, para <b>Fabric 26.3, 1.21.1 o 1.20.1</b>. Con él, cada captura guarda los
+                datos reales del juego sin abrir el F3, y F2+F3 entra en la partida:
               </p>
               <ul className="onb-list">
                 <li>
@@ -256,9 +252,7 @@ export function Onboarding() {
                 </li>
               </ul>
               <div className="onb-actions">
-                <button className="btn primary" onClick={() => void saveMod()}>
-                  <Icon name="download" size={16} /> Guardar el mod (.jar)
-                </button>
+                <SaveModButton />
                 <button className="btn" onClick={() => go(step + 1)}>
                   Ahora no
                 </button>

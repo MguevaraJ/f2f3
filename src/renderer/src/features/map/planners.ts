@@ -10,6 +10,7 @@ import {
   type FarmStatus,
   type PortalDimension
 } from '@shared/planner'
+import type { GameAfkPlan, GamePortalPlan } from '@shared/gamePlans'
 import type { Vec3 } from '@shared/types'
 import type { Shape } from './drawMap'
 import { convertXZ } from './view'
@@ -102,6 +103,25 @@ export function afkShapes(s: AfkState, spot: Vec3 | null): Shape[] {
   return shapes
 }
 
+/** The AFK plan as the mod draws it in the world; null without a spot. */
+export function gameAfkPlan(s: AfkState, dimension: string): GameAfkPlan | null {
+  const spot = afkSpot(s)
+  if (!spot) return null
+  return {
+    dimension,
+    spot,
+    kind: s.kind,
+    simulation: s.simulation,
+    farms: s.farms.map((f) => ({
+      x: f.x,
+      y: f.y,
+      z: f.z,
+      label: f.label,
+      ...farmVerdict(farmStatus(spot, f, s.simulation), s.kind)
+    }))
+  }
+}
+
 // ── Portals ──
 
 export interface PortalEnd {
@@ -163,3 +183,7 @@ export function portalShapes(s: PortalState, dimension: string): Shape[] {
   }
   return out.filter((x): x is Shape => x !== null)
 }
+
+/** The portal link as the mod draws it in the world; null without portal A. */
+export const gamePortalPlan = (s: PortalState): GamePortalPlan | null =>
+  s.a ? { aDim: s.aDim, a: s.a.pos, b: s.b?.pos ?? null } : null

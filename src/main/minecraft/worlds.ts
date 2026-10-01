@@ -36,9 +36,23 @@ export async function listSaves(savesDir: string): Promise<SaveInfo[]> {
   return out.sort((a, b) => a.name.localeCompare(b.name))
 }
 
+/** First data version (1.21) whose data folders are singular: "structure", not "structures". */
+const DATA_VERSION_1_21 = 3953
+
+/** The version the world was last saved with (level.dat → Data.DataVersion); newest when unknown. */
+async function worldDataVersion(worldDir: string): Promise<number> {
+  try {
+    const data = readNbt(await readFile(join(worldDir, 'level.dat'))).Data as
+      NbtCompound | undefined
+    return typeof data?.DataVersion === 'number' ? data.DataVersion : Infinity
+  } catch {
+    return Infinity
+  }
+}
+
 /**
  * Copies a structure where `/place template <id>` finds it in that world:
- * saves/<world>/generated/<ns>/structure/<path>.nbt (singular "structure" since 26.x).
+ * saves/<world>/generated/<ns>/structure/<path>.nbt ("structures" in worlds older than 1.21).
  */
 export async function installTemplate(
   savesDir: string,
@@ -51,7 +65,11 @@ export async function installTemplate(
     throw new Error('Nombre de plantilla no válido.')
   if (folder.includes('/') || folder.includes('\\') || folder === '..' || folder === '.')
     throw new Error('Mundo no válido.')
-  const dest = join(savesDir, folder, 'generated', ns, 'structure', `${path}.nbt`)
+  const dir =
+    (await worldDataVersion(join(savesDir, folder))) < DATA_VERSION_1_21
+      ? 'structures'
+      : 'structure'
+  const dest = join(savesDir, folder, 'generated', ns, dir, `${path}.nbt`)
   await mkdir(dirname(dest), { recursive: true })
   await copyFile(source, dest)
   return dest

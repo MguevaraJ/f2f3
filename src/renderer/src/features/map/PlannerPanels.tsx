@@ -51,15 +51,39 @@ function PanelHead({ title, onClose }: { title: string; onClose: () => void }) {
   )
 }
 
+/** Sends the plan to the Companion mod, which draws it in the world. */
+function InGame({ ready, onSend }: { ready: boolean; onSend: (show: boolean) => void }) {
+  return (
+    <div className="map-panel-result">
+      <span>En el juego (mod F2+F3 Companion)</span>
+      <div className="map-panel-actions">
+        <button
+          className="btn small"
+          disabled={!ready}
+          onClick={() => onSend(true)}
+          title="El mod lo dibuja en el mundo; J lo oculta o lo muestra"
+        >
+          <Icon name="pin" size={14} /> Mostrar en el juego
+        </button>
+        <button className="btn small" onClick={() => onSend(false)}>
+          Quitar
+        </button>
+      </div>
+    </div>
+  )
+}
+
 export function AfkPanel({
   state,
   onChange,
   simulationSource,
+  onSend,
   onClose
 }: {
   state: AfkState
   onChange: (s: AfkState) => void
   simulationSource: string
+  onSend: (show: boolean) => void
   onClose: () => void
 }) {
   const spot = afkSpot(state)
@@ -172,6 +196,7 @@ export function AfkPanel({
         <Icon name="pin" size={14} />{' '}
         {state.placing ? 'Haz clic en el mapa…' : 'Colocar el punto AFK'}
       </button>
+      <InGame ready={spot !== null} onSend={onSend} />
       <p className="muted small legend">
         <i className="sw sim" /> entidades (simulación) <i className="sw blk" /> solo bloques
         {state.kind === 'mobs' && (
@@ -215,10 +240,12 @@ export function PortalPanel({
   state,
   onChange,
   known,
+  onSend,
   onClose
 }: {
   state: PortalState
   onChange: (s: PortalState) => void
+  onSend: (show: boolean) => void
   /** Portals seen in screenshots, competing for the links. */
   known: KnownPortal[]
   onClose: () => void
@@ -339,6 +366,7 @@ export function PortalPanel({
           />
         </ul>
       )}
+      <InGame ready={state.a !== null} onSend={onSend} />
       <p className="muted small">
         {known.length
           ? `${known.length} portal${known.length > 1 ? 'es' : ''} de capturas (apuntando al portal) compiten por el enlace.`

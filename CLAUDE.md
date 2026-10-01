@@ -5,7 +5,8 @@ Launcher, más un mod Fabric para Minecraft 26.3 (**F2+F3 Companion**, en `compa
 del juego junto a cada captura y lleva la app dentro del juego. **UI y textos en español. Código y comentarios en inglés.**
 
 **Estado (2026-09-30):** app y mod estables; la hoja de ruta "Minecraft técnico" (6 fases) está completa. Árbol de
-trabajo limpio, 160 tests. Último commit: `b0c4bc6`. Pendientes y decisiones abiertas al final.
+trabajo limpio (planes en el juego, lista de materiales y ports a 1.21.1 y 1.20.1 ya commiteados en la rama
+`mod-planes-materiales-ports`), 167 tests. Sin remoto configurado todavía. Pendientes y decisiones abiertas al final.
 
 ## Nombre
 La app se llama **F2+F3** y el mod **F2+F3 Companion** (ya existía otra "Craftshot"). Solo cambió lo visible: títulos,
@@ -22,9 +23,9 @@ plantillas, `craftshot/app-index.json`, carpeta "Craftshot" de Google Drive, var
 ```bash
 npm run dev            # desarrollo
 npm run build          # typecheck + build + scripts/check-preload.mjs (falla si un preload usa chunks)
-npm run typecheck && npx eslint . && npx vitest run    # verificación estándar (160 tests)
+npm run typecheck && npx eslint . && npx vitest run    # verificación estándar (167 tests)
 npx prettier --write <archivos>                        # el repo va formateado con prettier
-npm run build:mod      # compila el mod y copia el jar a resources/craftshot-companion.jar (con el juego de prueba CERRADO)
+npm run build:mod      # compila los tres mods (26.3, 1.21.1 y 1.20.1) y copia los jar a resources/ (con el juego de prueba CERRADO)
 npm run dist:linux     # AppImage (el .env con MAIN_VITE_GOOGLE_CLIENT_ID/SECRET se incrusta)
 npm run ocr -- <png…>  # OCR del F3 desde terminal
 npm run eval:local -- <png…>   # evalúa el modelo local (CLIP); MODEL_CACHE=dir
@@ -46,7 +47,8 @@ src/preload/   index.ts (API principal) y popup.ts (API mínima del popup) — N
 src/renderer/  React + Zustand. features/{gallery,viewer,details,coords,map,settings,library}, components/
                (Onboarding, GameFolderPicker, Sidebar…), lib/, store/, styles/
 tests/         vitest (+ fixtures reales: PNG del F3, sidecars y .nbt en tests/fixtures/companion/)
-companion-mod/ mod Fabric (Gradle); cliente de prueba en companion-mod/run/
+companion-mod/ mod Fabric 26.3 (Gradle); cliente de prueba en companion-mod/run/
+companion-mod-1.21.1/ y companion-mod-1.20.1/  ports a Fabric (proyectos Gradle aparte, mismo código + compat/)
 ```
 El renderer **no puede importar `@core`**: la lógica compartida va en `src/shared`.
 Seguridad: contextIsolation, sandbox, CSP, rutas del renderer validadas con `LibraryService.resolveId`, claves solo en main (safeStorage).
@@ -125,6 +127,12 @@ datos técnicos, builds). Se reabre desde Ajustes › "Ver la introducción de n
    block, favorite, note, tags, sections[{title, rows[[etiqueta, valor]]}]}` — las filas van ya redactadas en español
    y el mod solo las pinta.
 
+7. **Planes en el juego**: los paneles AFK y Portales tienen "Mostrar en el juego" / "Quitar" → IPC
+   `companion.sendPlan(world, patch)` → `main/minecraft/plans.ts` escribe `<carpeta del juego>/craftshot/plans.json` en
+   todas las carpetas de juego. Formato y limpieza en `shared/gamePlans.ts` (`mergeGamePlans`, test): `worlds[nombre]
+   {seed?, afk? {dimension, spot, kind, simulation, farms[{x, y|null, z, label, level, text}]}, portals? {aDim, a, b}}`;
+   en el parche, clave ausente = se conserva, null = se quita. Los planes de la app siguen sin persistir (se envían a mano).
+
 Otros arreglos de UI de esta etapa: clic normal solo abre el visor y la casilla selecciona; resumen de selección
 múltiple (`lib/selectionSummary.ts`, `SelectionSummary.tsx`); flechas y transición suave del visor (`ViewerFrame` sin
 clave por captura).
@@ -157,7 +165,7 @@ visibles (dentro del campo de visión y con línea de visión, ≤96 bloques). M
 - `SnapshotCollector` / `CaptureSnapshot` / `ServerCollector` (hilo del servidor) / `SidecarWriter` (cola FIFO; escribe
   el `.nbt` antes del JSON, en `Util.ioPool()`, tmp + move atómico).
 - `CompanionConfig` — `config/craftshot_companion.json`: `build` "sneak" | "always" | "never"; `buildSize` (16, 3–97;
-  `buildRadius` antiguo = 2r+1); `buildBase` "corner" | "center"; `galleryKey` ("f6"); `guideKey` ("h"). Las teclas son
+  `buildRadius` antiguo = 2r+1); `buildBase` "corner" | "center"; `galleryKey` ("f6"); `guideKey` ("h"); `plansKey` ("j"); `materialsKey` ("m"). Las teclas son
   el nombre tras `key.keyboard.`; se detectan en el mixin de `KeyboardHandler` (sin KeyMapping, no salen en Controles).
 - `BuildRegion.corner(level, target, depth, width, facing, height)`: el bloque apuntado es la esquina inferior cercana
   derecha; la caja crece `depth` hacia donde mira el jugador y `width` a su izquierda; `height` 0 = hasta el bloque más
@@ -170,7 +178,7 @@ visibles (dentro del campo de visión y con línea de visión, ≤96 bloques). M
   El build se guarda también en el mundo: `getStructureTemplateManager().getOrCreate(craftshot:<nombre>)` + `save(id)`
   (`generated/craftshot/structure/`, singular), y el chat da "[Copiar comando]".
 - `GalleryScreen` (**F6**): cuadrícula + panel (imagen al 60 %, datos en un recuadro oscuro con barra de scroll,
-  botones de 16 px en dos columnas: "Guiarme", "Copiar XYZ", "Colocar build", "Deshacer", con tooltips). Filtro "Solo
+  botones de 16 px en dos columnas: "Guiarme", "Copiar XYZ", "Colocar build", "Materiales", "Deshacer", con tooltips). Filtro "Solo
   este mundo" / "Todos los mundos". `CaptureIndex` recorre `screenshots/` (4 niveles) fuera del hilo cliente: usa el
   `app-index.json` de la app y, si no hay, el propio sidecar (nombres con `Language.getInstance()`).
   `Thumbnails`: `NativeImage.read` + `resizeSubRectTo` (480 px), `DynamicTexture`, LRU de 96, se liberan en `removed()`.
@@ -178,6 +186,17 @@ visibles (dentro del campo de visión y con línea de visión, ≤96 bloques). M
   punto (`Gizmos.point`, a 48 bloques como mucho en esa dirección: los gizmos lejanos no se dibujan); a ≤24 bloques,
   además el bloque y una línea desde los pies. **H** oculta/muestra. Se borra al llegar (≤3 bloques en horizontal y ≤12
   de altura) o al salir del mundo. Entre Overworld y Nether apunta a las coordenadas equivalentes (no probado en juego).
+- `Plans`: lee `craftshot/plans.json` (lo relee cada 40 ticks si cambió, fuera del hilo cliente) y dibuja el plan del
+  mundo actual (mismo nombre que usa la galería): punto AFK, esferas de 24 y 128 (tres círculos máximos + el corte a la
+  altura de los pies, más grueso), cuadrados de simulación y de solo bloques, granjas con su color, portales A/B y el
+  cuadrado de búsqueda. **J** oculta/muestra los planes; **Mayús+J** los chunks slime (±4 chunks, solo Overworld;
+  `WorldgenRandom.seedSlimeChunk`; semilla del servidor integrado o la `seed` del plan). Línea en el HUD a la izquierda.
+  Probado en juego: AFK, granjas, HUD y recarga del archivo; portales y relleno de chunks slime sin ver en pantalla.
+- `Materials`: lista de materiales de un build fijada en el HUD (derecha, centrada en altura, escala 0,75), al estilo
+  de la lista de Satisfactory. Botón "Materiales" / "Quitar lista" de la galería. Lee `palette` + `blocks` del `.nbt`
+  (bloque → `asItem()`; sin ítem se ignora; losa doble = 2; mitad superior de puertas/plantas y cabecera de cama = 0),
+  recuenta el inventario cada 5 ticks, pendientes arriba y completos en verde, máx. 10 filas ("+N más"), aviso al
+  tenerlo todo. **M** oculta/muestra. No mira dentro de shulkers ni bundles. Probado en juego.
 - `BuildPlacer` (solo un jugador): carga el `.craftshot.nbt` (`StructureTemplate.load(BuiltInRegistries.BLOCK, tag)`),
   caja naranja con la misma convención de esquina, girada por cuartos según hacia dónde mira el jugador ahora frente a
   la captura. Enter coloca en el hilo del servidor con `placeInWorld` (no usa `/place`: funciona sin trucos); rueda
@@ -187,6 +206,33 @@ visibles (dentro del campo de visión y con línea de visión, ≤96 bloques). M
 - Mixins: `ScreenshotMixin` (`grab(Minecraft,boolean)` HEAD cancelable + `getFile` RETURN), `MinecraftMixin`
   (`tick()` TAIL: vista previa, colocador y guía, dentro de `collectPerTickGizmos`), `MouseHandlerMixin` (`onScroll`),
   `KeyboardHandlerMixin` (`keyPress` HEAD, acción 1 = pulsación), `HudMixin` (`Hud.extractRenderState` TAIL).
+
+### Port a 1.21.1 (`companion-mod-1.21.1/`, probado en juego: sidecar, builds, galería, materiales, planes, colocador)
+Copia del código de 26.3 adaptada; **un cambio en el mod hay que hacerlo en los tres proyectos**. Loom
+`net.fabricmc.fabric-loom-remap` + `loom.officialMojangMappings()`, Java 21, mismo id de mod y mismo contrato JSON.
+Para tocar lo mínimo, `compat/` imita las clases de 26.3: `Gizmos` / `GizmoStyle` / `TextGizmo` (formas por tick que
+`LevelRendererMixin` dibuja al final de `renderLevel` con Tesselator: quads `position_color`, líneas `rendertype_lines`
+troceadas a 16 bloques, texto `drawInBatch`; `MinecraftMixin` llama `beginTick`/`endTick`), `GuiGraphicsExtractor`
+(envuelve `GuiGraphics`), `KeyEvent`, `RenderPipelines`. Diferencias: `ResourceLocation`, `mc.screen`/`mc.setScreen`,
+`Gui.render`, `Screen.render` (la galería pinta el fondo primero y luego los widgets a mano), `keyPress(JIIII)V`,
+F2 = `Screenshot.grab(File, RenderTarget, Consumer)`, NBT clásico (`getList(k, 10)`), `GameRules.visitGameRuleTypes`
+(ids convertidos a `minecraft:snake_case`; los que 26.x renombró no coinciden con `KEY_RULES`), `getDayTime`,
+`registryOrThrow`, `server.getStructureManager()`, `fillFromWorld(..., Block)`. Mundo de prueba: `Mundo nuevo`
+(`./gradlew runClient --args='--quickPlaySingleplayer "Mundo nuevo"'`); javap contra el jar con nombres:
+`~/.gradle/caches/fabric-loom/minecraftMaven/net/minecraft/minecraft-merged/1.21.1-*/…jar`.
+App: `shared/modVersions.ts` (`MOD_VERSIONS`), `components/SaveModButton.tsx` (selector de versión + botón, en
+Ajustes y onboarding), `companion.saveMod(version)`, jars `resources/craftshot-companion.jar` (26.3) y
+`craftshot-companion-<versión>.jar`. Fixtures `tests/fixtures/companion/build-1.21.1.*` y `build-1.20.1.*`.
+
+### Port a 1.20.1 (`companion-mod-1.20.1/`, probado en juego igual que el de 1.21.1)
+Copia del de 1.21.1 con Java 17. Diferencias: `Gui.render(GuiGraphics, float)`, `LevelRenderer.renderLevel(PoseStack,
+…)` (el modelview es `PoseStack`; `BufferBuilder.begin/vertex/endVertex`, `endOrDiscardIfEmpty`), texto de `Gizmos`
+con escala X negativa (la rotación de cámara mira al revés antes de 1.21), `Screen.renderBackground(GuiGraphics)` no lo
+llama `render` (BuildNameScreen pinta su panel a mano), `mouseScrolled` de 3 argumentos, `new ResourceLocation`,
+`NbtIo` con `File`, sin `/tick` (tick fijo 20 / "normal", `getAverageTickTime`), `mc.player.getServerBrand()`,
+`mc.isConnectedToRealms()`, encantamientos con `EnchantmentHelper.getEnchantments`, builds del mundo en
+`generated/craftshot/structures/` (plural). La app elige `structure` o `structures` al instalar una plantilla según
+el `DataVersion` del `level.dat` (< 3953 = anterior a 1.21). Mundo de prueba: `Mundo nuevo`.
 
 ### APIs de 26.3 (sin ofuscar; verificar con `javap -p -cp ~/.minecraft/versions/26.3/26.3.jar <clase>`)
 - `Identifier` (no ResourceLocation): `fromNamespaceAndPath`, `isValidPath`; `ResourceKey.identifier()`.
@@ -224,8 +270,8 @@ visibles (dentro del campo de visión y con línea de visión, ≤96 bloques). M
 - Nunca instalar el jar por cuenta propia en una carpeta `mods` del usuario.
 
 ## Pendientes y decisiones abiertas
-- **Port del mod a 1.21.1 / 1.20.1**: estimado (1.21.1 Fabric ≈ una fase grande; 1.20.1 algo más; Forge ≈ medio port
-  extra). El usuario no ha decidido si 1.20.1 sería Forge o Fabric ni por cuál empezar.
+- Ports 1.21.1 y 1.20.1 sin probar: multijugador, guía, deshacer, villagers/cofres apuntados, gráficos "Fabulosos",
+  el selector de versión de "Guardar el mod" en pantalla y `installTemplate` en un mundo 1.20.1. Forge: no hay port.
 - Nombres de ítems y bloques en español en la app (leer `es_es.json` de los assets de la versión); hoy salen en inglés
   (`prettifyId`).
 - Renombrar lo interno que aún dice "craftshot" y que el usuario ve (jar, espacio `craftshot:` del `/place`, carpeta
@@ -234,5 +280,4 @@ visibles (dentro del campo de visión y con línea de visión, ≤96 bloques). M
 - Sin probar en real: respaldo en Drive con varias carpetas, guía entre dimensiones, galería del mod en multijugador,
   `.deb`, y el diálogo nativo de "Guardar el mod".
 - `dist/Craftshot-1.0.0.AppImage` es un resto del nombre anterior.
-- Ideas: cajas de estructuras, cubiomes-WASM (confirmar soporte 26.x), dibujar en el mundo los planificadores del mapa
-  (esferas AFK, chunks slime), lista de materiales en el HUD, repetir una captura desde el mismo punto.
+- Ideas: cajas de estructuras, cubiomes-WASM (confirmar soporte 26.x), guardar los planes del mapa en la app, repetir una captura desde el mismo punto.
