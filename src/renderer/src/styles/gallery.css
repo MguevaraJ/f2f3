@@ -319,6 +319,12 @@ p code {
   transition: opacity 0.12s;
   padding: 0;
 }
+/* Selecting is only done here: a bigger target than the circle itself. */
+.card-check::before {
+  content: '';
+  position: absolute;
+  inset: -9px;
+}
 .card:hover .card-check,
 .card.selecting .card-check,
 .card.selected .card-check {

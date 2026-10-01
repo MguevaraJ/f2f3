@@ -12,7 +12,7 @@ interface Props {
   cut: boolean
   selectionMode: boolean
   onActivate(id: string, e: MouseEvent): void
-  onToggle(id: string): void
+  onToggle(id: string, e: MouseEvent): void
   onContext(id: string, e: MouseEvent): void
   dragIds(id: string): string[]
 }
@@ -59,7 +59,7 @@ export const ScreenshotCard = memo(function ScreenshotCard({
           aria-pressed={selected}
           onClick={(e) => {
             e.stopPropagation()
-            onToggle(shot.id)
+            onToggle(shot.id, e)
           }}
         >
           <Icon name="check" size={14} />

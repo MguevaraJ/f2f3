@@ -75,24 +75,38 @@ export function Gallery({ shots, facets }: Props) {
     return out
   }, [shots, sortKey])
 
+  /** From the anchor to `id`, in the order shown. */
+  const rangeTo = useCallback(
+    (id: string, anchor: string): string[] => {
+      const a = ids.indexOf(anchor)
+      const b = ids.indexOf(id)
+      return ids.slice(Math.min(a, b), Math.max(a, b) + 1)
+    },
+    [ids]
+  )
+  // A plain click only opens the screenshot; selecting is the circle's job
+  // (Ctrl/Shift+click stay as keyboard shortcuts for it).
   const onActivate = useCallback(
     (id: string, e: MouseEvent) => {
       const ui = useUi.getState()
       if (e.shiftKey && ui.anchor) {
-        const a = ids.indexOf(ui.anchor)
-        const b = ids.indexOf(id)
-        const range = ids.slice(Math.min(a, b), Math.max(a, b) + 1)
+        const range = rangeTo(id, ui.anchor)
         ui.select(e.ctrlKey || e.metaKey ? [...new Set([...ui.selection, ...range])] : range)
-      } else if (e.ctrlKey || e.metaKey || ui.selection.length > 0) {
-        ui.toggleSelect(id)
-      } else {
-        ui.select([id], id)
-        ui.openViewer(id)
-      }
+      } else if (e.ctrlKey || e.metaKey) ui.toggleSelect(id)
+      else ui.openViewer(id)
     },
-    [ids]
+    [rangeTo]
   )
-  const onToggle = useCallback((id: string) => useUi.getState().toggleSelect(id), [])
+  const onToggle = useCallback(
+    (id: string, e: MouseEvent) => {
+      const ui = useUi.getState()
+      // Shift on the circle extends the selection up to it.
+      if (e.shiftKey && ui.anchor && ui.selection.length)
+        ui.select([...new Set([...ui.selection, ...rangeTo(id, ui.anchor)])])
+      else ui.toggleSelect(id)
+    },
+    [rangeTo]
+  )
   const dragIds = useCallback((id: string) => {
     const sel = useUi.getState().selection
     return sel.includes(id) ? sel : [id]
