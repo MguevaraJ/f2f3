@@ -10,6 +10,7 @@ import {
 } from 'electron'
 import { POPUP_IPC } from '@shared/popupIpc'
 import type { CapturePopupPayload, ScreenshotEntry } from '@shared/types'
+import { tr } from '@shared/i18n'
 
 const here = fileURLToPath(new URL('.', import.meta.url))
 const WIDTH = 420
@@ -167,7 +168,7 @@ export class CapturePopup {
             ? 'panel'
             : 'toolbar',
       backgroundColor: '#262626',
-      title: 'F2+F3 · Nueva captura',
+      title: tr('F2+F3 · Nueva captura'),
       webPreferences: {
         preload: join(here, '../preload/popup.cjs'),
         contextIsolation: true,

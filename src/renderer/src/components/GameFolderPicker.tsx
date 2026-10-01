@@ -3,6 +3,7 @@ import type { MinecraftSource } from '@shared/types'
 import { api } from '../lib/api'
 import { formatRelative } from '../lib/format'
 import { Icon } from './icons'
+import { tr } from '@shared/i18n'
 
 const LOADER: Record<string, string> = {
   fabric: 'Fabric',
@@ -37,12 +38,12 @@ export function GameFolderPicker({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  if (!sources) return <p className="muted small">Buscando tus carpetas de Minecraft…</p>
+  if (!sources) return <p className="muted small">{tr('Buscando tus carpetas de Minecraft…')}</p>
 
   // Folders that were not detected (picked by hand) still show up in the list.
   const extra = values
     .filter((p) => !sources.some((s) => s.path === p))
-    .map((p): MinecraftSource => ({ label: 'Otra carpeta', path: p, count: -1 }))
+    .map((p): MinecraftSource => ({ label: tr('Otra carpeta'), path: p, count: -1 }))
   const all = [...sources, ...extra]
 
   // At least one stays ticked; new ones go last so the first keeps its place.
@@ -59,15 +60,16 @@ export function GameFolderPicker({
     <div className="game-folders">
       {sources.length === 0 && (
         <p className="muted small">
-          No encontré ninguna carpeta de Minecraft. Elige la carpeta del juego (donde están{' '}
-          <code>saves</code> y <code>screenshots</code>) o la de capturas.
+          {tr('No encontré ninguna carpeta de Minecraft. Elige la carpeta del juego (donde están')}{' '}
+          <code>{tr('saves')}</code> y <code>{tr('screenshots')}</code>
+          {tr(') o la de capturas.')}
         </p>
       )}
       {all.map((s) => {
         const meta = [
           [s.version, s.loader && (LOADER[s.loader] ?? s.loader)].filter(Boolean).join(' · '),
-          s.count >= 0 && `${s.count} ${s.count === 1 ? 'captura' : 'capturas'}`,
-          s.lastUsed ? `jugado ${formatRelative(s.lastUsed)}` : ''
+          s.count >= 0 && `${s.count} ${s.count === 1 ? tr('captura') : tr('capturas')}`,
+          s.lastUsed ? tr('jugado {0}', formatRelative(s.lastUsed)) : ''
         ].filter(Boolean)
         return (
           <button
@@ -83,7 +85,7 @@ export function GameFolderPicker({
             <span className="game-folder-main">
               <span className="game-folder-title">
                 {s.label}
-                {s.hasMod && <span className="game-folder-tag mod">Mod instalado</span>}
+                {s.hasMod && <span className="game-folder-tag mod">{tr('Mod instalado')}</span>}
               </span>
               <span className="game-folder-meta">{meta.join(' · ')}</span>
               <span className="game-folder-path">{s.gameDir ?? s.path}</span>
@@ -93,7 +95,7 @@ export function GameFolderPicker({
       })}
       <div>
         <button className="btn small" onClick={() => void choose()}>
-          <Icon name="folder" size={14} /> Añadir otra carpeta…
+          <Icon name="folder" size={14} /> {tr('Añadir otra carpeta…')}
         </button>
       </div>
     </div>

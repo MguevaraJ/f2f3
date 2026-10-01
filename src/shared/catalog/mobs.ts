@@ -1,4 +1,5 @@
-import { normalizeId, prettifyId } from './biomes'
+import { tr } from '../i18n'
+import { localName, normalizeId, prettifyId } from './biomes'
 
 export type MobCategory = 'hostile' | 'neutral' | 'passive' | 'boss' | 'player' | 'other'
 
@@ -10,7 +11,7 @@ export interface MobDef {
 
 const m = (id: string, name: string, category: MobCategory): MobDef => ({
   id: `minecraft:${id}`,
-  name,
+  name: localName(id, name),
   category
 })
 
@@ -111,10 +112,10 @@ export function mobName(id: string): string {
 }
 
 export const MOB_CATEGORY_LABEL: Record<MobCategory, string> = {
-  hostile: 'Hostil',
-  neutral: 'Neutral',
-  passive: 'Pasivo',
-  boss: 'Jefe',
-  player: 'Jugador',
-  other: 'Otro'
+  hostile: tr('Hostil'),
+  neutral: tr('Neutral'),
+  passive: tr('Pasivo'),
+  boss: tr('Jefe'),
+  player: tr('Jugador'),
+  other: tr('Otro')
 }

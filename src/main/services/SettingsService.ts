@@ -1,4 +1,5 @@
 import { EventEmitter } from 'node:events'
+import { getLang, isLang } from '@shared/i18n'
 import { join } from 'node:path'
 import type { AppSettings, SettingsView, VisionProviderId } from '@shared/types'
 import { JsonStore } from './JsonStore'
@@ -46,6 +47,7 @@ export class SettingsService extends EventEmitter<{ changed: [AppSettings, AppSe
       localModelEnabled: false,
       onboardingDone: false,
       gameDirConfirmed: false,
+      language: getLang(),
       dismissedTips: [],
       visionAuto: false,
       thumbnailSize: 220,
@@ -123,6 +125,7 @@ function sanitize(patch: Partial<AppSettings>): Partial<AppSettings> {
       delete out.screenshotsDir
     }
   } else if (out.screenshotsDir !== undefined) out.screenshotsDirs = [out.screenshotsDir]
+  if (out.language !== undefined && !isLang(out.language)) delete out.language
   if (out.thumbnailSize !== undefined)
     out.thumbnailSize = Math.min(420, Math.max(140, out.thumbnailSize))
   if (out.closeAction !== undefined && !['ask', 'background', 'quit'].includes(out.closeAction))

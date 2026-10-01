@@ -1,11 +1,13 @@
 import { useUi, type Tab } from '../store/ui'
+import { LanguageButton } from './LanguageButton'
 import { McText } from './McText'
+import { tr } from '@shared/i18n'
 
 const TABS: { id: Tab; label: string }[] = [
-  { id: 'gallery', label: 'Galería' },
-  { id: 'coords', label: 'Coordenadas' },
-  { id: 'map', label: 'Mapa' },
-  { id: 'settings', label: 'Ajustes' }
+  { id: 'gallery', label: tr('Galería') },
+  { id: 'coords', label: tr('Coordenadas') },
+  { id: 'map', label: tr('Mapa') },
+  { id: 'settings', label: tr('Ajustes') }
 ]
 
 /** Product header: title in the Minecraft font + uppercase tabs (Play / Installations / …). */
@@ -16,7 +18,8 @@ export function Header() {
     <header className="header">
       <div className="header-title">
         <McText text="F2+F3" scale={3} color="#ffffff" />
-        <span className="header-edition">SCREENSHOT EDITION</span>
+        <span className="header-edition">{tr('SCREENSHOT EDITION')}</span>
+        <LanguageButton />
       </div>
       <nav className="tabs" role="tablist">
         {TABS.map((t) => (

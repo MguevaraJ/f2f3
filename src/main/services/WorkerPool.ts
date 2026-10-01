@@ -1,6 +1,7 @@
 import { availableParallelism } from 'node:os'
 import { Worker } from 'node:worker_threads'
 import type { WorkerJob, WorkerReply } from '../workers/protocol'
+import { tr } from '@shared/i18n'
 
 type Priority = 'high' | 'low'
 
@@ -42,7 +43,8 @@ export class WorkerPool {
   async dispose(): Promise<void> {
     this.disposed = true
     const all = [...this.idle, ...this.busy.keys()]
-    for (const p of [...this.lanes.high, ...this.lanes.low]) p.reject(new Error('Pool disposed'))
+    for (const p of [...this.lanes.high, ...this.lanes.low])
+      p.reject(new Error(tr('Pool disposed')))
     await Promise.all(all.map((w) => w.terminate()))
   }
 

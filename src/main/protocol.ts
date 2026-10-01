@@ -3,6 +3,7 @@ import { net, protocol } from 'electron'
 import { SCHEME } from '@shared/ipc'
 import type { LibraryService } from './services/LibraryService'
 import type { ThumbnailService } from './services/ThumbnailService'
+import { tr } from '@shared/i18n'
 
 /** Must run before `app.ready`. */
 export function registerSchemePrivileges(): void {
@@ -33,7 +34,7 @@ export function registerSchemeHandler(library: LibraryService, thumbs: Thumbnail
       const id = decodeURIComponent(url.pathname.replace(/^\//, ''))
       const abs = library.resolveId(id)
       const file = url.host === 'thumb' ? await thumbs.get(abs) : url.host === 'image' ? abs : null
-      if (!file) return new Response('Not found', { status: 404 })
+      if (!file) return new Response(tr('Not found'), { status: 404 })
       const res = await net.fetch(pathToFileURL(file).toString())
       const headers = new Headers(res.headers)
       // URLs carry ?v=<mtime>, so a changed file gets a new URL: cache aggressively.
@@ -42,7 +43,7 @@ export function registerSchemeHandler(library: LibraryService, thumbs: Thumbnail
       headers.set('Access-Control-Allow-Origin', '*')
       return new Response(res.body, { status: res.status, headers })
     } catch {
-      return new Response('Not found', { status: 404 })
+      return new Response(tr('Not found'), { status: 404 })
     }
   })
 }

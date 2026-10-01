@@ -2,6 +2,7 @@ import Anthropic from '@anthropic-ai/sdk'
 import { betaZodOutputFormat } from '@anthropic-ai/sdk/helpers/beta/zod'
 import type { VisionProviderId } from '@shared/types'
 import { SYSTEM_PROMPT, VISION_JSON_SCHEMA, VisionSchema, type VisionOutput } from './prompt'
+import { tr } from '@shared/i18n'
 
 /**
  * Advanced-AI providers. Each turns (image, prompt) into the shared VisionOutput.
@@ -44,10 +45,11 @@ function parseOutput(text: string): VisionOutput {
   try {
     data = JSON.parse(json)
   } catch {
-    throw new ProviderError('La IA no devolvió un JSON válido')
+    throw new ProviderError(tr('La IA no devolvió un JSON válido'))
   }
   const res = VisionSchema.safeParse(data)
-  if (!res.success) throw new ProviderError('La respuesta de la IA no tiene el formato esperado')
+  if (!res.success)
+    throw new ProviderError(tr('La respuesta de la IA no tiene el formato esperado'))
   return res.data
 }
 
@@ -61,11 +63,11 @@ async function http<T>(
     res = await fetch(url, { ...init, signal: AbortSignal.timeout(init.timeout) })
   } catch (err) {
     if ((err as Error).name === 'TimeoutError')
-      throw new ProviderError(`${who} tardó demasiado en responder`)
+      throw new ProviderError(tr('{0} tardó demasiado en responder', who))
     const hint = who.startsWith('Ollama')
-      ? '. ¿Está instalado y abierto?'
-      : '. Revisa tu conexión a internet.'
-    throw new ProviderError(`No se pudo conectar con ${who}${hint}`)
+      ? tr('. ¿Está instalado y abierto?')
+      : tr('. Revisa tu conexión a internet.')
+    throw new ProviderError(tr('No se pudo conectar con {0}{1}', who, hint))
   }
   if (res.ok) return (await res.json()) as T
   const body = (await res.json().catch(() => null)) as {
@@ -73,16 +75,18 @@ async function http<T>(
   } | null
   const detail = typeof body?.error === 'string' ? body.error : body?.error?.message
   if (res.status === 401 || res.status === 403)
-    throw new ProviderError(`${who}: clave inválida o sin permiso`)
+    throw new ProviderError(tr('{0}: clave inválida o sin permiso', who))
   if (res.status === 404)
-    throw new ProviderError(`${who}: modelo no encontrado (${detail ?? 'revisa el nombre'})`)
+    throw new ProviderError(
+      tr('{0}: modelo no encontrado ({1})', who, detail ?? tr('revisa el nombre'))
+    )
   if (res.status === 429)
-    throw new ProviderError(`${who}: límite de uso alcanzado, inténtalo más tarde`)
-  throw new ProviderError(`${who} respondió ${res.status}${detail ? `: ${detail}` : ''}`)
+    throw new ProviderError(tr('{0}: límite de uso alcanzado, inténtalo más tarde', who))
+  throw new ProviderError(tr('{0} respondió {1}{2}', who, res.status, detail ? `: ${detail}` : ''))
 }
 
 const requireKey = (cfg: ProviderConfig, who: string): string => {
-  if (!cfg.apiKey) throw new ProviderError(`Falta la clave de ${who}`)
+  if (!cfg.apiKey) throw new ProviderError(tr('Falta la clave de {0}', who))
   return cfg.apiKey
 }
 
@@ -130,23 +134,23 @@ const anthropic: VisionProvider = {
         ]
       })
       if (response.stop_reason === 'refusal')
-        throw new ProviderError('El modelo rechazó analizar esta imagen')
-      if (!response.parsed_output) throw new ProviderError('Respuesta vacía del modelo')
+        throw new ProviderError(tr('El modelo rechazó analizar esta imagen'))
+      if (!response.parsed_output) throw new ProviderError(tr('Respuesta vacía del modelo'))
       return { output: response.parsed_output, model: response.model }
     } catch (err) {
       if (err instanceof ProviderError) throw err
       if (err instanceof Anthropic.AuthenticationError)
-        throw new ProviderError('Anthropic: clave inválida')
+        throw new ProviderError(tr('Anthropic: clave inválida'))
       if (err instanceof Anthropic.PermissionDeniedError)
-        throw new ProviderError('Anthropic: la clave no tiene acceso a este modelo')
+        throw new ProviderError(tr('Anthropic: la clave no tiene acceso a este modelo'))
       if (err instanceof Anthropic.NotFoundError)
-        throw new ProviderError('Anthropic: modelo no encontrado')
+        throw new ProviderError(tr('Anthropic: modelo no encontrado'))
       if (err instanceof Anthropic.RateLimitError)
-        throw new ProviderError('Anthropic: límite de uso alcanzado')
+        throw new ProviderError(tr('Anthropic: límite de uso alcanzado'))
       if (err instanceof Anthropic.APIConnectionError)
-        throw new ProviderError('No se pudo conectar con Anthropic')
+        throw new ProviderError(tr('No se pudo conectar con Anthropic'))
       if (err instanceof Anthropic.APIError)
-        throw new ProviderError(`Anthropic respondió ${err.status}: ${err.message}`)
+        throw new ProviderError(tr('Anthropic respondió {0}: {1}', err.status, err.message))
       throw err
     }
   },
@@ -163,7 +167,7 @@ export const OPENAI_DEFAULT_URL = 'https://api.openai.com/v1'
 
 const openai: VisionProvider = {
   id: 'openai',
-  label: 'OpenAI o compatible',
+  label: tr('OpenAI o compatible'),
   needsKey: true,
   async analyze(cfg, image, userText) {
     const base = (cfg.baseUrl || OPENAI_DEFAULT_URL).replace(/\/$/, '')
@@ -299,7 +303,7 @@ export const OLLAMA_DEFAULT_URL = 'http://localhost:11434'
 
 const ollama: VisionProvider = {
   id: 'ollama',
-  label: 'Ollama (local, gratis)',
+  label: tr('Ollama (local, gratis)'),
   needsKey: false,
   async analyze(cfg, image, userText) {
     const base = (cfg.baseUrl || OLLAMA_DEFAULT_URL).replace(/\/$/, '')
@@ -320,7 +324,7 @@ const ollama: VisionProvider = {
         }),
         timeout: TIMEOUT_LOCAL
       },
-      `Ollama (${base})`
+      tr('Ollama ({0})', base)
     )
     return { output: parseOutput(reply.message?.content ?? ''), model: reply.model || cfg.model }
   },
@@ -329,7 +333,7 @@ const ollama: VisionProvider = {
     const res = await http<{ models: { name: string }[] }>(
       `${base}/api/tags`,
       { timeout: 10_000 },
-      `Ollama (${base})`
+      tr('Ollama ({0})', base)
     )
     return res.models.map((m) => m.name).sort()
   }

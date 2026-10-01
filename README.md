@@ -8,6 +8,9 @@ completo y gestión de archivos.
 El mod opcional de Fabric que guarda los datos exactos del juego junto a cada captura está en
 [f2f3-companion](https://github.com/MguevaraJ/f2f3-companion).
 
+La interfaz está en español e inglés (botón ES | EN en la cabecera). The interface is available in Spanish and
+English (ES | EN switch in the header).
+
 ## Funciones
 
 - **Galería** de `.minecraft/screenshots` agrupada por día, con miniaturas en caché y vigilancia de la

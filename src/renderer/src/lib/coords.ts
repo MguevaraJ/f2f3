@@ -1,13 +1,14 @@
 import type { F3Data, LocationData, Vec3 } from '@shared/types'
 import { formatNumber } from './format'
+import { tr } from '@shared/i18n'
 
 export const DIRECTION_ES: Record<string, string> = {
-  north: 'Norte',
-  south: 'Sur',
-  east: 'Este',
-  west: 'Oeste',
-  up: 'Arriba',
-  down: 'Abajo'
+  north: tr('Norte'),
+  south: tr('Sur'),
+  east: tr('Este'),
+  west: tr('Oeste'),
+  up: tr('Arriba'),
+  down: tr('Abajo')
 }
 
 export const blockString = (v: Vec3): string => `${v.x} ${v.y} ${v.z}`
@@ -21,7 +22,7 @@ export function tpCommand(f3: LocationData): string | null {
     f3.facing?.yaw !== undefined && f3.facing?.pitch !== undefined
       ? ` ${formatNumber(f3.facing.yaw, 1)} ${formatNumber(f3.facing.pitch, 1)}`
       : ''
-  const dim = f3.dimension ? `execute in ${f3.dimension} run ` : ''
+  const dim = f3.dimension ? tr('execute in {0} run ', f3.dimension) : ''
   return `/${dim}tp @s ${formatNumber(p.x)} ${formatNumber(p.y)} ${formatNumber(p.z)}${rot}`
 }
 

@@ -18,6 +18,7 @@ import { fingerprintOf, type LibraryService } from './LibraryService'
 import type { MetadataStore } from './MetadataStore'
 import { JsonStore } from './JsonStore'
 import type { SettingsService } from './SettingsService'
+import { tr } from '@shared/i18n'
 
 interface BackupState {
   account: BackupAccount | null
@@ -151,7 +152,7 @@ export class BackupService extends EventEmitter<{ status: [BackupStatus] }> {
   }
 
   private async execute(): Promise<BackupSummary | null> {
-    if (!this.status.account) throw new AuthError('Conecta una cuenta de Google primero', true)
+    if (!this.status.account) throw new AuthError(tr('Conecta una cuenta de Google primero'), true)
     this.cancelled = false
     const summary: BackupSummary = {
       uploaded: 0,
@@ -256,7 +257,7 @@ export class BackupService extends EventEmitter<{ status: [BackupStatus] }> {
                       mtime: new Date(l.entry.mtimeMs)
                     })
                   ).md5
-            if (md5 && md5 !== l.md5) throw new Error('la verificación MD5 no coincide')
+            if (md5 && md5 !== l.md5) throw new Error(tr('la verificación MD5 no coincide'))
             if (action.kind === 'update') summary.updated++
             else summary.uploaded++
             summary.bytes += data.byteLength
@@ -284,7 +285,7 @@ export class BackupService extends EventEmitter<{ status: [BackupStatus] }> {
 
   /** Downloads every backed-up screenshot that is missing locally. */
   async restoreMissing(): Promise<{ restored: number; failed: number }> {
-    if (this.running) throw new Error('Espera a que termine el respaldo en curso')
+    if (this.running) throw new Error(tr('Espera a que termine el respaldo en curso'))
     const result = { restored: 0, failed: 0 }
     const job = (async (): Promise<null> => {
       this.set({

@@ -1,9 +1,10 @@
 import { biomeName, dimensionName } from '@shared/catalog/biomes'
 import { mobName } from '@shared/catalog/mobs'
 import type { ScreenshotEntry } from '@shared/types'
+import { tr } from '@shared/i18n'
 
 const COLUMNS = [
-  'archivo',
+  tr('archivo'),
   'carpeta',
   'fecha',
   'dimension',
@@ -13,7 +14,7 @@ const COLUMNS = [
   'y',
   'z',
   'bloque_x',
-  'bloque_y',
+  tr('bloque_y'),
   'bloque_z',
   'chunk_x',
   'chunk_z',

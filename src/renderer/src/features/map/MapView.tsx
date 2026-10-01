@@ -22,10 +22,11 @@ import {
   type PortalState
 } from './planners'
 import { convertXZ, fitView, scaleBar, toWorld, zoomAt, type View } from './view'
+import { getLang, tr } from '@shared/i18n'
 
 const DIMENSIONS = ['minecraft:overworld', 'minecraft:the_nether', 'minecraft:the_end'] as const
 
-const fmt = (n: number): string => Math.round(n).toLocaleString('es')
+const fmt = (n: number): string => Math.round(n).toLocaleString(getLang())
 
 /**
  * Top-down map of the screenshots of one world and dimension: slime chunks,
@@ -87,11 +88,11 @@ export function MapView({ shots }: { shots: ScreenshotEntry[] }) {
     return withGame
       ? {
           value: withGame.shot.analysis!.mod!.game!.simulationDistance,
-          source: `De la captura ${withGame.shot.name} (mod).`
+          source: tr('De la captura {0} (mod).', withGame.shot.name)
         }
       : {
           value: DEFAULT_SIMULATION,
-          source: 'Valor por defecto en un jugador; cámbialo si usas otro.'
+          source: tr('Valor por defecto en un jugador; cámbialo si usas otro.')
         }
   }, [located])
   const [afk, setAfk] = useState<AfkState>({
@@ -268,7 +269,7 @@ export function MapView({ shots }: { shots: ScreenshotEntry[] }) {
           y: Math.floor(real.p.y),
           z: Math.floor(real.p.z)
         }
-      : { key: `p${Date.now()}`, label: 'Punto del mapa', ...block(at), y: null }
+      : { key: `p${Date.now()}`, label: tr('Punto del mapa'), ...block(at), y: null }
     setAfk({ ...afk, farms: [...afk.farms, farm] })
   }
 
@@ -293,7 +294,7 @@ export function MapView({ shots }: { shots: ScreenshotEntry[] }) {
     }
     const end = {
       id: which.toUpperCase(),
-      label: real ? real.shot.name : 'Punto del mapa',
+      label: real ? real.shot.name : tr('Punto del mapa'),
       pos: { x: Math.floor(pos.x), y: Math.floor(pos.y), z: Math.floor(pos.z) }
     }
     if (which === 'a') setPortal({ aDim: dim, a: end, b: null, picking: 'b' })
@@ -313,12 +314,14 @@ export function MapView({ shots }: { shots: ScreenshotEntry[] }) {
         [which]: plan,
         seed: current.seed ?? null
       })
-      if (!n) toast.error('Ninguna de tus carpetas de juego está lista para recibir planes.')
+      if (!n) toast.error(tr('Ninguna de tus carpetas de juego está lista para recibir planes.'))
       else if (show)
-        toast.success(`Enviado al juego: pulsa J en «${current.name || 'el mundo'}» para verlo`)
-      else toast.success('Quitado del juego')
+        toast.success(
+          tr('Enviado al juego: pulsa J en «{0}» para verlo', current.name || tr('el mundo'))
+        )
+      else toast.success(tr('Quitado del juego'))
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'No se pudo enviar al juego')
+      toast.error(err instanceof Error ? err.message : tr('No se pudo enviar al juego'))
     }
   }
 
@@ -326,7 +329,7 @@ export function MapView({ shots }: { shots: ScreenshotEntry[] }) {
     if (!current) return
     const v = value.trim()
     if (v && parseSeed(v) === null) {
-      toast.error('Semilla no válida: debe ser un número entero de hasta 64 bits.')
+      toast.error(tr('Semilla no válida: debe ser un número entero de hasta 64 bits.'))
       return
     }
     const next = { ...(seeds ?? {}) }
@@ -341,9 +344,9 @@ export function MapView({ shots }: { shots: ScreenshotEntry[] }) {
     try {
       const res = await api.library.exportWaypoints(
         located.map((l) => l.shot.id),
-        current.name || 'Sin mundo'
+        current.name || tr('Sin mundo')
       )
-      if (res) toast.success(`${res.count} waypoints guardados en ${res.path}`)
+      if (res) toast.success(tr('{0} waypoints guardados en {1}', res.count, res.path))
     } catch (err) {
       toast.error(err instanceof Error ? err.message : String(err))
     }
@@ -354,10 +357,11 @@ export function MapView({ shots }: { shots: ScreenshotEntry[] }) {
       <div className="map-view">
         <div className="empty-state">
           <Icon name="compass" size={48} />
-          <h3>El mapa está vacío</h3>
+          <h3>{tr('El mapa está vacío')}</h3>
           <p>
-            Las capturas con coordenadas (con el F3 abierto o con el mod F2+F3 Companion) aparecerán
-            aquí como puntos sobre el mundo.
+            {tr(
+              'Las capturas con coordenadas (con el F3 abierto o con el mod F2+F3 Companion) aparecerán aquí como puntos sobre el mundo.'
+            )}
           </p>
         </div>
       </div>
@@ -370,7 +374,7 @@ export function MapView({ shots }: { shots: ScreenshotEntry[] }) {
     measure.length === 2
       ? Math.hypot(measure[1][0] - measure[0][0], measure[1][1] - measure[0][1])
       : null
-  const otherName = dimension === 'minecraft:the_nether' ? 'Overworld' : 'Nether'
+  const otherName = dimension === 'minecraft:the_nether' ? tr('Overworld') : tr('Nether')
 
   return (
     <div className="map-view">
@@ -382,11 +386,11 @@ export function MapView({ shots }: { shots: ScreenshotEntry[] }) {
             setWorld(e.target.value)
             setEditingSeed(false)
           }}
-          aria-label="Mundo"
+          aria-label={tr('Mundo')}
         >
           {worlds.map((w) => (
             <option key={w.name} value={w.name}>
-              {w.name === NO_WORLD ? 'Sin mundo asignado' : w.name} ({w.located})
+              {w.name === NO_WORLD ? tr('Sin mundo asignado') : w.name} ({w.located})
             </option>
           ))}
         </select>
@@ -396,7 +400,7 @@ export function MapView({ shots }: { shots: ScreenshotEntry[] }) {
               key={d}
               className={d === dimension ? 'on' : ''}
               onClick={() => setDimension(d)}
-              title={dimsWithShots.has(d) ? undefined : 'Sin capturas en esta dimensión'}
+              title={dimsWithShots.has(d) ? undefined : tr('Sin capturas en esta dimensión')}
             >
               {dimensionName(d)}
             </button>
@@ -405,24 +409,24 @@ export function MapView({ shots }: { shots: ScreenshotEntry[] }) {
         {dimension !== 'minecraft:the_end' && (
           <label
             className="checkbox"
-            title="Muestra las capturas de la otra dimensión convertidas (×8 / ÷8)"
+            title={tr('Muestra las capturas de la otra dimensión convertidas (×8 / ÷8)')}
           >
             <input
               type="checkbox"
               checked={overlay}
               onChange={(e) => setOverlay(e.target.checked)}
             />
-            {otherName} superpuesto
+            {otherName} {tr('superpuesto')}
           </label>
         )}
-        <label className="checkbox" title="Chunks (16 bloques) y regiones (512 bloques)">
+        <label className="checkbox" title={tr('Chunks (16 bloques) y regiones (512 bloques)')}>
           <input type="checkbox" checked={grid} onChange={(e) => setGrid(e.target.checked)} />
-          Cuadrícula
+          {tr('Cuadrícula')}
         </label>
         {dimension === 'minecraft:overworld' && (
           <label
             className="checkbox"
-            title={seed === null ? 'Necesita la semilla del mundo' : undefined}
+            title={seed === null ? tr('Necesita la semilla del mundo') : undefined}
           >
             <input
               type="checkbox"
@@ -430,7 +434,7 @@ export function MapView({ shots }: { shots: ScreenshotEntry[] }) {
               disabled={seed === null}
               onChange={(e) => setSlimeOn(e.target.checked)}
             />
-            Chunks slime
+            {tr('Chunks slime')}
           </label>
         )}
         <div className="toolbar-spacer" />
@@ -440,9 +444,9 @@ export function MapView({ shots }: { shots: ScreenshotEntry[] }) {
             setTool(measuring ? 'none' : 'measure')
             setMeasure([])
           }}
-          title="Haz clic en dos puntos del mapa para medir la distancia"
+          title={tr('Haz clic en dos puntos del mapa para medir la distancia')}
         >
-          <Icon name="pin" size={15} /> Medir
+          <Icon name="pin" size={15} /> {tr('Medir')}
         </button>
         <button
           className={`btn small ${tool === 'afk' ? 'primary' : ''}`}
@@ -450,9 +454,9 @@ export function MapView({ shots }: { shots: ScreenshotEntry[] }) {
             setTool(tool === 'afk' ? 'none' : 'afk')
             setMeasure([])
           }}
-          title="Dónde quedarse AFK para que tus granjas funcionen a la vez"
+          title={tr('Dónde quedarse AFK para que tus granjas funcionen a la vez')}
         >
-          <Icon name="gauge" size={15} /> AFK
+          <Icon name="gauge" size={15} /> {tr('AFK')}
         </button>
         <button
           className={`btn small ${tool === 'portal' ? 'primary' : ''}`}
@@ -460,9 +464,9 @@ export function MapView({ shots }: { shots: ScreenshotEntry[] }) {
             setTool(tool === 'portal' ? 'none' : 'portal')
             setMeasure([])
           }}
-          title="Planifica un portal del Nether y comprueba que enlaza en ambos sentidos"
+          title={tr('Planifica un portal del Nether y comprueba que enlaza en ambos sentidos')}
         >
-          <Icon name="layers" size={15} /> Portales
+          <Icon name="layers" size={15} /> {tr('Portales')}
         </button>
         <button
           className="btn small"
@@ -470,16 +474,16 @@ export function MapView({ shots }: { shots: ScreenshotEntry[] }) {
             const own = points.filter((p) => !p.overlay)
             setView(fitView(own.length ? own : points, size.w, size.h))
           }}
-          title="Encuadrar todas las capturas"
+          title={tr('Encuadrar todas las capturas')}
         >
           <Icon name="fit" size={15} />
         </button>
         <button
           className="btn small"
           onClick={() => void exportWaypoints()}
-          title="Waypoints para Xaero's Minimap (JourneyMap 6 también los importa)"
+          title={tr("Waypoints para Xaero's Minimap (JourneyMap 6 también los importa)")}
         >
-          <Icon name="download" size={15} /> Waypoints
+          <Icon name="download" size={15} /> {tr('Waypoints')}
         </button>
       </div>
 
@@ -497,29 +501,29 @@ export function MapView({ shots }: { shots: ScreenshotEntry[] }) {
               className="search-input"
               autoFocus
               defaultValue={seeds?.[current.name] ?? ''}
-              placeholder="Semilla del mundo (/seed en el juego)"
+              placeholder={tr('Semilla del mundo (/seed en el juego)')}
             />
             <button className="btn small primary" type="submit">
-              Guardar
+              {tr('Guardar')}
             </button>
             <button className="btn small ghost" type="button" onClick={() => setEditingSeed(false)}>
-              Cancelar
+              {tr('Cancelar')}
             </button>
           </form>
         ) : current.seed ? (
           <>
-            Semilla <code>{current.seed}</code>{' '}
-            {current.seedSource === 'mod' ? '(del mod)' : '(escrita por ti)'} ·{' '}
+            {tr('Semilla')} <code>{current.seed}</code>{' '}
+            {current.seedSource === 'mod' ? tr('(del mod)') : tr('(escrita por ti)')} ·{' '}
             <button className="link" onClick={() => setEditingSeed(true)}>
-              cambiar
+              {tr('cambiar')}
             </button>
           </>
         ) : (
           <>
-            Sin semilla: los chunks slime necesitan la semilla del mundo (en el juego:{' '}
-            <code>/seed</code>) ·{' '}
+            {tr('Sin semilla: los chunks slime necesitan la semilla del mundo (en el juego:')}{' '}
+            <code>{tr('/seed')}</code>) ·{' '}
             <button className="link" onClick={() => setEditingSeed(true)}>
-              añadir semilla
+              {tr('añadir semilla')}
             </button>
           </>
         )}
@@ -588,33 +592,35 @@ export function MapView({ shots }: { shots: ScreenshotEntry[] }) {
         <div className="map-hud">
           <div className="map-scale">
             <span style={{ width: bar.px }} />
-            {fmt(bar.blocks)} bloques
+            {fmt(bar.blocks)} {tr('bloques')}
           </div>
           {slimeHidden && slimeOn && (
-            <span className="chip">Acerca el mapa para ver los chunks slime</span>
+            <span className="chip">{tr('Acerca el mapa para ver los chunks slime')}</span>
           )}
           {dist !== null && (
             <span className="chip measure">
-              {fmt(dist)} bloques
-              {dimension === 'minecraft:overworld' && ` · ${fmt(dist / 8)} en el Nether`}
-              {dimension === 'minecraft:the_nether' && ` · ${fmt(dist * 8)} en el Overworld`}
+              {fmt(dist)} {tr('bloques')}
+              {dimension === 'minecraft:overworld' && tr(' · {0} en el Nether', fmt(dist / 8))}
+              {dimension === 'minecraft:the_nether' && tr(' · {0} en el Overworld', fmt(dist * 8))}
             </span>
           )}
           {measuring && measure.length < 2 && (
             <span className="chip">
-              Haz clic en {measure.length ? 'el segundo' : 'el primer'} punto
+              {tr('Haz clic en')} {measure.length ? tr('el segundo') : tr('el primer')}{' '}
+              {tr('punto')}
             </span>
           )}
           <div className="toolbar-spacer" />
           {cursorWorld && (
             <span className="map-cursor">
-              X {fmt(cursorWorld[0])} · Z {fmt(cursorWorld[1])} · chunk{' '}
+              X {fmt(cursorWorld[0])} · Z {fmt(cursorWorld[1])} {tr('· chunk')}{' '}
               {Math.floor(cursorWorld[0] / 16)}, {Math.floor(cursorWorld[1] / 16)} · r.
-              {Math.floor(cursorWorld[0] / 512)}.{Math.floor(cursorWorld[1] / 512)}.mca
+              {Math.floor(cursorWorld[0] / 512)}.{Math.floor(cursorWorld[1] / 512)}
+              {tr('.mca')}
               {slime &&
                 dimension === 'minecraft:overworld' &&
                 slime(Math.floor(cursorWorld[0] / 16), Math.floor(cursorWorld[1] / 16)) &&
-                ' · slime'}
+                tr(' · slime')}
             </span>
           )}
         </div>

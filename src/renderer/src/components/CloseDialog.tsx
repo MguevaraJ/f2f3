@@ -3,6 +3,7 @@ import type { CloseChoice } from '@shared/ipc'
 import { api } from '../lib/api'
 import { useSettings } from '../store/settings'
 import { Icon } from './icons'
+import { tr } from '@shared/i18n'
 
 /** "Close F2+F3 or keep it in the background?" — asked when the window is closed. */
 export function CloseDialog() {
@@ -40,9 +41,9 @@ export function CloseDialog() {
 
   const whereToFind = trayIcon
     ? platform === 'darwin'
-      ? 'Lo encontrarás en la barra de menús, arriba a la derecha.'
-      : 'Lo encontrarás en la bandeja del sistema, junto al reloj.'
-    : 'Para volver a abrirlo, ejecuta F2+F3 de nuevo.'
+      ? tr('Lo encontrarás en la barra de menús, arriba a la derecha.')
+      : tr('Lo encontrarás en la bandeja del sistema, junto al reloj.')
+    : tr('Para volver a abrirlo, ejecuta F2+F3 de nuevo.')
 
   return (
     <div
@@ -51,12 +52,12 @@ export function CloseDialog() {
     >
       <div className="modal close-modal" role="dialog" aria-modal aria-labelledby="close-title">
         <div className="modal-head">
-          <h2 id="close-title">¿Cerrar F2+F3?</h2>
+          <h2 id="close-title">{tr('¿Cerrar F2+F3?')}</h2>
           <button
             type="button"
             className="icon-btn"
             onClick={() => answer('cancel')}
-            aria-label="Cancelar"
+            aria-label={tr('Cancelar')}
           >
             <Icon name="close" />
           </button>
@@ -65,8 +66,11 @@ export function CloseDialog() {
           <div className="close-option">
             <Icon name="cloud" size={20} />
             <p>
-              <b>En segundo plano</b> seguirás recibiendo el aviso de cada captura nueva con sus
-              coordenadas, y los respaldos en Google Drive continuarán. {whereToFind}
+              <b>{tr('En segundo plano')}</b>{' '}
+              {tr(
+                'seguirás recibiendo el aviso de cada captura nueva con sus coordenadas, y los respaldos en Google Drive continuarán.'
+              )}{' '}
+              {whereToFind}
             </p>
           </div>
           <label className="checkbox remember">
@@ -75,12 +79,12 @@ export function CloseDialog() {
               checked={remember}
               onChange={(e) => setRemember(e.target.checked)}
             />
-            No volver a preguntar (puedes cambiarlo en Ajustes)
+            {tr('No volver a preguntar (puedes cambiarlo en Ajustes)')}
           </label>
         </div>
         <div className="modal-foot">
           <button type="button" className="btn" onClick={() => answer('quit')}>
-            Cerrar F2+F3
+            {tr('Cerrar F2+F3')}
           </button>
           <button
             type="button"
@@ -88,7 +92,7 @@ export function CloseDialog() {
             autoFocus
             onClick={() => answer('background')}
           >
-            Dejar en segundo plano
+            {tr('Dejar en segundo plano')}
           </button>
         </div>
       </div>

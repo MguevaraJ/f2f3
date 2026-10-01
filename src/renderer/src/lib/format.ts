@@ -1,7 +1,8 @@
-const dateFmt = new Intl.DateTimeFormat('es', { dateStyle: 'long' })
-const dateTimeFmt = new Intl.DateTimeFormat('es', { dateStyle: 'medium', timeStyle: 'short' })
-const timeFmt = new Intl.DateTimeFormat('es', { timeStyle: 'short' })
-const rel = new Intl.RelativeTimeFormat('es', { numeric: 'auto' })
+import { getLang, tr } from '@shared/i18n'
+const dateFmt = new Intl.DateTimeFormat(getLang(), { dateStyle: 'long' })
+const dateTimeFmt = new Intl.DateTimeFormat(getLang(), { dateStyle: 'medium', timeStyle: 'short' })
+const timeFmt = new Intl.DateTimeFormat(getLang(), { timeStyle: 'short' })
+const rel = new Intl.RelativeTimeFormat(getLang(), { numeric: 'auto' })
 
 export const formatDate = (t: number): string => dateFmt.format(t)
 export const formatDateTime = (t: number): string => dateTimeFmt.format(t)
@@ -20,11 +21,11 @@ export function formatDayHeading(t: number): string {
       new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime()) /
       86_400_000
   )
-  if (diffDays === 0) return 'Hoy'
-  if (diffDays === 1) return 'Ayer'
+  if (diffDays === 0) return tr('Hoy')
+  if (diffDays === 1) return tr('Ayer')
   const s = formatDate(t)
   return diffDays < 7
-    ? `${capitalize(new Intl.DateTimeFormat('es', { weekday: 'long' }).format(t))}, ${s}`
+    ? `${capitalize(new Intl.DateTimeFormat(getLang(), { weekday: 'long' }).format(t))}, ${s}`
     : s
 }
 
@@ -40,7 +41,7 @@ export function formatRelative(t: number): string {
   ]
   for (const [unit, s] of units)
     if (Math.abs(sec) >= s) return rel.format(Math.round(sec / s), unit)
-  return 'hace un momento'
+  return tr('hace un momento')
 }
 
 export function formatBytes(n: number): string {
@@ -56,5 +57,5 @@ export function formatNumber(n: number, decimals = 3): string {
 }
 
 export function plural(n: number, one: string, many: string): string {
-  return `${n.toLocaleString('es')} ${n === 1 ? one : many}`
+  return `${n.toLocaleString(getLang())} ${n === 1 ? one : many}`
 }

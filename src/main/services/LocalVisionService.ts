@@ -9,6 +9,7 @@ import type { LocalWorkerReply } from '../workers/localvision.protocol'
 import type { AnalysisService } from './AnalysisService'
 import type { LibraryService } from './LibraryService'
 import type { SettingsService } from './SettingsService'
+import { tr } from '@shared/i18n'
 
 /**
  * Version of the local classifier (model + labels + thresholds). Bump it after
@@ -194,7 +195,7 @@ export class LocalVisionService extends EventEmitter<{ status: [LocalModelStatus
 
 function friendly(message: string): string {
   if (/fetch|network|ENOTFOUND|ECONNREFUSED|getaddrinfo/i.test(message))
-    return 'No se pudo descargar el modelo. Revisa tu conexión a internet e inténtalo de nuevo.'
-  if (/ENOSPC/i.test(message)) return 'No hay espacio suficiente en el disco para el modelo.'
-  return `No se pudo cargar el modelo local: ${message}`
+    return tr('No se pudo descargar el modelo. Revisa tu conexión a internet e inténtalo de nuevo.')
+  if (/ENOSPC/i.test(message)) return tr('No hay espacio suficiente en el disco para el modelo.')
+  return tr('No se pudo cargar el modelo local: {0}', message)
 }

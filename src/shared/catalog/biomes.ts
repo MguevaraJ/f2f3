@@ -1,3 +1,5 @@
+import { getLang } from '../i18n'
+
 /** Vanilla biomes with their official Spanish names and a representative colour for UI chips. */
 export type BiomeDimension = 'overworld' | 'nether' | 'end'
 
@@ -8,9 +10,13 @@ export interface BiomeDef {
   color: string
 }
 
+/** The catalog's Spanish name, or the id made readable when the app is in English ("dark_forest" → "Dark Forest"). */
+export const localName = (id: string, spanish: string): string =>
+  getLang() === 'en' ? prettifyId(id) : spanish
+
 const b = (id: string, name: string, dimension: BiomeDimension, color: string): BiomeDef => ({
   id: `minecraft:${id}`,
-  name,
+  name: localName(id, name),
   dimension,
   color
 })

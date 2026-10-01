@@ -7,6 +7,7 @@ import { useLibrary } from '../store/library'
 import { useUi } from '../store/ui'
 import { GrassBlock, Icon } from './icons'
 import { McText } from './McText'
+import { tr } from '@shared/i18n'
 
 /**
  * The launcher's play bar: installation picker on the left, the big green
@@ -53,9 +54,9 @@ export function BottomBar({ visibleIds }: { visibleIds: string[] }) {
                     recursive: e.target.value === ''
                   })
             }
-            aria-label="Carpeta"
+            aria-label={tr('Carpeta')}
           >
-            <option value="*">Todas las capturas</option>
+            <option value="*">{tr('Todas las capturas')}</option>
             {folders.map((f) => (
               <option key={f.path} value={f.path}>
                 {f.label}
@@ -63,7 +64,7 @@ export function BottomBar({ visibleIds }: { visibleIds: string[] }) {
             ))}
           </select>
           <span className="playbar-install-sub">
-            {plural(visibleIds.length, 'captura visible', 'capturas visibles')}
+            {plural(visibleIds.length, tr('captura visible'), tr('capturas visibles'))}
           </span>
         </div>
       </div>
@@ -76,7 +77,7 @@ export function BottomBar({ visibleIds }: { visibleIds: string[] }) {
           openViewer(selection[0] ?? visibleIds[0] ?? null)
         }}
       >
-        <McText text="VER" scale={4} color="#ffffff" shadow />
+        <McText text={tr('VER')} scale={4} color="#ffffff" shadow />
       </button>
 
       <div className="playbar-right">
@@ -84,14 +85,14 @@ export function BottomBar({ visibleIds }: { visibleIds: string[] }) {
           <div className="playbar-progress" title={busy.current}>
             <span>
               {busy.kind === 'vision'
-                ? 'Analizando con IA'
+                ? tr('Analizando con IA')
                 : busy.kind === 'backup'
                   ? backup?.phase === 'restoring'
-                    ? 'Restaurando desde Drive'
+                    ? tr('Restaurando desde Drive')
                     : backup?.phase === 'scanning'
-                      ? 'Preparando respaldo'
-                      : 'Respaldando en Drive'
-                  : 'Leyendo F3'}{' '}
+                      ? tr('Preparando respaldo')
+                      : tr('Respaldando en Drive')
+                  : tr('Leyendo F3')}{' '}
               · {busy.done}/{busy.total}
             </span>
             <div className="progress">
@@ -107,21 +108,22 @@ export function BottomBar({ visibleIds }: { visibleIds: string[] }) {
               className="btn small"
               disabled={!targetIds.length}
               onClick={() => void reanalyze(targetIds)}
-              title="Volver a leer el F3 de las capturas seleccionadas (o visibles)"
+              title={tr('Volver a leer el F3 de las capturas seleccionadas (o visibles)')}
             >
-              <Icon name="refresh" size={15} /> Reanalizar
+              <Icon name="refresh" size={15} /> {tr('Reanalizar')}
             </button>
             <button
               className="btn small"
               disabled={!targetIds.length}
               onClick={() => void analyzeWithAi(targetIds)}
-              title="Detectar bioma y mobs con Claude"
+              title={tr('Detectar bioma y mobs con Claude')}
             >
-              <Icon name="sparkles" size={15} /> IA ({targetIds.length})
+              <Icon name="sparkles" size={15} /> {tr('IA (')}
+              {targetIds.length})
             </button>
             <button
               className="icon-btn"
-              title="Abrir carpeta"
+              title={tr('Abrir carpeta')}
               onClick={() => void api.library.reveal('')}
             >
               <Icon name="external" size={16} />

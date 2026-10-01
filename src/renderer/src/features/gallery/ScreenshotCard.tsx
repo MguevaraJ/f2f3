@@ -5,6 +5,7 @@ import type { ScreenshotEntry } from '@shared/types'
 import { F3Badge, Icon, ModBadge } from '../../components/icons'
 import { DRAG_MIME } from '../../components/Sidebar'
 import { formatTime } from '../../lib/format'
+import { tr } from '@shared/i18n'
 
 interface Props {
   shot: ScreenshotEntry
@@ -55,7 +56,7 @@ export const ScreenshotCard = memo(function ScreenshotCard({
         />
         <button
           className="card-check"
-          aria-label={selected ? 'Quitar de la selección' : 'Seleccionar'}
+          aria-label={selected ? tr('Quitar de la selección') : tr('Seleccionar')}
           aria-pressed={selected}
           onClick={(e) => {
             e.stopPropagation()
@@ -72,7 +73,9 @@ export const ScreenshotCard = memo(function ScreenshotCard({
             </span>
           )}
           {!!a?.mobs.length && (
-            <span className="card-mobs">{a.mobs.reduce((n, m) => n + m.count, 0)} mob</span>
+            <span className="card-mobs">
+              {a.mobs.reduce((n, m) => n + m.count, 0)} {tr('mob')}
+            </span>
           )}
         </div>
         {pos && (
@@ -93,7 +96,7 @@ export const ScreenshotCard = memo(function ScreenshotCard({
           {a?.biome && (
             <span
               className="card-biome"
-              title={`${biomeName(a.biome.id)}${a.biome.source === 'heuristic' ? ' (estimado)' : ''}`}
+              title={`${biomeName(a.biome.id)}${a.biome.source === 'heuristic' ? tr(' (estimado)') : ''}`}
             >
               <span
                 className="dot"

@@ -2,6 +2,7 @@ import { app, BrowserWindow, ipcMain, Menu, nativeImage, powerMonitor, Tray } fr
 import { IPC, type CloseChoice } from '@shared/ipc'
 import type { SettingsService } from './services/SettingsService'
 import trayIconPath from '../../resources/icon.png?asset'
+import { tr } from '@shared/i18n'
 
 interface Deps {
   settings: SettingsService
@@ -90,8 +91,8 @@ export class BackgroundController {
     if (this.tray && !this.hintShown && process.platform === 'win32') {
       this.hintShown = true
       this.tray.displayBalloon({
-        title: 'F2+F3 sigue funcionando',
-        content: 'Te avisará de las capturas nuevas. Ábrelo desde aquí cuando quieras.',
+        title: tr('F2+F3 sigue funcionando'),
+        content: tr('Te avisará de las capturas nuevas. Ábrelo desde aquí cuando quieras.'),
         iconType: 'info'
       })
     }
@@ -120,20 +121,20 @@ export class BackgroundController {
     const { notifyNewShots } = this.deps.settings.value
     this.tray.setContextMenu(
       Menu.buildFromTemplate([
-        { label: 'Abrir F2+F3', click: () => this.deps.showWindow() },
+        { label: tr('Abrir F2+F3'), click: () => this.deps.showWindow() },
         {
-          label: 'Avisar de capturas nuevas',
+          label: tr('Avisar de capturas nuevas'),
           type: 'checkbox',
           checked: notifyNewShots,
           click: (item) => this.deps.settings.update({ notifyNewShots: item.checked })
         },
         {
-          label: 'Probar aviso',
+          label: tr('Probar aviso'),
           enabled: notifyNewShots,
           click: () => this.deps.testNotification()
         },
         { type: 'separator' },
-        { label: 'Salir de F2+F3', click: () => this.quit() }
+        { label: tr('Salir de F2+F3'), click: () => this.quit() }
       ])
     )
   }

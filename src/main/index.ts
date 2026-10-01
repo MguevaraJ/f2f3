@@ -1,3 +1,5 @@
+// Must stay first: it sets the language the other modules' texts are written in.
+import './language'
 import { app, BrowserWindow, clipboard, globalShortcut, ipcMain, session } from 'electron'
 import { existsSync, renameSync } from 'node:fs'
 import { join } from 'node:path'
@@ -10,6 +12,7 @@ import { CapturePopup } from './notifier/CapturePopup'
 import { registerSchemeHandler, registerSchemePrivileges } from './protocol'
 import { createServices, type Services } from './services'
 import { createMainWindow } from './window'
+import { tr } from '@shared/i18n'
 
 registerSchemePrivileges()
 
@@ -101,7 +104,7 @@ app.whenReady().then(() => {
   })
   const testNotification = async (): Promise<void> => {
     const latest = (await library.snapshot()).screenshots[0]
-    if (!latest) throw new Error('No hay capturas para mostrar')
+    if (!latest) throw new Error(tr('No hay capturas para mostrar'))
     await popup?.showCapture({ ...latest, analysis: null })
     setTimeout(() => void popup?.showAnalyzed(latest), 700)
   }
@@ -138,7 +141,7 @@ app.whenReady().then(() => {
     } catch (err) {
       broadcast(IPC.events.notice, {
         level: 'error',
-        message: `No se pudo configurar el inicio automático: ${String(err)}`
+        message: tr('No se pudo configurar el inicio automático: {0}', String(err))
       })
     }
   }

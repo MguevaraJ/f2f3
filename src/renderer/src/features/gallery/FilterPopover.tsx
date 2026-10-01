@@ -7,14 +7,15 @@ import type { InfoSource } from '@shared/types'
 import { Icon } from '../../components/icons'
 import { type Filters } from '../../lib/query'
 import { useUi } from '../../store/ui'
+import { tr } from '@shared/i18n'
 
 const SOURCES: { id: InfoSource; label: string }[] = [
-  { id: 'mod', label: 'Mod (exacto)' },
-  { id: 'f3', label: 'F3 (exacto)' },
-  { id: 'local', label: 'Modelo local' },
-  { id: 'vision', label: 'IA avanzada' },
-  { id: 'heuristic', label: 'Colores' },
-  { id: 'manual', label: 'Manual' }
+  { id: 'mod', label: tr('Mod (exacto)') },
+  { id: 'f3', label: tr('F3 (exacto)') },
+  { id: 'local', label: tr('Modelo local') },
+  { id: 'vision', label: tr('IA avanzada') },
+  { id: 'heuristic', label: tr('Colores') },
+  { id: 'manual', label: tr('Manual') }
 ]
 
 interface Props {
@@ -59,11 +60,11 @@ export function FilterPopover({ facets, onClose }: Props) {
   }
 
   return (
-    <div className="popover filter-popover" ref={ref} role="dialog" aria-label="Filtros">
+    <div className="popover filter-popover" ref={ref} role="dialog" aria-label={tr('Filtros')}>
       <div className="popover-head">
-        <strong>Filtros</strong>
+        <strong>{tr('Filtros')}</strong>
         <button className="btn ghost small" onClick={resetFilters}>
-          Limpiar todo
+          {tr('Limpiar todo')}
         </button>
       </div>
 
@@ -74,7 +75,7 @@ export function FilterPopover({ facets, onClose }: Props) {
             checked={filters.onlyF3}
             onChange={(e) => setFilters({ onlyF3: e.target.checked })}
           />
-          Solo con F3
+          {tr('Solo con F3')}
         </label>
         <label className="checkbox">
           <input
@@ -82,12 +83,12 @@ export function FilterPopover({ facets, onClose }: Props) {
             checked={filters.onlyFavorites}
             onChange={(e) => setFilters({ onlyFavorites: e.target.checked })}
           />
-          Solo favoritas
+          {tr('Solo favoritas')}
         </label>
       </div>
 
       <div className="filter-group">
-        <div className="filter-label">Dimensión</div>
+        <div className="filter-label">{tr('Dimensión')}</div>
         <div className="chip-row">
           {(facets.dimensions.length ? facets.dimensions : Object.keys(DIMENSIONS)).map((d) => (
             <button
@@ -103,7 +104,7 @@ export function FilterPopover({ facets, onClose }: Props) {
       </div>
 
       <div className="filter-group">
-        <div className="filter-label">Bioma</div>
+        <div className="filter-label">{tr('Bioma')}</div>
         {facets.biomes.length ? (
           <div className="chip-row scroll">
             {facets.biomes.map((b) => (
@@ -118,7 +119,7 @@ export function FilterPopover({ facets, onClose }: Props) {
             ))}
           </div>
         ) : (
-          <p className="muted small">Aún no hay biomas detectados.</p>
+          <p className="muted small">{tr('Aún no hay biomas detectados.')}</p>
         )}
         <div className="chip-row">
           {SOURCES.map((s) => (
@@ -126,7 +127,7 @@ export function FilterPopover({ facets, onClose }: Props) {
               key={s.id}
               className={`chip ${filters.biomeSources.includes(s.id) ? 'on' : ''}`}
               onClick={() => toggle('biomeSources', s.id)}
-              title="Origen del dato de bioma"
+              title={tr('Origen del dato de bioma')}
             >
               {s.label}
             </button>
@@ -135,7 +136,7 @@ export function FilterPopover({ facets, onClose }: Props) {
       </div>
 
       <div className="filter-group">
-        <div className="filter-label">Mobs</div>
+        <div className="filter-label">{tr('Mobs')}</div>
         {facets.mobs.length ? (
           <div className="chip-row scroll">
             {facets.mobs.map((m) => (
@@ -149,12 +150,12 @@ export function FilterPopover({ facets, onClose }: Props) {
             ))}
           </div>
         ) : (
-          <p className="muted small">Sin mobs detectados todavía.</p>
+          <p className="muted small">{tr('Sin mobs detectados todavía.')}</p>
         )}
       </div>
 
       <div className="filter-group">
-        <div className="filter-label">Estructuras</div>
+        <div className="filter-label">{tr('Estructuras')}</div>
         {facets.structures.length ? (
           <div className="chip-row scroll">
             {facets.structures.map((st) => (
@@ -168,19 +169,21 @@ export function FilterPopover({ facets, onClose }: Props) {
             ))}
           </div>
         ) : (
-          <p className="muted small">Las estructuras las detecta la IA avanzada (opcional).</p>
+          <p className="muted small">
+            {tr('Las estructuras las detecta la IA avanzada (opcional).')}
+          </p>
         )}
       </div>
 
       <div className="filter-group">
-        <div className="filter-label">Fecha</div>
+        <div className="filter-label">{tr('Fecha')}</div>
         <div className="date-row">
           <input
             className="input"
             type="date"
             value={filters.from}
             onChange={(e) => setFilters({ from: e.target.value })}
-            aria-label="Desde"
+            aria-label={tr('Desde')}
           />
           <Icon name="chevronRight" size={16} />
           <input
@@ -188,12 +191,12 @@ export function FilterPopover({ facets, onClose }: Props) {
             type="date"
             value={filters.to}
             onChange={(e) => setFilters({ to: e.target.value })}
-            aria-label="Hasta"
+            aria-label={tr('Hasta')}
           />
         </div>
       </div>
       <p className="muted small hint">
-        Tip: busca por coordenadas con <code>x&gt;1000</code>, <code>y&lt;0</code> o{' '}
+        {tr('Tip: busca por coordenadas con')} <code>x&gt;1000</code>, <code>y&lt;0</code> o{' '}
         <code>z=-84</code>.
       </p>
     </div>

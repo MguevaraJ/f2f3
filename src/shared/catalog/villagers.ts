@@ -1,4 +1,5 @@
-import { prettifyId } from './biomes'
+import { localName, prettifyId } from './biomes'
+import { tr } from '../i18n'
 
 /** Spanish names as the game shows them (es_es). */
 const PROFESSIONS: Record<string, string> = {
@@ -19,7 +20,7 @@ const PROFESSIONS: Record<string, string> = {
   weaponsmith: 'Herrero de armas'
 }
 
-const LEVELS = ['Novato', 'Aprendiz', 'Oficial', 'Experto', 'Maestro']
+const LEVELS = [tr('Novato'), tr('Aprendiz'), tr('Oficial'), tr('Experto'), tr('Maestro')]
 
 const ENCHANTMENTS: Record<string, string> = {
   aqua_affinity: 'Afinidad acuática',
@@ -70,11 +71,17 @@ const ROMAN = ['', 'I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X']
 
 const path = (id: string): string => id.split(':').pop() ?? id
 
-export const professionName = (id: string): string => PROFESSIONS[path(id)] ?? prettifyId(id)
+const named = (id: string, names: Record<string, string>): string => {
+  const spanish = names[path(id)]
+  return spanish ? localName(id, spanish) : prettifyId(id)
+}
 
-export const villagerLevelName = (level: number): string => LEVELS[level - 1] ?? `Nivel ${level}`
+export const professionName = (id: string): string => named(id, PROFESSIONS)
+
+export const villagerLevelName = (level: number): string =>
+  LEVELS[level - 1] ?? tr('Nivel {0}', level)
 
 export function enchantmentName(id: string, level: number): string {
-  const name = ENCHANTMENTS[path(id)] ?? prettifyId(id)
+  const name = named(id, ENCHANTMENTS)
   return `${name} ${ROMAN[level] ?? level}`
 }

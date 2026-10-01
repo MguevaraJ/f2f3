@@ -1,4 +1,5 @@
 import { useEffect, useMemo } from 'react'
+import { getLang, LANG_STORAGE_KEY } from '@shared/i18n'
 import { BottomBar } from './components/BottomBar'
 import { CloseDialog } from './components/CloseDialog'
 import { Onboarding } from './components/Onboarding'
@@ -49,6 +50,16 @@ export function App() {
       offOpen()
     }
   }, [loadSettings])
+
+  // The saved language wins over the one this window started with (first run, another window).
+  const language = useSettings((s) => s.settings?.language)
+  useEffect(() => {
+    document.documentElement.lang = getLang()
+    if (language && language !== getLang()) {
+      localStorage.setItem(LANG_STORAGE_KEY, language)
+      location.reload()
+    }
+  }, [language])
 
   useEffect(() => {
     if (thumbSize) document.documentElement.style.setProperty('--thumb', `${thumbSize}px`)

@@ -5,6 +5,7 @@ import type { CapturePopupPayload } from '@shared/types'
 import { Icon } from '../components/icons'
 import { blockString, tpCommand } from '../lib/coords'
 import { formatTime } from '../lib/format'
+import { tr } from '@shared/i18n'
 
 const popup = window.f2f3Popup
 /** Visible time after the last update; paused while hovered. */
@@ -76,10 +77,14 @@ export function CapturePopupView() {
     <div className={`popup ${hover ? 'hover' : ''}`} onMouseEnter={pause} onMouseLeave={resume}>
       <div className="popup-head">
         <span className="popup-dot" />
-        <span className="popup-title">Nueva captura</span>
+        <span className="popup-title">{tr('Nueva captura')}</span>
         <span className="popup-time">{formatTime(entry.capturedAt)}</span>
         {more > 0 && <span className="popup-more">+{more}</span>}
-        <button className="popup-close" onClick={() => void popup.dismiss()} aria-label="Cerrar">
+        <button
+          className="popup-close"
+          onClick={() => void popup.dismiss()}
+          aria-label={tr('Cerrar')}
+        >
           <Icon name="close" size={14} />
         </button>
       </div>
@@ -88,18 +93,18 @@ export function CapturePopupView() {
         <button
           className="popup-thumb"
           onClick={() => void popup.open(entry.id)}
-          title="Ver en F2+F3"
+          title={tr('Ver en F2+F3')}
         >
           <img src={thumbUrl(entry.id, entry.mtimeMs)} alt="" />
         </button>
         <div className="popup-info">
           {reading ? (
             <div className="popup-reading">
-              <span className="spinner" /> Leyendo F3…
+              <span className="spinner" /> {tr('Leyendo F3…')}
             </div>
           ) : block ? (
             <>
-              <div className="popup-coords" title="Coordenadas del bloque">
+              <div className="popup-coords" title={tr('Coordenadas del bloque')}>
                 {block.x} <span>{block.y}</span> {block.z}
               </div>
               <div className="popup-meta">
@@ -117,8 +122,8 @@ export function CapturePopupView() {
             </>
           ) : (
             <div className="popup-nof3">
-              <strong>Sin F3</strong>
-              <span>Esta captura no muestra coordenadas.</span>
+              <strong>{tr('Sin F3')}</strong>
+              <span>{tr('Esta captura no muestra coordenadas.')}</span>
             </div>
           )}
           <div className="popup-name">{entry.name}</div>
@@ -133,7 +138,11 @@ export function CapturePopupView() {
               onClick={() => copy(blockString(block), 'coords')}
             >
               <Icon name={copied === 'coords' || copied === 'auto' ? 'check' : 'copy'} size={15} />
-              {copied === 'auto' ? 'Copiadas' : copied === 'coords' ? '¡Copiado!' : 'Copiar X Y Z'}
+              {copied === 'auto'
+                ? tr('Copiadas')
+                : copied === 'coords'
+                  ? tr('¡Copiado!')
+                  : tr('Copiar X Y Z')}
               {shortcut && copied !== 'coords' && copied !== 'auto' && <kbd>{shortcut}</kbd>}
             </button>
             {tp && (
@@ -156,11 +165,11 @@ export function CapturePopupView() {
             }}
           >
             <Icon name={copied === 'image' ? 'check' : 'image'} size={15} />
-            {copied === 'image' ? '¡Copiada!' : 'Copiar imagen'}
+            {copied === 'image' ? tr('¡Copiada!') : tr('Copiar imagen')}
           </button>
         )}
         <button className="pbtn" onClick={() => void popup.open(entry.id)}>
-          <Icon name="eye" size={15} /> Ver
+          <Icon name="eye" size={15} /> {tr('Ver')}
         </button>
       </div>
 

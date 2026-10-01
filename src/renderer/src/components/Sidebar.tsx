@@ -17,6 +17,7 @@ import { GoogleButton } from './GoogleButton'
 import { useUi } from '../store/ui'
 import { formatRelative } from '../lib/format'
 import { CreeperFace, GrassBlock, Icon } from './icons'
+import { tr } from '@shared/i18n'
 
 export const DRAG_MIME = 'application/x-f2f3-ids'
 
@@ -63,9 +64,9 @@ export function Sidebar() {
           <div className="side-account-name">F2+F3</div>
           <div className="side-account-sub" title={snapshot?.roots.map((r) => r.path).join('\n')}>
             {!snapshot
-              ? 'Cargando…'
+              ? tr('Cargando…')
               : snapshot.roots.length > 1
-                ? `${snapshot.roots.length} carpetas de juego`
+                ? tr('{0} carpetas de juego', snapshot.roots.length)
                 : snapshot.root.replace(/^\/home\/[^/]+/, '~')}
           </div>
         </div>
@@ -75,35 +76,35 @@ export function Sidebar() {
         <div className="side-section">
           {item(
             { kind: 'all' },
-            'Todas las capturas',
-            `${counts.all} capturas`,
+            tr('Todas las capturas'),
+            tr('{0} capturas', counts.all),
             <GrassBlock size={30} />
           )}
           {item(
             { kind: 'f3' },
-            'Con coordenadas',
-            `${counts.f3} con coordenadas`,
+            tr('Con coordenadas'),
+            tr('{0} con coordenadas', counts.f3),
             <span className="side-f3">F3</span>
           )}
           {item(
             { kind: 'favorites' },
-            'Favoritas',
-            `${counts.favorites} marcadas`,
+            tr('Favoritas'),
+            tr('{0} marcadas', counts.favorites),
             <span className="side-star">
               <Icon name="star" size={20} fill="currentColor" />
             </span>
           )}
           {item(
             { kind: 'mobs' },
-            'Con mobs',
-            `${counts.mobs} detectadas`,
+            tr('Con mobs'),
+            tr('{0} detectadas', counts.mobs),
             <CreeperFace size={26} />
           )}
         </div>
 
         <div className="side-heading">
-          <span>Carpetas</span>
-          <button className="icon-btn" title="Nueva carpeta" onClick={() => newFolder('')}>
+          <span>{tr('Carpetas')}</span>
+          <button className="icon-btn" title={tr('Nueva carpeta')} onClick={() => newFolder('')}>
             <Icon name="folderPlus" size={16} />
           </button>
         </div>
@@ -116,7 +117,7 @@ export function Sidebar() {
           className={`side-link ${tab === 'settings' ? 'active' : ''}`}
           onClick={() => setTab('settings')}
         >
-          <Icon name="gear" size={18} /> Ajustes
+          <Icon name="gear" size={18} /> {tr('Ajustes')}
         </button>
       </div>
     </aside>
@@ -162,24 +163,32 @@ function FolderTree({ node, depth }: { node: FolderNode; depth: number }) {
         onContextMenu={(e) => {
           e.preventDefault()
           openMenu(e.clientX, e.clientY, [
-            { label: 'Nueva subcarpeta', icon: 'folderPlus', action: () => newFolder(node.path) },
             {
-              label: 'Pegar aquí',
+              label: tr('Nueva subcarpeta'),
+              icon: 'folderPlus',
+              action: () => newFolder(node.path)
+            },
+            {
+              label: tr('Pegar aquí'),
               icon: 'paste',
               disabled: !clipboard,
               action: () => void paste(node.path)
             },
             { separator: true, label: '' },
             {
-              label: 'Mostrar en el explorador',
+              label: tr('Mostrar en el explorador'),
               icon: 'external',
               action: () => void api.library.reveal(node.path || '.')
             },
             ...(node.path
               ? [
-                  { label: 'Renombrar', icon: 'pencil', action: () => renameItem(node.path, true) },
                   {
-                    label: 'Eliminar carpeta',
+                    label: tr('Renombrar'),
+                    icon: 'pencil',
+                    action: () => renameItem(node.path, true)
+                  },
+                  {
+                    label: tr('Eliminar carpeta'),
                     icon: 'trash',
                     danger: true,
                     action: () => deleteItems([node.path], true)
@@ -195,7 +204,7 @@ function FolderTree({ node, depth }: { node: FolderNode; depth: number }) {
             e.stopPropagation()
             setOpen(!open)
           }}
-          aria-label={open ? 'Contraer' : 'Expandir'}
+          aria-label={open ? tr('Contraer') : tr('Expandir')}
         >
           <Icon name="chevronRight" size={14} />
         </button>
@@ -223,39 +232,39 @@ function BackupBadge({ onClick }: { onClick(): void }) {
         <div className="side-backup running">
           <span className="spinner" />
           <span className="side-backup-text">
-            <span>Iniciando sesión…</span>
-            <small>Continúa en tu navegador</small>
+            <span>{tr('Iniciando sesión…')}</span>
+            <small>{tr('Continúa en tu navegador')}</small>
           </span>
         </div>
       )
     return (
       <GoogleButton
         className="google-btn compact side-google"
-        title="Guarda una copia de tus capturas en Google Drive"
+        title={tr('Guarda una copia de tus capturas en Google Drive')}
         onClick={() =>
           void api.backup.connect().then((s) => {
             if (s.account)
-              toast.success(`Sesión iniciada como ${s.account.email}. Empezando el respaldo…`)
+              toast.success(tr('Sesión iniciada como {0}. Empezando el respaldo…', s.account.email))
             else if (s.error) toast.error(s.error)
           })
         }
       >
-        Respaldar con Google
+        {tr('Respaldar con Google')}
       </GoogleButton>
     )
   }
   const running = status.state === 'running'
   const label = running
     ? status.phase === 'uploading'
-      ? `Respaldando ${status.done}/${status.total}`
+      ? tr('Respaldando {0}/{1}', status.done, status.total)
       : status.phase === 'restoring'
-        ? `Restaurando ${status.done}/${status.total}`
-        : 'Preparando respaldo…'
+        ? tr('Restaurando {0}/{1}', status.done, status.total)
+        : tr('Preparando respaldo…')
     : status.state === 'error'
-      ? 'Error en el respaldo'
+      ? tr('Error en el respaldo')
       : status.lastRun
-        ? `Respaldado ${formatRelative(status.lastRun.finishedAt)}`
-        : 'Drive conectado'
+        ? tr('Respaldado {0}', formatRelative(status.lastRun.finishedAt))
+        : tr('Drive conectado')
   return (
     <button
       className={`side-backup ${status.state}`}

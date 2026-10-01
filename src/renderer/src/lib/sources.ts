@@ -1,4 +1,5 @@
 import type { InfoSource, VisionProviderId } from '@shared/types'
+import { tr } from '@shared/i18n'
 
 /**
  * The three levels of information, explained the same way everywhere
@@ -16,33 +17,39 @@ export interface SourceInfo {
 export const SOURCE_INFO: Record<InfoSource, SourceInfo> = {
   mod: {
     tag: 'Mod',
-    label: 'Exacto',
-    hint: 'Guardado por el mod F2+F3 Companion en el momento de la captura. Es el dato real del juego.'
+    label: tr('Exacto'),
+    hint: tr(
+      'Guardado por el mod F2+F3 Companion en el momento de la captura. Es el dato real del juego.'
+    )
   },
   f3: {
     tag: 'F3',
-    label: 'Exacto',
-    hint: 'Leído de la pantalla F3 del juego. Es el dato real, sin estimaciones.'
+    label: tr('Exacto'),
+    hint: tr('Leído de la pantalla F3 del juego. Es el dato real, sin estimaciones.')
   },
   vision: {
     tag: 'IA',
-    label: 'IA avanzada',
-    hint: 'Identificado por el servicio de IA que configuraste. Muy preciso, pero puede equivocarse.'
+    label: tr('IA avanzada'),
+    hint: tr(
+      'Identificado por el servicio de IA que configuraste. Muy preciso, pero puede equivocarse.'
+    )
   },
   local: {
-    tag: 'Local',
-    label: 'Estimado',
-    hint: 'Estimado por el modelo que corre en tu equipo. Solo responde cuando está bastante seguro.'
+    tag: tr('Local'),
+    label: tr('Estimado'),
+    hint: tr(
+      'Estimado por el modelo que corre en tu equipo. Solo responde cuando está bastante seguro.'
+    )
   },
   heuristic: {
-    tag: 'Colores',
-    label: 'Aproximado',
-    hint: 'Aproximado por los colores de la imagen. Es la estimación menos fiable.'
+    tag: tr('Colores'),
+    label: tr('Aproximado'),
+    hint: tr('Aproximado por los colores de la imagen. Es la estimación menos fiable.')
   },
   manual: {
-    tag: 'Manual',
-    label: 'Elegido por ti',
-    hint: 'Lo asignaste tú manualmente.'
+    tag: tr('Manual'),
+    label: tr('Elegido por ti'),
+    hint: tr('Lo asignaste tú manualmente.')
   }
 }
 

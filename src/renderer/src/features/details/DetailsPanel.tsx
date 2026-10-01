@@ -43,20 +43,21 @@ import {
   setBiome,
   toggleFavorite
 } from '../library/actions'
+import { getLang, tr } from '@shared/i18n'
 
 const TIME_ES: Record<string, string> = {
-  day: 'Día',
-  sunrise: 'Amanecer',
-  sunset: 'Atardecer',
-  night: 'Noche',
-  underground: 'Bajo tierra',
+  day: tr('Día'),
+  sunrise: tr('Amanecer'),
+  sunset: tr('Atardecer'),
+  night: tr('Noche'),
+  underground: tr('Bajo tierra'),
   unknown: '—'
 }
 const WEATHER_ES: Record<string, string> = {
-  clear: 'Despejado',
-  rain: 'Lluvia',
-  thunder: 'Tormenta',
-  snow: 'Nieve',
+  clear: tr('Despejado'),
+  rain: tr('Lluvia'),
+  thunder: tr('Tormenta'),
+  snow: tr('Nieve'),
   unknown: '—'
 }
 
@@ -80,7 +81,7 @@ export function DetailsPanel({
           <button
             className="details-name"
             onClick={() => renameItem(shot.id)}
-            title="Renombrar (F2)"
+            title={tr('Renombrar (F2)')}
           >
             {shot.name}
             <Icon name="pencil" size={13} />
@@ -96,7 +97,7 @@ export function DetailsPanel({
         <button
           className={`icon-btn fav ${shot.meta.favorite ? 'on' : ''}`}
           onClick={() => toggleFavorite([shot.id])}
-          title="Favorita (F)"
+          title={tr('Favorita (F)')}
         >
           <Icon name="star" size={20} fill={shot.meta.favorite ? 'currentColor' : 'none'} />
         </button>
@@ -105,37 +106,41 @@ export function DetailsPanel({
       <div className="details-actions">
         {!viewerId && (
           <button className="btn small primary" onClick={() => openViewer(shot.id)}>
-            <Icon name="eye" size={15} /> Ver
+            <Icon name="eye" size={15} /> {tr('Ver')}
           </button>
         )}
-        <button className="btn small" onClick={() => void copyImage(shot.id)} title="Copiar imagen">
+        <button
+          className="btn small"
+          onClick={() => void copyImage(shot.id)}
+          title={tr('Copiar imagen')}
+        >
           <Icon name="image" size={15} />
         </button>
         <button
           className="btn small"
           onClick={() => void reveal(shot.id)}
-          title="Mostrar en carpeta"
+          title={tr('Mostrar en carpeta')}
         >
           <Icon name="folderOpen" size={15} />
         </button>
         <button
           className="btn small"
           onClick={() => void openExternal(shot.id)}
-          title="Abrir con otra aplicación"
+          title={tr('Abrir con otra aplicación')}
         >
           <Icon name="external" size={15} />
         </button>
         <button
           className="btn small"
           onClick={() => void reanalyze([shot.id])}
-          title="Reanalizar F3"
+          title={tr('Reanalizar F3')}
         >
           <Icon name="refresh" size={15} />
         </button>
         <button
           className="btn small danger"
           onClick={() => deleteItems([shot.id])}
-          title="Eliminar"
+          title={tr('Eliminar')}
         >
           <Icon name="trash" size={15} />
         </button>
@@ -143,11 +148,15 @@ export function DetailsPanel({
 
       {!a ? (
         <div className="details-pending">
-          <span className="spinner" /> Analizando captura…
+          <span className="spinner" /> {tr('Analizando captura…')}
         </div>
       ) : (
         <>
-          {a.error && <div className="details-error">No se pudo analizar: {a.error}</div>}
+          {a.error && (
+            <div className="details-error">
+              {tr('No se pudo analizar:')} {a.error}
+            </div>
+          )}
           <SummaryChips shot={shot} />
           {a.mod && <GameSection mod={a.mod} />}
           {loc ? <LocationSections shot={shot} loc={loc} f3={a.f3} /> : <NoF3Notice />}
@@ -186,13 +195,13 @@ function SummaryChips({ shot }: { shot: ScreenshotEntry }) {
   const dim = a.dimension?.id
   return (
     <Section
-      title="Mundo"
+      title={tr('Mundo')}
       icon="compass"
       action={
         <button
           className={`icon-btn legend-btn ${legend ? 'on' : ''}`}
           onClick={() => setLegend(!legend)}
-          title="¿De dónde sale cada dato?"
+          title={tr('¿De dónde sale cada dato?')}
           aria-expanded={legend}
         >
           <Icon name="info" size={15} />
@@ -202,7 +211,7 @@ function SummaryChips({ shot }: { shot: ScreenshotEntry }) {
       {legend && <SourceLegend />}
       {biomeHiddenInF3(a) && <F3BiomeTip />}
       <div className="facts">
-        <Fact label="Dimensión">
+        <Fact label={tr('Dimensión')}>
           {dim ? (
             <span className="fact-value">
               <span className="dot" style={{ background: DIMENSIONS[dim]?.color ?? '#888' }} />
@@ -210,10 +219,10 @@ function SummaryChips({ shot }: { shot: ScreenshotEntry }) {
               <SourceTag source={a.dimension!.source} />
             </span>
           ) : (
-            <span className="muted">Desconocida</span>
+            <span className="muted">{tr('Desconocida')}</span>
           )}
         </Fact>
-        <Fact label="Bioma">
+        <Fact label={tr('Bioma')}>
           {editing ? (
             <select
               className="input small-select"
@@ -225,7 +234,7 @@ function SummaryChips({ shot }: { shot: ScreenshotEntry }) {
                 void setBiome(shot.id, e.target.value || null)
               }}
             >
-              <option value="">Automático</option>
+              <option value="">{tr('Automático')}</option>
               {BIOMES.map((b) => (
                 <option key={b.id} value={b.id}>
                   {b.name}
@@ -236,7 +245,7 @@ function SummaryChips({ shot }: { shot: ScreenshotEntry }) {
             <button
               className="fact-value link"
               onClick={() => setEditing(true)}
-              title="Cambiar bioma manualmente"
+              title={tr('Cambiar bioma manualmente')}
             >
               {a.biome ? (
                 <>
@@ -254,19 +263,19 @@ function SummaryChips({ shot }: { shot: ScreenshotEntry }) {
                   />
                 </>
               ) : (
-                <span className="muted">Sin detectar</span>
+                <span className="muted">{tr('Sin detectar')}</span>
               )}
               <Icon name="pencil" size={12} />
             </button>
           )}
         </Fact>
-        {a.biome && <CopyChip value={a.biome.id} what="ID del bioma" />}
+        {a.biome && <CopyChip value={a.biome.id} what={tr('ID del bioma')} />}
       </div>
       <WorldFact shot={shot} />
 
       <div className="mobs">
         <div className="mobs-head">
-          <CreeperFace size={16} /> Mobs
+          <CreeperFace size={16} /> {tr('Mobs')}
         </div>
         {a.mobs.length ? (
           <div className="chip-row">
@@ -285,17 +294,17 @@ function SummaryChips({ shot }: { shot: ScreenshotEntry }) {
         ) : (
           <p className="muted small">
             {a.vision
-              ? 'No se detectaron mobs.'
+              ? tr('No se detectaron mobs.')
               : a.local
-                ? 'Ningún mob claro en la mira. La IA avanzada puede buscar todos los visibles.'
-                : 'Sin mobs detectados. El modelo local o la IA avanzada pueden reconocerlos.'}
+                ? tr('Ningún mob claro en la mira. La IA avanzada puede buscar todos los visibles.')
+                : tr('Sin mobs detectados. El modelo local o la IA avanzada pueden reconocerlos.')}
           </p>
         )}
       </div>
 
       <div className="mobs">
         <div className="mobs-head">
-          <Icon name="layers" size={15} /> Estructuras
+          <Icon name="layers" size={15} /> {tr('Estructuras')}
         </div>
         {a.structures.length ? (
           <div className="chip-row">
@@ -313,8 +322,8 @@ function SummaryChips({ shot }: { shot: ScreenshotEntry }) {
         ) : (
           <p className="muted small">
             {a.vision
-              ? 'No se ve ninguna estructura.'
-              : 'Las estructuras (aldeas, templos, fortalezas…) las detecta la IA avanzada.'}
+              ? tr('No se ve ninguna estructura.')
+              : tr('Las estructuras (aldeas, templos, fortalezas…) las detecta la IA avanzada.')}
           </p>
         )}
       </div>
@@ -323,9 +332,9 @@ function SummaryChips({ shot }: { shot: ScreenshotEntry }) {
 }
 
 const WORLD_SOURCE: Record<string, string> = {
-  manual: 'asignado por ti',
-  mod: 'del mod',
-  folder: 'por la carpeta',
+  manual: tr('asignado por ti'),
+  mod: tr('del mod'),
+  folder: tr('por la carpeta'),
   none: ''
 }
 
@@ -347,7 +356,7 @@ function WorldFact({ shot }: { shot: ScreenshotEntry }) {
   }
   return (
     <div className="facts world-fact">
-      <Fact label="Mundo">
+      <Fact label={tr('Mundo')}>
         {editing ? (
           <>
             <input
@@ -355,7 +364,7 @@ function WorldFact({ shot }: { shot: ScreenshotEntry }) {
               list="f2f3-worlds"
               autoFocus
               defaultValue={shot.meta.world ?? ''}
-              placeholder={w.source !== 'manual' && w.name ? w.name : 'Nombre del mundo'}
+              placeholder={w.source !== 'manual' && w.name ? w.name : tr('Nombre del mundo')}
               onBlur={(e) => save(e.target.value)}
               onKeyDown={(e) => {
                 if (e.key === 'Enter') save(e.currentTarget.value)
@@ -372,14 +381,14 @@ function WorldFact({ shot }: { shot: ScreenshotEntry }) {
           <button
             className="fact-value link"
             onClick={() => setEditing(true)}
-            title="Asignar esta captura a un mundo (vacío = automático)"
+            title={tr('Asignar esta captura a un mundo (vacío = automático)')}
           >
             {w.name ? (
               <>
                 {w.name} <span className="muted small">{WORLD_SOURCE[w.source]}</span>
               </>
             ) : (
-              <span className="muted">Sin asignar</span>
+              <span className="muted">{tr('Sin asignar')}</span>
             )}
             <Icon name="pencil" size={12} />
           </button>
@@ -399,15 +408,22 @@ function SlimeRow({ shot, x, z }: { shot: ScreenshotEntry; x: number; z: number 
   const near = nearestSlimeChunk(seed, x, z)
   return (
     <Row
-      k="Chunk slime"
+      k={tr('Chunk slime')}
       v={
         near?.distance === 0
-          ? 'Sí, estás en un chunk slime'
+          ? tr('Sí, estás en un chunk slime')
           : near
-            ? `No · el más cercano a ${Math.round(near.distance)} bloques (chunk ${near.x}, ${near.z})`
-            : 'No hay ninguno cerca'
+            ? tr(
+                'No · el más cercano a {0} bloques (chunk {1}, {2})',
+                Math.round(near.distance),
+                near.x,
+                near.z
+              )
+            : tr('No hay ninguno cerca')
       }
-      hint="En los chunks slime aparecen slimes bajo Y=40 (salvo en biomas sin mobs, como el campo de champiñones)"
+      hint={tr(
+        'En los chunks slime aparecen slimes bajo Y=40 (salvo en biomas sin mobs, como el campo de champiñones)'
+      )}
     />
   )
 }
@@ -420,19 +436,19 @@ function SourceLegend() {
   const openViewer = useUi((s) => s.openViewer)
   const aiOn = !!settings?.visionEnabled
   const rows: { source: InfoSource; on: boolean; state: string }[] = [
-    { source: 'mod', on: true, state: 'Si tienes el mod' },
-    { source: 'f3', on: true, state: 'Siempre activo' },
+    { source: 'mod', on: true, state: tr('Si tienes el mod') },
+    { source: 'f3', on: true, state: tr('Siempre activo') },
     {
       source: 'local',
       on: localStatus?.state === 'ready',
-      state: localStatus?.state === 'ready' ? 'Activo' : 'No descargado'
+      state: localStatus?.state === 'ready' ? tr('Activo') : tr('No descargado')
     },
     {
       source: 'vision',
       on: aiOn,
-      state: aiOn ? PROVIDER_LABEL[settings!.visionProvider] : 'No configurada'
+      state: aiOn ? PROVIDER_LABEL[settings!.visionProvider] : tr('No configurada')
     },
-    { source: 'heuristic', on: true, state: 'Último recurso' }
+    { source: 'heuristic', on: true, state: tr('Último recurso') }
   ]
   return (
     <div className="legend">
@@ -454,7 +470,7 @@ function SourceLegend() {
           setTab('settings')
         }}
       >
-        <Icon name="gear" size={14} /> Configurar el análisis
+        <Icon name="gear" size={14} /> {tr('Configurar el análisis')}
       </button>
     </div>
   )
@@ -468,14 +484,18 @@ function F3BiomeTip() {
       <span className="f3-badge">F3</span>
       <div>
         <button className="f3-tip-toggle" onClick={() => setOpen(!open)} aria-expanded={open}>
-          Tu F3 no muestra el bioma · <u>{open ? 'Ocultar' : 'Cómo activarlo'}</u>
+          {tr('Tu F3 no muestra el bioma ·')} <u>{open ? tr('Ocultar') : tr('Cómo activarlo')}</u>
         </button>
         <p className="muted small" hidden={!open}>
-          En esta versión de Minecraft viene oculto. Para que F2+F3 lo lea exacto: en el juego pulsa{' '}
-          <span className="kbd">F3</span> + <span className="kbd">F6</span>, busca la línea del{' '}
-          <b>bioma</b> (Biome) y actívala. Haz lo mismo con la <b>entidad apuntada</b> para
-          registrar el mob que miras. Para datos técnicos activa también <b>TPS</b>,{' '}
-          <b>conteo de spawns</b> y el <b>estado del bloque apuntado</b>.
+          {tr(
+            'En esta versión de Minecraft viene oculto. Para que F2+F3 lo lea exacto: en el juego pulsa'
+          )}{' '}
+          <span className="kbd">F3</span> + <span className="kbd">F6</span>
+          {tr(', busca la línea del')} <b>{tr('bioma')}</b>{' '}
+          {tr('(Biome) y actívala. Haz lo mismo con la')} <b>{tr('entidad apuntada')}</b>{' '}
+          {tr('para registrar el mob que miras. Para datos técnicos activa también')}{' '}
+          <b>{tr('TPS')}</b>, <b>{tr('conteo de spawns')}</b> {tr('y el')}{' '}
+          <b>{tr('estado del bloque apuntado')}</b>.
         </p>
       </div>
     </div>
@@ -500,7 +520,12 @@ function LocationSections({
 
   return (
     <>
-      <Section title="Coordenadas" icon="pin" accent action={<SourceTag source={loc.source} />}>
+      <Section
+        title={tr('Coordenadas')}
+        icon="pin"
+        accent
+        action={<SourceTag source={loc.source} />}
+      >
         {block && (
           <div className="xyz">
             <Axis label="X" value={pos?.x ?? block.x} />
@@ -509,8 +534,8 @@ function LocationSections({
           </div>
         )}
         <div className="copy-grid">
-          {block && <CopyButton label="Bloque" value={blockString(block)} />}
-          {pos && <CopyButton label="XYZ exacto" value={exactString(pos)} />}
+          {block && <CopyButton label={tr('Bloque')} value={blockString(block)} />}
+          {pos && <CopyButton label={tr('XYZ exacto')} value={exactString(pos)} />}
           {tp && <CopyButton label="/tp" value={tp} title={tp} />}
           {converted && (
             <CopyButton
@@ -519,58 +544,66 @@ function LocationSections({
               title={`${converted.label}: ${blockString(converted.pos)}`}
             />
           )}
-          {loc.chunk && <CopyButton label="Chunk" value={`${loc.chunk.x} ${loc.chunk.z}`} />}
-          {loc.region && <CopyButton label="Región" value={loc.region} />}
+          {loc.chunk && <CopyButton label={tr('Chunk')} value={`${loc.chunk.x} ${loc.chunk.z}`} />}
+          {loc.region && <CopyButton label={tr('Región')} value={loc.region} />}
         </div>
         {converted && (
           <p className="muted small convert-note">
-            Portal equivalente en el {converted.label}: <b>{blockString(converted.pos)}</b>
+            {tr('Portal equivalente en el')} {converted.label}: <b>{blockString(converted.pos)}</b>
           </p>
         )}
       </Section>
 
-      <Section title="Posición" icon="layers">
+      <Section title={tr('Posición')} icon="layers">
         <Rows>
           {block && loc.dimension === 'minecraft:overworld' && (
             <SlimeRow shot={shot} x={block.x} z={block.z} />
           )}
           {pos && <Row k="XYZ" v={exactString(pos)} />}
-          {block && <Row k="Bloque" v={blockString(block)} />}
+          {block && <Row k={tr('Bloque')} v={blockString(block)} />}
           {loc.chunk && (
             <Row
-              k="Chunk"
+              k={tr('Chunk')}
               v={`${loc.chunk.x} ${loc.chunk.y} ${loc.chunk.z}`}
-              hint="x, sección y, z"
+              hint={tr('x, sección y, z')}
             />
           )}
-          {loc.chunkRelative && <Row k="Dentro del chunk" v={blockString(loc.chunkRelative)} />}
-          {loc.region && <Row k="Archivo de región" v={loc.region} />}
+          {loc.chunkRelative && (
+            <Row k={tr('Dentro del chunk')} v={blockString(loc.chunkRelative)} />
+          )}
+          {loc.region && <Row k={tr('Archivo de región')} v={loc.region} />}
           {block && (
             <Row
-              k="Distancia a 0,0"
-              v={`${Math.round(Math.hypot(block.x, block.z)).toLocaleString('es')} bloques`}
+              k={tr('Distancia a 0,0')}
+              v={tr(
+                '{0} bloques',
+                Math.round(Math.hypot(block.x, block.z)).toLocaleString(getLang())
+              )}
             />
           )}
         </Rows>
       </Section>
 
       {loc.facing && (
-        <Section title="Orientación" icon="compass">
+        <Section title={tr('Orientación')} icon="compass">
           <div className="facing">
             <Compass yaw={loc.facing.yaw} />
             <Rows>
-              <Row k="Mirando al" v={DIRECTION_ES[loc.facing.direction] ?? loc.facing.direction} />
+              <Row
+                k={tr('Mirando al')}
+                v={DIRECTION_ES[loc.facing.direction] ?? loc.facing.direction}
+              />
               {loc.facing.towards && (
                 <Row
-                  k="Hacia"
+                  k={tr('Hacia')}
                   v={loc.facing.towards.replace('positive', '+').replace('negative', '−')}
                 />
               )}
               {loc.facing.yaw !== undefined && (
-                <Row k="Yaw" v={`${formatNumber(loc.facing.yaw, 1)}°`} />
+                <Row k={tr('Yaw')} v={`${formatNumber(loc.facing.yaw, 1)}°`} />
               )}
               {loc.facing.pitch !== undefined && (
-                <Row k="Pitch" v={`${formatNumber(loc.facing.pitch, 1)}°`} />
+                <Row k={tr('Pitch')} v={`${formatNumber(loc.facing.pitch, 1)}°`} />
               )}
             </Rows>
           </div>
@@ -582,71 +615,74 @@ function LocationSections({
         loc.targetedBlock ||
         loc.targetedFluid ||
         loc.targetedEntity) && (
-        <Section title="Entorno" icon="eye">
+        <Section title={tr('Entorno')} icon="eye">
           <Rows>
             {loc.light && (
               <Row
-                k="Luz"
-                v={`${loc.light.client ?? '—'}${loc.light.sky !== undefined ? ` (cielo ${loc.light.sky}, bloque ${loc.light.block})` : ''}`}
+                k={tr('Luz')}
+                v={`${loc.light.client ?? '—'}${loc.light.sky !== undefined ? tr(' (cielo {0}, bloque {1})', loc.light.sky, loc.light.block) : ''}`}
               />
             )}
             {loc.localDifficulty && (
               <Row
-                k="Dificultad local"
+                k={tr('Dificultad local')}
                 v={`${loc.localDifficulty.value} // ${loc.localDifficulty.clamped ?? '—'}`}
               />
             )}
             {loc.localDifficulty?.day !== undefined && (
-              <Row k="Día del mundo" v={String(loc.localDifficulty.day)} />
+              <Row k={tr('Día del mundo')} v={String(loc.localDifficulty.day)} />
             )}
             {loc.targetedBlock && (
               <Row
-                k="Bloque apuntado"
+                k={tr('Bloque apuntado')}
                 v={`${loc.targetedBlock.id ?? ''} @ ${blockString(loc.targetedBlock.pos)}`}
               />
             )}
             {loc.targetedFluid && (
               <Row
-                k="Fluido apuntado"
+                k={tr('Fluido apuntado')}
                 v={`${loc.targetedFluid.id ?? ''} @ ${blockString(loc.targetedFluid.pos)}`}
               />
             )}
-            {loc.targetedEntity && <Row k="Entidad apuntada" v={loc.targetedEntity} />}
+            {loc.targetedEntity && <Row k={tr('Entidad apuntada')} v={loc.targetedEntity} />}
           </Rows>
         </Section>
       )}
 
       {f3 && (
         <>
-          <Section title="Sistema" icon="gear" collapsed>
+          <Section title={tr('Sistema')} icon="gear" collapsed>
             <Rows>
               {f3.version && (
-                <Row k="Versión" v={`${f3.version}${f3.modLoader ? ` (${f3.modLoader})` : ''}`} />
+                <Row
+                  k={tr('Versión')}
+                  v={`${f3.version}${f3.modLoader ? ` (${f3.modLoader})` : ''}`}
+                />
               )}
               {f3.fps !== undefined && <Row k="FPS" v={String(f3.fps)} />}
-              {f3.java && <Row k="Java" v={f3.java} />}
-              {f3.memory && <Row k="Memoria" v={f3.memory} />}
+              {f3.java && <Row k={tr('Java')} v={f3.java} />}
+              {f3.memory && <Row k={tr('Memoria')} v={f3.memory} />}
               {f3.cpu && <Row k="CPU" v={f3.cpu} />}
               {f3.gpu && <Row k="GPU" v={f3.gpu} />}
-              {f3.display && <Row k="Pantalla" v={f3.display} />}
+              {f3.display && <Row k={tr('Pantalla')} v={f3.display} />}
             </Rows>
           </Section>
 
-          <Section title={`Todo el F3 (${f3.fields.length} campos)`} icon="hash" collapsed>
+          <Section title={tr('Todo el F3 ({0} campos)', f3.fields.length)} icon="hash" collapsed>
             <div className="raw-toolbar">
               <div className="segmented">
                 <button className={!showRaw ? 'on' : ''} onClick={() => setShowRaw(false)}>
-                  Campos
+                  {tr('Campos')}
                 </button>
                 <button className={showRaw ? 'on' : ''} onClick={() => setShowRaw(true)}>
-                  Pantalla F3
+                  {tr('Pantalla F3')}
                 </button>
               </div>
               <button
                 className="btn small"
-                onClick={() => void copyText(f3PlainText(f3), 'Texto del F3')}
+                onClick={() => void copyText(f3PlainText(f3), tr('Texto del F3'))}
               >
-                <Icon name="copy" size={14} /> Copiar todo
+                <Icon name="copy" size={14} /> {tr('Copiar todo')}
               </button>
             </div>
             {showRaw ? (
@@ -660,9 +696,9 @@ function LocationSections({
             )}
             {ocr && (
               <p className="muted small">
-                Leído con la fuente de Minecraft · escala GUI {ocr.guiScale} · precisión{' '}
-                {(ocr.confidence * 100).toFixed(1)}% · {ocr.glyphs} caracteres en {ocr.durationMs}{' '}
-                ms
+                {tr('Leído con la fuente de Minecraft · escala GUI')} {ocr.guiScale}{' '}
+                {tr('· precisión')} {(ocr.confidence * 100).toFixed(1)}% · {ocr.glyphs}{' '}
+                {tr('caracteres en')} {ocr.durationMs} {tr('ms')}
               </p>
             )}
           </Section>
@@ -673,22 +709,22 @@ function LocationSections({
 }
 
 const GAME_MODE_ES: Record<string, string> = {
-  survival: 'Supervivencia',
-  creative: 'Creativo',
-  adventure: 'Aventura',
-  spectator: 'Espectador'
+  survival: tr('Supervivencia'),
+  creative: tr('Creativo'),
+  adventure: tr('Aventura'),
+  spectator: tr('Espectador')
 }
 
 const DIFFICULTY_ES: Record<string, string> = {
-  peaceful: 'Pacífico',
-  easy: 'Fácil',
-  normal: 'Normal',
-  hard: 'Difícil'
+  peaceful: tr('Pacífico'),
+  easy: tr('Fácil'),
+  normal: tr('Normal'),
+  hard: tr('Difícil')
 }
 
 const WORLD_TYPE_ES: Record<CompanionData['world']['type'], string> = {
-  singleplayer: 'Un jugador',
-  multiplayer: 'Multijugador',
+  singleplayer: tr('Un jugador'),
+  multiplayer: tr('Multijugador'),
   realms: 'Realms'
 }
 
@@ -702,43 +738,49 @@ function gameClock(ticks: number): string {
 function GameSection({ mod }: { mod: CompanionData }) {
   const { world } = mod
   return (
-    <Section title="Partida" icon="gear" action={<SourceTag source="mod" />}>
+    <Section title={tr('Partida')} icon="gear" action={<SourceTag source="mod" />}>
       <Rows>
         <Row
-          k="Mundo"
+          k={tr('Mundo')}
           v={
             world.name ? `${world.name} · ${WORLD_TYPE_ES[world.type]}` : WORLD_TYPE_ES[world.type]
           }
         />
         <Row
-          k="Día"
+          k={tr('Día')}
           v={`${world.day + 1} · ${gameClock(world.timeOfDay)} (${world.timeOfDay} ticks)`}
         />
-        <Row k="Clima" v={WEATHER_ES[world.weather]} />
-        <Row k="Modo de juego" v={GAME_MODE_ES[mod.player.gameMode] ?? mod.player.gameMode} />
+        <Row k={tr('Clima')} v={WEATHER_ES[world.weather]} />
+        <Row k={tr('Modo de juego')} v={GAME_MODE_ES[mod.player.gameMode] ?? mod.player.gameMode} />
         {mod.game && (
           <>
             <Row
-              k="Dificultad"
-              v={`${DIFFICULTY_ES[mod.game.difficulty] ?? mod.game.difficulty}${mod.game.hardcore ? ' · Extremo' : ''}`}
+              k={tr('Dificultad')}
+              v={`${DIFFICULTY_ES[mod.game.difficulty] ?? mod.game.difficulty}${mod.game.hardcore ? tr(' · Extremo') : ''}`}
             />
             <Row
-              k="Distancias"
-              v={`Renderizado ${mod.game.renderDistance} · simulación ${mod.game.simulationDistance} chunks`}
-              hint="La distancia de simulación decide qué chunks procesan entidades y granjas alrededor del jugador"
+              k={tr('Distancias')}
+              v={tr(
+                'Renderizado {0} · simulación {1} chunks',
+                mod.game.renderDistance,
+                mod.game.simulationDistance
+              )}
+              hint={tr(
+                'La distancia de simulación decide qué chunks procesan entidades y granjas alrededor del jugador'
+              )}
             />
             {mod.game.serverBrand && world.type !== 'singleplayer' && (
-              <Row k="Servidor" v={mod.game.serverBrand} />
+              <Row k={tr('Servidor')} v={mod.game.serverBrand} />
             )}
           </>
         )}
-        <Row k="Versión" v={`${mod.minecraft} · mod ${mod.modVersion}`} />
+        <Row k={tr('Versión')} v={`${mod.minecraft} · mod ${mod.modVersion}`} />
       </Rows>
       {mod.gamerules && <GameRulesBlock rules={mod.gamerules} />}
       {mod.mods && mod.mods.length > 0 && <ModsBlock mods={mod.mods} />}
       {world.seed && (
         <div className="copy-grid">
-          <CopyButton label="Semilla" value={world.seed} title={world.seed} />
+          <CopyButton label={tr('Semilla')} value={world.seed} title={world.seed} />
         </div>
       )}
     </Section>
@@ -750,11 +792,11 @@ function NoF3Notice() {
     <div className="no-f3">
       <span className="f3-badge">F3</span>
       <div>
-        <strong>Captura sin F3</strong>
+        <strong>{tr('Captura sin F3')}</strong>
         <p className="muted small">
-          Sin la pantalla F3 (ni el mod F2+F3 Companion) no hay coordenadas. El bioma y los mobs se
-          estiman con el modelo local (o con los colores si no lo tienes); la IA avanzada da el
-          resultado más preciso.
+          {tr(
+            'Sin la pantalla F3 (ni el mod F2+F3 Companion) no hay coordenadas. El bioma y los mobs se estiman con el modelo local (o con los colores si no lo tienes); la IA avanzada da el resultado más preciso.'
+          )}
         </p>
       </div>
     </div>
@@ -768,18 +810,20 @@ function VisionSection({ shot }: { shot: ScreenshotEntry }) {
   const settings = useSettings((s) => s.settings)
   const provider = settings?.visionProvider ?? 'anthropic'
   return (
-    <Section title="IA avanzada" icon="sparkles" collapsed={!v}>
+    <Section title={tr('IA avanzada')} icon="sparkles" collapsed={!v}>
       {v ? (
         <>
           <p className="vision-desc">{v.description}</p>
           <Rows>
             {v.timeOfDay && (
-              <Row k="Momento" v={TIME_ES[v.timeOfDay] ?? v.timeOfDay} copy={false} />
+              <Row k={tr('Momento')} v={TIME_ES[v.timeOfDay] ?? v.timeOfDay} copy={false} />
             )}
-            {v.weather && <Row k="Clima" v={WEATHER_ES[v.weather] ?? v.weather} copy={false} />}
+            {v.weather && (
+              <Row k={tr('Clima')} v={WEATHER_ES[v.weather] ?? v.weather} copy={false} />
+            )}
             {v.biome && (
               <Row
-                k="Bioma según la IA"
+                k={tr('Bioma según la IA')}
                 v={`${biomeName(v.biome.id)} · ${Math.round(v.biome.confidence * 100)}%`}
                 copy={false}
               />
@@ -792,8 +836,9 @@ function VisionSection({ shot }: { shot: ScreenshotEntry }) {
         </>
       ) : (
         <p className="muted small">
-          Opcional. Con tu propio servicio de IA (Claude, Gemini, OpenAI u Ollama gratis en tu
-          equipo) se detectan todos los mobs, las estructuras, el clima y la hora.
+          {tr(
+            'Opcional. Con tu propio servicio de IA (Claude, Gemini, OpenAI u Ollama gratis en tu equipo) se detectan todos los mobs, las estructuras, el clima y la hora.'
+          )}
         </p>
       )}
       <button
@@ -803,12 +848,12 @@ function VisionSection({ shot }: { shot: ScreenshotEntry }) {
       >
         <Icon name="sparkles" size={15} />{' '}
         {running
-          ? 'Analizando…'
+          ? tr('Analizando…')
           : v
-            ? 'Volver a analizar'
+            ? tr('Volver a analizar')
             : settings?.visionEnabled
-              ? `Analizar con ${PROVIDER_LABEL[provider]}`
-              : 'Configurar IA avanzada'}
+              ? tr('Analizar con {0}', PROVIDER_LABEL[provider])
+              : tr('Configurar IA avanzada')}
       </button>
     </Section>
   )
@@ -819,17 +864,17 @@ function NotesSection({ shot }: { shot: ScreenshotEntry }) {
   const [note, setNote] = useState(shot.meta.note ?? '')
   const [tags, setTags] = useState((shot.meta.tags ?? []).join(', '))
   return (
-    <Section title="Notas" icon="note" collapsed={!shot.meta.note && !shot.meta.tags?.length}>
+    <Section title={tr('Notas')} icon="note" collapsed={!shot.meta.note && !shot.meta.tags?.length}>
       <textarea
         className="input"
-        placeholder="Ej.: granja de hierro, base, portal del Nether…"
+        placeholder={tr('Ej.: granja de hierro, base, portal del Nether…')}
         value={note}
         onChange={(e) => setNote(e.target.value)}
         onBlur={() => note !== (shot.meta.note ?? '') && void setMeta(shot.id, { note })}
       />
       <input
         className="input"
-        placeholder="Etiquetas separadas por comas"
+        placeholder={tr('Etiquetas separadas por comas')}
         value={tags}
         onChange={(e) => setTags(e.target.value)}
         onBlur={() =>

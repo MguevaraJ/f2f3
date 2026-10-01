@@ -4,6 +4,7 @@ import { Icon } from '../../components/icons'
 import { formatNumber } from '../../lib/format'
 import { PROVIDER_LABEL, SOURCE_INFO } from '../../lib/sources'
 import { copyText } from '../library/actions'
+import { tr } from '@shared/i18n'
 
 /** Building blocks of the details panel. */
 
@@ -61,7 +62,11 @@ export function Row({
       <dd>
         <span className="row-value">{v}</span>
         {copy && (
-          <button className="row-copy" onClick={() => void copyText(v, k)} title={`Copiar ${k}`}>
+          <button
+            className="row-copy"
+            onClick={() => void copyText(v, k)}
+            title={tr('Copiar {0}', k)}
+          >
             <Icon name="copy" size={13} />
           </button>
         )}
@@ -83,8 +88,8 @@ export function Axis({ label, value }: { label: string; value: number }) {
   return (
     <button
       className="axis"
-      onClick={() => void copyText(formatNumber(value), `Coordenada ${label}`)}
-      title={`Copiar ${label}`}
+      onClick={() => void copyText(formatNumber(value), tr('Coordenada {0}', label))}
+      title={tr('Copiar {0}', label)}
     >
       <span className="axis-label">{label}</span>
       <span className="axis-value">{formatNumber(value)}</span>
@@ -121,7 +126,11 @@ export function CopyButton({
 
 export function CopyChip({ value, what }: { value: string; what: string }) {
   return (
-    <button className="chip" onClick={() => void copyText(value, what)} title={`Copiar ${what}`}>
+    <button
+      className="chip"
+      onClick={() => void copyText(value, what)}
+      title={tr('Copiar {0}', what)}
+    >
       <Icon name="copy" size={12} /> {value}
     </button>
   )

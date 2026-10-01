@@ -1,3 +1,5 @@
+import type { Lang } from './i18n'
+
 /**
  * Domain types shared by the main process, the analysis worker and the renderer.
  * Everything here must stay serialisable (structured-clone friendly).
@@ -419,6 +421,8 @@ export interface AppSettings {
   onboardingDone: boolean
   /** The user confirmed which game folder to use (asked once, also to existing users). */
   gameDirConfirmed: boolean
+  /** Interface language; changing it reloads the window. */
+  language: Lang
   /** One-off tips the user dismissed (e.g. "enable the biome line in F3"). */
   dismissedTips: string[]
   /** Analyse new screenshots with Claude automatically (costs API credits). */

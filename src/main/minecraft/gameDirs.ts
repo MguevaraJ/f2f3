@@ -1,6 +1,7 @@
 import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs'
 import { basename, dirname, join } from 'node:path'
 import type { MinecraftSource } from '@shared/types'
+import { tr } from '@shared/i18n'
 
 /**
  * Where people actually play. Launchers lay their folders out in two ways:
@@ -81,7 +82,7 @@ export function detectInstalls(env: LocatorEnv): MinecraftSource[] {
   const candidates: Candidate[] = []
 
   const official = defaultMinecraftDir(env)
-  candidates.push({ launcher: 'Launcher oficial', name: 'Minecraft', gameDir: official })
+  candidates.push({ launcher: tr('Launcher oficial'), name: 'Minecraft', gameDir: official })
 
   for (const root of [
     join(home, '.sklauncher'),

@@ -37,6 +37,7 @@ import {
 } from '../library/actions'
 import { ScreenshotCard } from './ScreenshotCard'
 import { Toolbar } from './Toolbar'
+import { tr } from '@shared/i18n'
 
 interface Props {
   shots: ScreenshotEntry[]
@@ -121,77 +122,82 @@ export function Gallery({ shots, facets }: Props) {
     const entry = useLibrary.getState().byId.get(id)
     const items: MenuItem[] = [
       {
-        label: 'Ver en grande',
+        label: tr('Ver en grande'),
         icon: 'eye',
         shortcut: 'Enter',
         disabled: !one,
         action: () => ui.openViewer(id)
       },
-      { label: 'Copiar imagen', icon: 'image', disabled: !one, action: () => void copyImage(id) },
+      {
+        label: tr('Copiar imagen'),
+        icon: 'image',
+        disabled: !one,
+        action: () => void copyImage(id)
+      },
       { separator: true, label: '' },
       {
-        label: 'Copiar',
+        label: tr('Copiar'),
         icon: 'copy',
         shortcut: 'Ctrl+C',
         action: () => toClipboard(targets, 'copy')
       },
       {
-        label: 'Cortar',
+        label: tr('Cortar'),
         icon: 'cut',
         shortcut: 'Ctrl+X',
         action: () => toClipboard(targets, 'cut')
       },
       {
-        label: 'Pegar',
+        label: tr('Pegar'),
         icon: 'paste',
         shortcut: 'Ctrl+V',
         disabled: !ui.clipboard,
         action: () => void paste()
       },
       {
-        label: 'Renombrar',
+        label: tr('Renombrar'),
         icon: 'pencil',
         shortcut: 'F2',
         disabled: !one,
         action: () => renameItem(id)
       },
       {
-        label: entry?.meta.favorite && one ? 'Quitar de favoritas' : 'Marcar como favorita',
+        label: entry?.meta.favorite && one ? tr('Quitar de favoritas') : tr('Marcar como favorita'),
         icon: 'star',
         shortcut: 'F',
         action: () => toggleFavorite(targets)
       },
       {
-        label: one ? 'Asignar mundo…' : `Asignar mundo a ${targets.length}…`,
+        label: one ? tr('Asignar mundo…') : tr('Asignar mundo a {0}…', targets.length),
         icon: 'compass',
         action: () => assignWorld(targets)
       },
       { separator: true, label: '' },
-      { label: 'Reanalizar F3', icon: 'refresh', action: () => void reanalyze(targets) },
-      { label: 'Analizar con IA', icon: 'sparkles', action: () => void analyzeWithAi(targets) },
+      { label: tr('Reanalizar F3'), icon: 'refresh', action: () => void reanalyze(targets) },
+      { label: tr('Analizar con IA'), icon: 'sparkles', action: () => void analyzeWithAi(targets) },
       {
-        label: one ? 'Guardar en ZIP' : `Guardar ${targets.length} en ZIP`,
+        label: one ? tr('Guardar en ZIP') : tr('Guardar {0} en ZIP', targets.length),
         icon: 'download',
         action: () => void exportZip(targets)
       },
       { separator: true, label: '' },
       {
-        label: 'Mostrar en carpeta',
+        label: tr('Mostrar en carpeta'),
         icon: 'folderOpen',
         disabled: !one,
         action: () => void reveal(id)
       },
       {
-        label: 'Abrir con otra app',
+        label: tr('Abrir con otra app'),
         icon: 'external',
         disabled: !one,
         action: () => void openExternal(id)
       },
       { separator: true, label: '' },
       {
-        label: 'Eliminar',
+        label: tr('Eliminar'),
         icon: 'trash',
-        shortcut: 'Supr',
+        shortcut: tr('Supr'),
         danger: true,
         action: () => deleteItems(targets)
       }
@@ -261,13 +267,13 @@ export function Gallery({ shots, facets }: Props) {
   const latest = snapshot?.screenshots[0]
   const title =
     view.kind === 'all'
-      ? 'Todas las capturas'
+      ? tr('Todas las capturas')
       : view.kind === 'favorites'
-        ? 'Favoritas'
+        ? tr('Favoritas')
         : view.kind === 'f3'
-          ? 'Capturas con datos F3'
+          ? tr('Capturas con datos F3')
           : view.kind === 'mobs'
-            ? 'Capturas con mobs'
+            ? tr('Capturas con mobs')
             : view.path || 'screenshots'
 
   return (
@@ -284,11 +290,15 @@ export function Gallery({ shots, facets }: Props) {
           <div className="hero-content">
             <h1 className="hero-title">{title}</h1>
             <div className="hero-stats">
-              <span>{plural(shots.length, 'captura', 'capturas')}</span>
+              <span>{plural(shots.length, tr('captura'), tr('capturas'))}</span>
               <span>
-                {plural(shots.filter((s) => s.analysis?.hasF3).length, 'con F3', 'con F3')}
+                {plural(shots.filter((s) => s.analysis?.hasF3).length, tr('con F3'), tr('con F3'))}
               </span>
-              {latest && <span>Última {formatRelative(latest.capturedAt)}</span>}
+              {latest && (
+                <span>
+                  {tr('Última')} {formatRelative(latest.capturedAt)}
+                </span>
+              )}
             </div>
           </div>
         </div>
@@ -312,35 +322,41 @@ export function Gallery({ shots, facets }: Props) {
             if ((e.target as HTMLElement).closest('.card')) return
             e.preventDefault()
             openMenu(e.clientX, e.clientY, [
-              { label: 'Pegar', icon: 'paste', disabled: !clipboard, action: () => void paste() },
               {
-                label: 'Seleccionar todo',
+                label: tr('Pegar'),
+                icon: 'paste',
+                disabled: !clipboard,
+                action: () => void paste()
+              },
+              {
+                label: tr('Seleccionar todo'),
                 icon: 'check',
-                shortcut: 'Ctrl+A',
+                shortcut: tr('Ctrl+A'),
                 action: () => useUi.getState().select(ids)
               },
-              { label: 'Actualizar', icon: 'refresh', action: () => void api.library.refresh() }
+              { label: tr('Actualizar'), icon: 'refresh', action: () => void api.library.refresh() }
             ])
           }}
         >
           {!snapshot ? (
-            <div className="empty-state">Cargando capturas…</div>
+            <div className="empty-state">{tr('Cargando capturas…')}</div>
           ) : !snapshot.rootExists ? (
             <div className="empty-state">
               <Icon name="folder" size={48} />
-              <h3>No se encontró la carpeta de capturas</h3>
+              <h3>{tr('No se encontró la carpeta de capturas')}</h3>
               <p>{snapshot.root}</p>
               <button className="btn primary" onClick={() => useUi.getState().setTab('settings')}>
-                Elegir carpeta
+                {tr('Elegir carpeta')}
               </button>
             </div>
           ) : shots.length === 0 ? (
             <div className="empty-state">
               <Icon name="image" size={48} />
-              <h3>No hay capturas aquí</h3>
+              <h3>{tr('No hay capturas aquí')}</h3>
               <p>
-                Pulsa F2 en Minecraft para hacer una captura, o arrastra imágenes a esta ventana
-                para importarlas.
+                {tr(
+                  'Pulsa F2 en Minecraft para hacer una captura, o arrastra imágenes a esta ventana para importarlas.'
+                )}
               </p>
             </div>
           ) : (
@@ -382,10 +398,11 @@ export function Gallery({ shots, facets }: Props) {
           ) : (
             <div className="empty-state small">
               <Icon name="info" size={36} />
-              <h3>Detalles</h3>
+              <h3>{tr('Detalles')}</h3>
               <p>
-                Selecciona una captura (clic en su casilla o Ctrl+clic) para ver sus coordenadas,
-                bioma, mobs y todo el F3.
+                {tr(
+                  'Selecciona una captura (clic en su casilla o Ctrl+clic) para ver sus coordenadas, bioma, mobs y todo el F3.'
+                )}
               </p>
             </div>
           )}
@@ -409,19 +426,20 @@ function F3BiomeBanner({ shots }: { shots: ScreenshotEntry[] }) {
       <div className="tip-banner-text">
         <strong>
           {affected === 1
-            ? '1 captura con F3 no muestra'
-            : `${affected} capturas con F3 no muestran`}{' '}
-          el bioma
+            ? tr('1 captura con F3 no muestra')
+            : tr('{0} capturas con F3 no muestran', affected)}{' '}
+          {tr('el bioma')}
         </strong>
         <span>
-          Tu versión de Minecraft lo oculta por defecto. En el juego pulsa{' '}
-          <span className="kbd">F3</span> + <span className="kbd">F6</span>, busca la línea del{' '}
-          <b>bioma</b> (Biome) y actívala: desde tu próxima captura F2+F3 lo leerá exacto.
+          {tr('Tu versión de Minecraft lo oculta por defecto. En el juego pulsa')}{' '}
+          <span className="kbd">F3</span> + <span className="kbd">F6</span>
+          {tr(', busca la línea del')} <b>{tr('bioma')}</b>{' '}
+          {tr('(Biome) y actívala: desde tu próxima captura F2+F3 lo leerá exacto.')}
         </span>
       </div>
       <button
         className="icon-btn"
-        title="Entendido"
+        title={tr('Entendido')}
         onClick={() => void update({ dismissedTips: [...settings.dismissedTips, TIP_F3_BIOME] })}
       >
         <Icon name="close" size={16} />

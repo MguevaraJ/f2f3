@@ -2,6 +2,7 @@ import { createHash, randomBytes } from 'node:crypto'
 import { createServer, type Server } from 'node:http'
 import type { AddressInfo } from 'node:net'
 import type { SecretStore } from '../services/SecretStore'
+import { getLang, tr } from '@shared/i18n'
 
 /**
  * Google OAuth 2.0 for installed apps: system browser + loopback redirect on
@@ -78,14 +79,14 @@ export class GoogleAuth {
             reject(
               new AuthError(
                 error === 'access_denied'
-                  ? 'Permiso denegado en Google'
-                  : 'Respuesta de Google no válida'
+                  ? tr('Permiso denegado en Google')
+                  : tr('Respuesta de Google no válida')
               )
             )
         })
         const timer = setTimeout(() => {
           finish()
-          reject(new AuthError('Tiempo de espera agotado al conectar con Google'))
+          reject(new AuthError(tr('Tiempo de espera agotado al conectar con Google')))
         }, LOGIN_TIMEOUT_MS)
         const finish = (): void => {
           clearTimeout(timer)
@@ -128,7 +129,8 @@ export class GoogleAuth {
       code_verifier: verifier,
       redirect_uri: redirectUri
     })
-    if (!tokens.refresh_token) throw new AuthError('Google no devolvió un token de actualización')
+    if (!tokens.refresh_token)
+      throw new AuthError(tr('Google no devolvió un token de actualización'))
     this.secrets.set(REFRESH_KEY, tokens.refresh_token)
     this.access = { token: tokens.access_token, expiresAt: Date.now() + tokens.expires_in * 1000 }
   }
@@ -142,7 +144,7 @@ export class GoogleAuth {
   async accessToken(): Promise<string> {
     if (this.access && this.access.expiresAt - Date.now() > 60_000) return this.access.token
     const refresh = this.secrets.get(REFRESH_KEY)
-    if (!refresh) throw new AuthError('No hay una cuenta de Google conectada', true)
+    if (!refresh) throw new AuthError(tr('No hay una cuenta de Google conectada'), true)
     const tokens = await this.tokenRequest({ grant_type: 'refresh_token', refresh_token: refresh })
     this.access = { token: tokens.access_token, expiresAt: Date.now() + tokens.expires_in * 1000 }
     return this.access.token
@@ -166,7 +168,7 @@ export class GoogleAuth {
 
   private requireClient(): OAuthClient {
     const c = this.client()
-    if (!c?.clientId) throw new AuthError('Falta configurar el Client ID de Google en Ajustes')
+    if (!c?.clientId) throw new AuthError(tr('Falta configurar el Client ID de Google en Ajustes'))
     return c
   }
 
@@ -188,24 +190,29 @@ export class GoogleAuth {
       if (json.error === 'invalid_grant') {
         this.secrets.set(REFRESH_KEY, null)
         throw new AuthError(
-          'La sesión de Google caducó o fue revocada. Vuelve a conectar la cuenta.',
+          tr('La sesión de Google caducó o fue revocada. Vuelve a conectar la cuenta.'),
           true
         )
       }
       if (json.error === 'invalid_client')
-        throw new AuthError('Client ID o secreto de Google incorrectos')
-      throw new AuthError(`Google rechazó la autenticación (${String(json.error ?? res.status)})`)
+        throw new AuthError(tr('Client ID o secreto de Google incorrectos'))
+      throw new AuthError(
+        tr('Google rechazó la autenticación ({0})', String(json.error ?? res.status))
+      )
     }
     return json as { access_token: string; expires_in: number; refresh_token?: string }
   }
 }
 
 function resultPage(ok: boolean, error: string | null): string {
-  const title = ok ? 'Cuenta conectada' : 'No se pudo conectar'
+  const title = ok ? tr('Cuenta conectada') : tr('No se pudo conectar')
   const msg = ok
-    ? 'Ya puedes cerrar esta pestaña y volver a F2+F3.'
-    : `Vuelve a F2+F3 e inténtalo de nuevo.${error ? ` (${error.replace(/[^\w-]/g, '')})` : ''}`
-  return `<!doctype html><html lang="es"><meta charset="utf-8"><title>F2+F3 · ${title}</title>
+    ? tr('Ya puedes cerrar esta pestaña y volver a F2+F3.')
+    : tr(
+        'Vuelve a F2+F3 e inténtalo de nuevo.{0}',
+        error ? ` (${error.replace(/[^\w-]/g, '')})` : ''
+      )
+  return `<!doctype html><html lang="${getLang()}"><meta charset="utf-8"><title>F2+F3 · ${title}</title>
 <body style="margin:0;height:100vh;display:grid;place-items:center;background:#1e1e1e;color:#fff;font:16px system-ui,sans-serif">
 <div style="text-align:center;padding:40px 56px;background:#2a2a2a;border-radius:6px;border-bottom:5px solid ${ok ? '#1d4d13' : '#7d1d1d'}">
 <div style="font-size:44px">${ok ? '✔' : '✖'}</div><h1 style="margin:8px 0;font-size:22px">${title}</h1>

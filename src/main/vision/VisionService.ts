@@ -4,6 +4,7 @@ import { isKnownStructure } from '@shared/catalog/structures'
 import type { ScreenshotAnalysis, VisionProviderId, VisionResult } from '@shared/types'
 import { userPrompt } from './prompt'
 import { PROVIDERS, ProviderError, type ProviderConfig } from './providers'
+import { tr } from '@shared/i18n'
 
 export class VisionError extends Error {}
 
@@ -37,10 +38,17 @@ export class VisionService {
       const models = await PROVIDERS[provider].listModels(this.source.config(provider))
       const model = this.source.config(provider).model
       const note =
-        model && !models.includes(model) ? ` (el modelo "${model}" no aparece en la lista)` : ''
+        model && !models.includes(model)
+          ? tr(' (el modelo "{0}" no aparece en la lista)', model)
+          : ''
       return {
         ok: true,
-        message: `Conectado a ${PROVIDERS[provider].label}: ${models.length} modelos${note}`,
+        message: tr(
+          'Conectado a {0}: {1} modelos{2}',
+          PROVIDERS[provider].label,
+          models.length,
+          note
+        ),
         models
       }
     } catch (err) {
@@ -56,12 +64,12 @@ export class VisionService {
     const providerId = this.source.provider()
     const provider = PROVIDERS[providerId]
     const cfg = this.source.config(providerId)
-    if (!cfg.model) throw new VisionError('Elige un modelo para la IA avanzada en Ajustes')
+    if (!cfg.model) throw new VisionError(tr('Elige un modelo para la IA avanzada en Ajustes'))
     if (provider.needsKey && !cfg.apiKey)
-      throw new VisionError(`Configura tu clave de ${provider.label} en Ajustes`)
+      throw new VisionError(tr('Configura tu clave de {0} en Ajustes', provider.label))
 
     let img = nativeImage.createFromPath(file)
-    if (img.isEmpty()) throw new VisionError('No se pudo leer la imagen')
+    if (img.isEmpty()) throw new VisionError(tr('No se pudo leer la imagen'))
     const { width, height } = img.getSize()
     const edge = MAX_EDGE[providerId]
     if (Math.max(width, height) > edge)
@@ -75,8 +83,10 @@ export class VisionService {
     if (local?.f3?.dimension)
       facts.push(`The F3 overlay says the dimension is ${local.f3.dimension}.`)
     if (local?.f3?.biome) facts.push(`The F3 overlay says the biome is ${local.f3.biome}.`)
-    if (local?.f3?.targetedEntity) facts.push(`The crosshair targets ${local.f3.targetedEntity}.`)
-    if (local?.hasF3) facts.push('Ignore the debug text overlay itself when describing the scene.')
+    if (local?.f3?.targetedEntity)
+      facts.push(tr('The crosshair targets {0}.', local.f3.targetedEntity))
+    if (local?.hasF3)
+      facts.push(tr('Ignore the debug text overlay itself when describing the scene.'))
 
     try {
       const { output, model } = await provider.analyze(cfg, image, userPrompt(facts))

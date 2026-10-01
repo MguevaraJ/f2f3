@@ -13,6 +13,7 @@ import type { SettingsService } from './SettingsService'
 import type { ThumbnailService } from './ThumbnailService'
 import type { VisionService } from '../vision/VisionService'
 import type { WorkerPool } from './WorkerPool'
+import { tr } from '@shared/i18n'
 
 interface Events {
   updated: [id: string, analysis: ScreenshotAnalysis]
@@ -157,7 +158,7 @@ export class AnalysisService extends EventEmitter<Events> {
             mobs: [],
             structures: [],
             averageColor: '#333333',
-            error: reply.error ?? 'Error desconocido'
+            error: reply.error ?? tr('Error desconocido')
           }
     this.save(id, abs, analysis)
   }

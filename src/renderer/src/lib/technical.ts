@@ -1,19 +1,25 @@
 import type { ServerTick, SpawnCategory, SpawnCounts, TargetedBlock } from '@shared/types'
+import { tr } from '@shared/i18n'
 
 /** Vanilla mob caps per category for one player (MobCategory; misc has none). */
 export const MOB_CAPS: { id: SpawnCategory; label: string; hint: string; cap: number }[] = [
-  { id: 'monster', label: 'Monstruos', hint: 'Zombis, esqueletos, creepers…', cap: 70 },
-  { id: 'creature', label: 'Animales', hint: 'Vacas, ovejas, cerdos…', cap: 10 },
-  { id: 'ambient', label: 'Ambiente', hint: 'Murciélagos', cap: 15 },
-  { id: 'axolotls', label: 'Ajolotes', hint: 'Ajolotes', cap: 5 },
+  { id: 'monster', label: tr('Monstruos'), hint: tr('Zombis, esqueletos, creepers…'), cap: 70 },
+  { id: 'creature', label: tr('Animales'), hint: tr('Vacas, ovejas, cerdos…'), cap: 10 },
+  { id: 'ambient', label: tr('Ambiente'), hint: tr('Murciélagos'), cap: 15 },
+  { id: 'axolotls', label: tr('Ajolotes'), hint: tr('Ajolotes'), cap: 5 },
   {
     id: 'underground_water_creature',
-    label: 'Acuáticos de cueva',
-    hint: 'Calamares luminosos',
+    label: tr('Acuáticos de cueva'),
+    hint: tr('Calamares luminosos'),
     cap: 5
   },
-  { id: 'water_creature', label: 'Acuáticos', hint: 'Calamares, delfines', cap: 5 },
-  { id: 'water_ambient', label: 'Peces', hint: 'Bacalaos, salmones, peces tropicales…', cap: 20 }
+  { id: 'water_creature', label: tr('Acuáticos'), hint: tr('Calamares, delfines'), cap: 5 },
+  {
+    id: 'water_ambient',
+    label: tr('Peces'),
+    hint: tr('Bacalaos, salmones, peces tropicales…'),
+    cap: 20
+  }
 ]
 
 /** The cap grows with the chunks eligible for spawning (289 per player, 17×17). */
@@ -50,14 +56,14 @@ export function tickInfo(s: ServerTick): TickInfo | null {
   const lagging = s.mspt > target && s.tickState !== 'sprinting'
   const state =
     s.tickState === 'frozen'
-      ? 'Congelado (/tick freeze)'
+      ? tr('Congelado (/tick freeze)')
       : s.tickState === 'stepping'
-        ? 'Avanzando paso a paso (/tick step)'
+        ? tr('Avanzando paso a paso (/tick step)')
         : s.tickState === 'sprinting'
-          ? 'Acelerado (/tick sprint)'
+          ? tr('Acelerado (/tick sprint)')
           : lagging
-            ? 'Con lag'
-            : 'Sin lag'
+            ? tr('Con lag')
+            : tr('Sin lag')
   return { tps, lagging, label: state }
 }
 
@@ -75,10 +81,10 @@ export function setblockCommand(b: TargetedBlock): string | null {
 
 /** Heightmap keys as the debug screen abbreviates them. */
 export const HEIGHTMAP_LABEL: Record<string, string> = {
-  S: 'superficie',
-  M: 'sólido',
-  ML: 'sólido sin hojas',
-  O: 'fondo oceánico',
-  SW: 'superficie (gen.)',
-  OW: 'fondo oceánico (gen.)'
+  S: tr('superficie'),
+  M: tr('sólido'),
+  ML: tr('sólido sin hojas'),
+  O: tr('fondo oceánico'),
+  SW: tr('superficie (gen.)'),
+  OW: tr('fondo oceánico (gen.)')
 }

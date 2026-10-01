@@ -8,6 +8,7 @@ import { formatDateTime, plural } from '../../lib/format'
 import { useUi } from '../../store/ui'
 import { copyText, exportTable } from '../library/actions'
 import { buildCoordsTable } from './coordsTable'
+import { getLang, tr } from '@shared/i18n'
 
 type Col = 'date' | 'name' | 'x' | 'y' | 'z' | 'dist' | 'biome' | 'dimension'
 
@@ -78,7 +79,7 @@ export function CoordsView({ shots }: { shots: ScreenshotEntry[] }) {
       const vb = val(b)
       return (
         (typeof va === 'string'
-          ? va.localeCompare(vb as string, 'es', { numeric: true })
+          ? va.localeCompare(vb as string, getLang(), { numeric: true })
           : va - (vb as number)) * sort.dir
       )
     })
@@ -106,7 +107,7 @@ export function CoordsView({ shots }: { shots: ScreenshotEntry[] }) {
           <Icon name="search" size={16} />
           <input
             className="search-input"
-            placeholder="Filtrar por nombre, bioma o nota"
+            placeholder={tr('Filtrar por nombre, bioma o nota')}
             value={text}
             onChange={(e) => setText(e.target.value)}
           />
@@ -115,9 +116,9 @@ export function CoordsView({ shots }: { shots: ScreenshotEntry[] }) {
           className="input small-select"
           value={dimFilter}
           onChange={(e) => setDimFilter(e.target.value)}
-          aria-label="Dimensión"
+          aria-label={tr('Dimensión')}
         >
-          <option value="">Todas las dimensiones</option>
+          <option value="">{tr('Todas las dimensiones')}</option>
           {dims.map((d) => (
             <option key={d} value={d}>
               {dimensionName(d)}
@@ -128,42 +129,42 @@ export function CoordsView({ shots }: { shots: ScreenshotEntry[] }) {
           <Icon name="pin" size={16} />
           <input
             className="search-input"
-            placeholder="Punto de referencia: x y z"
+            placeholder={tr('Punto de referencia: x y z')}
             value={ref}
             onChange={(e) => setRef(e.target.value)}
           />
-          {refPoint && <span className="chip">distancia activa</span>}
+          {refPoint && <span className="chip">{tr('distancia activa')}</span>}
         </div>
         <label
           className="checkbox"
-          title="Muestra las coordenadas convertidas a la otra dimensión (÷8 / ×8)"
+          title={tr('Muestra las coordenadas convertidas a la otra dimensión (÷8 / ×8)')}
         >
           <input type="checkbox" checked={nether} onChange={(e) => setNether(e.target.checked)} />
-          Convertir Nether ⇄ Overworld
+          {tr('Convertir Nether ⇄ Overworld')}
         </label>
         <div className="toolbar-spacer" />
         <button
           className="btn small"
           disabled={!rows.length}
-          title="Exporta la tabla tal como se ve: filtros, orden, conversión y distancia"
+          title={tr('Exporta la tabla tal como se ve: filtros, orden, conversión y distancia')}
           onClick={(e) => {
             const r = e.currentTarget.getBoundingClientRect()
             const table = () => buildCoordsTable(rows, { convert: nether, reference: refPoint })
             openMenu(r.left, r.bottom + 4, [
               {
-                label: `Excel (.xlsx) · ${rows.length} filas`,
+                label: tr('Excel (.xlsx) · {0} filas', rows.length),
                 icon: 'download',
                 action: () => void exportTable(table(), 'xlsx')
               },
               {
-                label: 'CSV (.csv)',
+                label: tr('CSV (.csv)'),
                 icon: 'download',
                 action: () => void exportTable(table(), 'csv')
               }
             ])
           }}
         >
-          <Icon name="download" size={15} /> Exportar tabla
+          <Icon name="download" size={15} /> {tr('Exportar tabla')}
           <Icon name="chevronDown" size={14} />
         </button>
       </div>
@@ -171,10 +172,11 @@ export function CoordsView({ shots }: { shots: ScreenshotEntry[] }) {
       {rows.length === 0 ? (
         <div className="empty-state">
           <Icon name="pin" size={48} />
-          <h3>Sin coordenadas todavía</h3>
+          <h3>{tr('Sin coordenadas todavía')}</h3>
           <p>
-            Las capturas hechas con la pantalla F3 abierta (o con el mod F2+F3 Companion) aparecerán
-            aquí con su posición, bioma y dimensión.
+            {tr(
+              'Las capturas hechas con la pantalla F3 abierta (o con el mod F2+F3 Companion) aparecerán aquí con su posición, bioma y dimensión.'
+            )}
           </p>
         </div>
       ) : (
@@ -183,14 +185,14 @@ export function CoordsView({ shots }: { shots: ScreenshotEntry[] }) {
             <thead>
               <tr>
                 <th className="col-thumb" />
-                {head('name', 'Captura')}
-                {head('dimension', 'Dimensión')}
+                {head('name', tr('Captura'))}
+                {head('dimension', tr('Dimensión'))}
                 {head('x', 'X', 'num')}
                 {head('y', 'Y', 'num')}
                 {head('z', 'Z', 'num')}
-                {head('dist', refPoint ? 'Distancia' : 'Dist. a 0,0', 'num')}
-                {head('biome', 'Bioma')}
-                {head('date', 'Fecha')}
+                {head('dist', refPoint ? tr('Distancia') : tr('Dist. a 0,0'), 'num')}
+                {head('biome', tr('Bioma'))}
+                {head('date', tr('Fecha'))}
                 <th className="col-actions" />
               </tr>
             </thead>
@@ -231,7 +233,7 @@ export function CoordsView({ shots }: { shots: ScreenshotEntry[] }) {
                     <td className="num mono">{p.x}</td>
                     <td className="num mono">{p.y}</td>
                     <td className="num mono">{p.z}</td>
-                    <td className="num mono">{Math.round(d).toLocaleString('es')}</td>
+                    <td className="num mono">{Math.round(d).toLocaleString(getLang())}</td>
                     <td>
                       {s.analysis?.biome && (
                         <span className="cell-dim">
@@ -247,8 +249,8 @@ export function CoordsView({ shots }: { shots: ScreenshotEntry[] }) {
                     <td className="col-actions">
                       <button
                         className="icon-btn"
-                        title="Copiar coordenadas"
-                        onClick={() => void copyText(blockString(p), 'Coordenadas')}
+                        title={tr('Copiar coordenadas')}
+                        onClick={() => void copyText(blockString(p), tr('Coordenadas'))}
                       >
                         <Icon name="copy" size={15} />
                       </button>
@@ -256,14 +258,14 @@ export function CoordsView({ shots }: { shots: ScreenshotEntry[] }) {
                         <button
                           className="icon-btn"
                           title={tp}
-                          onClick={() => void copyText(tp, 'Comando /tp')}
+                          onClick={() => void copyText(tp, tr('Comando /tp'))}
                         >
                           <Icon name="play" size={15} />
                         </button>
                       )}
                       <button
                         className="icon-btn"
-                        title="Usar como referencia"
+                        title={tr('Usar como referencia')}
                         onClick={() => setRef(blockString(f3.block!))}
                       >
                         <Icon name="pin" size={15} />
@@ -274,7 +276,9 @@ export function CoordsView({ shots }: { shots: ScreenshotEntry[] }) {
               })}
             </tbody>
           </table>
-          <div className="table-foot muted">{plural(rows.length, 'ubicación', 'ubicaciones')}</div>
+          <div className="table-foot muted">
+            {plural(rows.length, tr('ubicación'), tr('ubicaciones'))}
+          </div>
         </div>
       )}
     </div>

@@ -1,4 +1,5 @@
 import type { SVGProps } from 'react'
+import { tr } from '@shared/i18n'
 
 /** Line icons (24px grid, stroke = currentColor) plus a few pixel-art Minecraft glyphs. */
 type IconProps = SVGProps<SVGSVGElement> & { size?: number }
@@ -121,8 +122,8 @@ export function F3Badge() {
 /** Exact data from the F2+F3 Companion mod. */
 export function ModBadge() {
   return (
-    <span className="f3-badge mod-badge" title="Datos exactos del mod F2+F3 Companion">
-      MOD
+    <span className="f3-badge mod-badge" title={tr('Datos exactos del mod F2+F3 Companion')}>
+      {tr('MOD')}
     </span>
   )
 }

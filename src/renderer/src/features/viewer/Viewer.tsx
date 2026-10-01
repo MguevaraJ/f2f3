@@ -7,6 +7,7 @@ import { formatDateTime } from '../../lib/format'
 import { useUi } from '../../store/ui'
 import { DetailsPanel } from '../details/DetailsPanel'
 import { copyImage, copyText, deleteItems, renameItem, toggleFavorite } from '../library/actions'
+import { tr } from '@shared/i18n'
 
 const MIN_ZOOM = 0.05
 const MAX_ZOOM = 32
@@ -275,7 +276,7 @@ function ViewerFrame({ shot, shots, index, go, prefs, setPrefs }: FrameProps) {
     setGrabbing(false)
     if (d && !d.moved && picker) {
       const px = readPixel(e.clientX, e.clientY)
-      if (px) void copyText(px.color, `Color ${px.color}`)
+      if (px) void copyText(px.color, tr('Color {0}', px.color))
     }
   }
 
@@ -316,9 +317,9 @@ function ViewerFrame({ shot, shots, index, go, prefs, setPrefs }: FrameProps) {
   const pixelated = !smooth && view.zoom >= 1
 
   return (
-    <div className="viewer" role="dialog" aria-label={`Visor: ${shot.name}`}>
+    <div className="viewer" role="dialog" aria-label={tr('Visor: {0}', shot.name)}>
       <div className="viewer-top">
-        <button className="icon-btn" onClick={close} title="Cerrar (Esc)">
+        <button className="icon-btn" onClick={close} title={tr('Cerrar (Esc)')}>
           <Icon name="chevronLeft" size={20} />
         </button>
         <div className="viewer-title">
@@ -328,47 +329,47 @@ function ViewerFrame({ shot, shots, index, go, prefs, setPrefs }: FrameProps) {
           </span>
         </div>
         <div className="viewer-tools">
-          <button className="icon-btn" onClick={() => step(-1)} title="Alejar (-)">
+          <button className="icon-btn" onClick={() => step(-1)} title={tr('Alejar (-)')}>
             <Icon name="zoomOut" />
           </button>
-          <button className="zoom-readout" onClick={() => zoomTo(1)} title="Tamaño real (1)">
+          <button className="zoom-readout" onClick={() => zoomTo(1)} title={tr('Tamaño real (1)')}>
             {Math.round(view.zoom * 100)}%
           </button>
-          <button className="icon-btn" onClick={() => step(1)} title="Acercar (+)">
+          <button className="icon-btn" onClick={() => step(1)} title={tr('Acercar (+)')}>
             <Icon name="zoomIn" />
           </button>
           <button
             className={`icon-btn ${manual ? '' : 'on'}`}
             onClick={fit}
-            title="Ajustar a la ventana (0)"
+            title={tr('Ajustar a la ventana (0)')}
           >
             <Icon name="fit" />
           </button>
-          <button className="icon-btn" onClick={() => zoomTo(1)} title="Tamaño real 1:1 (1)">
+          <button className="icon-btn" onClick={() => zoomTo(1)} title={tr('Tamaño real 1:1 (1)')}>
             <Icon name="actual" />
           </button>
           <span className="tool-sep" />
-          <button className="icon-btn" onClick={() => rotate(90)} title="Rotar (R)">
+          <button className="icon-btn" onClick={() => rotate(90)} title={tr('Rotar (R)')}>
             <Icon name="rotate" />
           </button>
           <button
             className={`icon-btn ${flip.x ? 'on' : ''}`}
             onClick={() => setFlip((f) => ({ ...f, x: !f.x }))}
-            title="Voltear horizontal (H)"
+            title={tr('Voltear horizontal (H)')}
           >
             <Icon name="flip" />
           </button>
           <button
             className={`icon-btn ${picker ? 'on' : ''}`}
             onClick={() => setPrefs({ picker: !picker })}
-            title="Cuentagotas: coordenadas y color del píxel (P)"
+            title={tr('Cuentagotas: coordenadas y color del píxel (P)')}
           >
             <Icon name="pipette" />
           </button>
           <button
             className={`icon-btn ${smooth ? 'on' : ''}`}
             onClick={() => setPrefs({ smooth: !smooth })}
-            title="Suavizado al ampliar (S)"
+            title={tr('Suavizado al ampliar (S)')}
           >
             <Icon name="grid" />
           </button>
@@ -376,31 +377,35 @@ function ViewerFrame({ shot, shots, index, go, prefs, setPrefs }: FrameProps) {
           <button
             className={`icon-btn ${shot.meta.favorite ? 'on fav' : ''}`}
             onClick={() => toggleFavorite([shot.id])}
-            title="Favorita (F)"
+            title={tr('Favorita (F)')}
           >
             <Icon name="star" fill={shot.meta.favorite ? 'currentColor' : 'none'} />
           </button>
           <button
             className="icon-btn"
             onClick={() => void copyImage(shot.id)}
-            title="Copiar imagen (Ctrl+C)"
+            title={tr('Copiar imagen (Ctrl+C)')}
           >
             <Icon name="copy" />
           </button>
           <button
             className="icon-btn"
             onClick={() => deleteItems([shot.id])}
-            title="Eliminar (Supr)"
+            title={tr('Eliminar (Supr)')}
           >
             <Icon name="trash" />
           </button>
-          <button className="icon-btn" onClick={toggleFullscreen} title="Pantalla completa (F11)">
+          <button
+            className="icon-btn"
+            onClick={toggleFullscreen}
+            title={tr('Pantalla completa (F11)')}
+          >
             <Icon name="fullscreen" />
           </button>
           <button
             className={`icon-btn ${showInfo ? 'on' : ''}`}
             onClick={() => setPrefs({ showInfo: !showInfo })}
-            title="Información (I)"
+            title={tr('Información (I)')}
           >
             <Icon name="info" />
           </button>
@@ -457,10 +462,18 @@ function ViewerFrame({ shot, shots, index, go, prefs, setPrefs }: FrameProps) {
                 })
               }
             />
-            <button className="viewer-nav prev" onClick={() => go(-1)} aria-label="Anterior (←)">
+            <button
+              className="viewer-nav prev"
+              onClick={() => go(-1)}
+              aria-label={tr('Anterior (←)')}
+            >
               <Icon name="chevronLeft" size={28} />
             </button>
-            <button className="viewer-nav next" onClick={() => go(1)} aria-label="Siguiente (→)">
+            <button
+              className="viewer-nav next"
+              onClick={() => go(1)}
+              aria-label={tr('Siguiente (→)')}
+            >
               <Icon name="chevronRight" size={28} />
             </button>
             {picker && (
@@ -472,10 +485,10 @@ function ViewerFrame({ shot, shots, index, go, prefs, setPrefs }: FrameProps) {
                       {pixel.x}, {pixel.y}
                     </span>
                     <b>{pixel.color}</b>
-                    <span className="muted">clic para copiar</span>
+                    <span className="muted">{tr('clic para copiar')}</span>
                   </>
                 ) : (
-                  <span className="muted">Pasa el cursor sobre la imagen</span>
+                  <span className="muted">{tr('Pasa el cursor sobre la imagen')}</span>
                 )}
               </div>
             )}

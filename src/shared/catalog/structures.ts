@@ -1,4 +1,4 @@
-import { normalizeId, prettifyId } from './biomes'
+import { localName, normalizeId, prettifyId } from './biomes'
 
 /** Recognisable structures (generated, plus the portals players build), with Spanish names. */
 export interface StructureDef {
@@ -13,7 +13,7 @@ const s = (
   dimension: StructureDef['dimension'] = 'overworld'
 ): StructureDef => ({
   id: `minecraft:${id}`,
-  name,
+  name: localName(id, name),
   dimension
 })
 

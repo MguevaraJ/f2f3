@@ -2,6 +2,7 @@ import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { useToasts } from '../store/toasts'
 import { useUi, type DialogState } from '../store/ui'
 import { Icon } from './icons'
+import { tr } from '@shared/i18n'
 
 const dialogKeys = new WeakMap<object, number>()
 let dialogSeq = 0
@@ -45,7 +46,7 @@ function DialogForm({ dialog }: { dialog: DialogState }) {
     setBusy(true)
     try {
       if (dialog.kind === 'prompt') {
-        if (!value.trim() && !dialog.allowEmpty) throw new Error('Escribe un nombre')
+        if (!value.trim() && !dialog.allowEmpty) throw new Error(tr('Escribe un nombre'))
         await dialog.onSubmit(value.trim())
       } else await dialog.onConfirm()
       close()
@@ -69,7 +70,7 @@ function DialogForm({ dialog }: { dialog: DialogState }) {
       >
         <div className="modal-head">
           <h2 id="modal-title">{dialog.title}</h2>
-          <button type="button" className="icon-btn" onClick={close} aria-label="Cerrar">
+          <button type="button" className="icon-btn" onClick={close} aria-label={tr('Cerrar')}>
             <Icon name="close" />
           </button>
         </div>
@@ -92,7 +93,7 @@ function DialogForm({ dialog }: { dialog: DialogState }) {
         </div>
         <div className="modal-foot">
           <button type="button" className="btn" onClick={close}>
-            Cancelar
+            {tr('Cancelar')}
           </button>
           <button
             type="submit"

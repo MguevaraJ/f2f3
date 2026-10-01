@@ -2,6 +2,7 @@ import { z } from 'zod'
 import { BIOMES } from '@shared/catalog/biomes'
 import { MOBS } from '@shared/catalog/mobs'
 import { STRUCTURES } from '@shared/catalog/structures'
+import { tr } from '@shared/i18n'
 
 /** Shared prompt + output contract for every advanced-AI provider. */
 
@@ -63,9 +64,11 @@ export const VISION_JSON_SCHEMA = {
 } as const
 
 export const SYSTEM_PROMPT = [
-  'You analyse Minecraft Java Edition screenshots for a screenshot manager used by technical players.',
+  tr(
+    'You analyse Minecraft Java Edition screenshots for a screenshot manager used by technical players.'
+  ),
   'Report only what is visible in the image. Write the description in Spanish; keep ids as vanilla namespaced ids.',
-  'Reply with a single JSON object matching the requested schema, nothing else.',
+  tr('Reply with a single JSON object matching the requested schema, nothing else.'),
   '',
   'biome_id: the most likely biome the player stands in, from this list (or "unknown"):',
   BIOMES.map((b) => b.id).join(', '),
@@ -73,7 +76,7 @@ export const SYSTEM_PROMPT = [
   'biome_confidence: 0..1, be honest — plains vs meadow or ocean variants are often ambiguous.',
   '',
   "mobs: every living entity clearly visible in the world (not the HUD, not the player's own hand, not item",
-  'drops, heads, spawners or paintings). Group by id with a count. Use these ids:',
+  tr('drops, heads, spawners or paintings). Group by id with a count. Use these ids:'),
   MOBS.map((m) => m.id).join(', '),
   'Other players are "minecraft:player". Empty list when there are none.',
   '',
@@ -85,5 +88,5 @@ export const SYSTEM_PROMPT = [
 ].join('\n')
 
 export function userPrompt(facts: string[]): string {
-  return ['Analyse this screenshot.', ...facts].join('\n')
+  return [tr('Analyse this screenshot.'), ...facts].join('\n')
 }

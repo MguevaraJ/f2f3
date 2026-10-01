@@ -13,6 +13,7 @@ import type {
 import { sidecarPathsFor } from '@core/companion/parseCompanion'
 import { companionFileOf } from '../sidecars'
 import type { MetadataStore } from './MetadataStore'
+import { tr } from '@shared/i18n'
 
 const IMAGE_RE = /\.(png|jpe?g)$/i
 const MAX_DEPTH = 8
@@ -32,7 +33,7 @@ interface Mount extends LibraryRoot {
   mount: string
 }
 
-const PICK_ROOT = 'Elige primero una de tus carpetas de juego'
+const PICK_ROOT = tr('Elige primero una de tus carpetas de juego')
 
 /**
  * The screenshots folders as one library: scanning, watching and every file
@@ -105,7 +106,7 @@ export class LibraryService extends EventEmitter<{ changed: [LibrarySnapshot] }>
     const { mount, rel } = this.locate(id)
     const abs = resolve(mount.path, ...rel)
     if (abs !== mount.path && !abs.startsWith(mount.path + sep))
-      throw new Error('Ruta fuera de la carpeta de capturas')
+      throw new Error(tr('Ruta fuera de la carpeta de capturas'))
     return abs
   }
 
@@ -172,7 +173,7 @@ export class LibraryService extends EventEmitter<{ changed: [LibrarySnapshot] }>
   async createFolder(parent: string, name: string): Promise<FileOpResult> {
     return this.op(async () => {
       const dir = join(this.resolveId(parent), validName(name))
-      if (existsSync(dir)) throw new Error(`Ya existe "${basename(dir)}"`)
+      if (existsSync(dir)) throw new Error(tr('Ya existe "{0}"', basename(dir)))
       await mkdir(dir)
       return [this.toId(dir)]
     })
@@ -180,7 +181,7 @@ export class LibraryService extends EventEmitter<{ changed: [LibrarySnapshot] }>
 
   async rename(id: string, newName: string): Promise<FileOpResult> {
     return this.op(async () => {
-      if (this.isTop(id)) throw new Error('No se puede renombrar una carpeta de juego')
+      if (this.isTop(id)) throw new Error(tr('No se puede renombrar una carpeta de juego'))
       const from = this.resolveId(id)
       const isDir = (await stat(from)).isDirectory()
       let name = validName(newName)
@@ -188,7 +189,7 @@ export class LibraryService extends EventEmitter<{ changed: [LibrarySnapshot] }>
       const to = join(dirname(from), name)
       if (to === from) return [id]
       if (existsSync(to) && to.toLowerCase() !== from.toLowerCase())
-        throw new Error(`Ya existe "${name}"`)
+        throw new Error(tr('Ya existe "{0}"', name))
       await rename(from, to)
       if (!isDir) await withSidecar(from, to, rename)
       this.metadata.move(from, to)
@@ -200,7 +201,7 @@ export class LibraryService extends EventEmitter<{ changed: [LibrarySnapshot] }>
     return this.op(async () => {
       const done: string[] = []
       for (const id of ids) {
-        if (this.isTop(id)) throw new Error('No se puede eliminar una carpeta de juego')
+        if (this.isTop(id)) throw new Error(tr('No se puede eliminar una carpeta de juego'))
         const abs = this.resolveId(id)
         await shell.trashItem(abs)
         await withSidecar(abs, null, (p) => shell.trashItem(p))
@@ -218,7 +219,7 @@ export class LibraryService extends EventEmitter<{ changed: [LibrarySnapshot] }>
       for (const id of ids) {
         const from = this.resolveId(id)
         if (target === from || target.startsWith(from + sep))
-          throw new Error('No se puede pegar una carpeta dentro de sí misma')
+          throw new Error(tr('No se puede pegar una carpeta dentro de sí misma'))
         if (mode === 'cut' && dirname(from) === target) {
           out.push(id)
           continue
@@ -251,7 +252,7 @@ export class LibraryService extends EventEmitter<{ changed: [LibrarySnapshot] }>
         if (!st.isDirectory()) await withSidecar(p, to, copyPreservingTimes)
         out.push(this.toId(to))
       }
-      if (!out.length) throw new Error('No se encontraron imágenes para importar')
+      if (!out.length) throw new Error(tr('No se encontraron imágenes para importar'))
       return out
     })
   }
@@ -278,7 +279,7 @@ export class LibraryService extends EventEmitter<{ changed: [LibrarySnapshot] }>
     const many = this.mounts.length > 1
     const rootNode: FolderNode = {
       path: '',
-      name: many ? 'Carpetas de juego' : 'screenshots',
+      name: many ? tr('Carpetas de juego') : 'screenshots',
       count: 0,
       children: []
     }
@@ -393,7 +394,7 @@ function validName(name: string): string {
   // Reject separators, characters Windows forbids and control characters.
   // eslint-disable-next-line no-control-regex
   if (!clean || clean === '.' || clean === '..' || /[\\/:*?"<>|\u0000-\u001f]/.test(clean))
-    throw new Error('Nombre no válido')
+    throw new Error(tr('Nombre no válido'))
   return clean
 }
 

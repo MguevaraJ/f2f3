@@ -31,15 +31,16 @@ import { toCsv, toJson } from '../export'
 import { tableToCsv, tableToXlsx } from '../tableExport'
 import { writeZip, zipNames } from '../zipExport'
 import type { Services } from '../services'
+import { setLang, tr } from '@shared/i18n'
 
 /** Validates that an argument is a string (the renderer is treated as untrusted). */
 const str = (v: unknown, name = 'argumento'): string => {
-  if (typeof v !== 'string') throw new TypeError(`${name} inválido`)
+  if (typeof v !== 'string') throw new TypeError(tr('{0} inválido', name))
   return v
 }
 const strArray = (v: unknown): string[] => {
   if (!Array.isArray(v) || v.some((x) => typeof x !== 'string'))
-    throw new TypeError('lista inválida')
+    throw new TypeError(tr('lista inválida'))
   return v as string[]
 }
 
@@ -52,7 +53,7 @@ export function registerIpc(services: Services): void {
     ipcMain.handle(channel, (e, ...args) => {
       // Only our own window (loaded from our bundle) may call in.
       if (!e.senderFrame || BrowserWindow.fromWebContents(e.sender) === null)
-        throw new Error('Remitente no válido')
+        throw new Error(tr('Remitente no válido'))
       return fn(e, ...args)
     })
   }
@@ -106,7 +107,7 @@ export function registerIpc(services: Services): void {
     const entries = (await library.snapshot()).screenshots.filter((s) => wanted.has(s.id))
     const parent = win(e)
     const options = {
-      title: 'Exportar datos de capturas',
+      title: tr('Exportar datos de capturas'),
       defaultPath: `f2f3-${new Date().toISOString().slice(0, 10)}.${fmt}`,
       filters: [{ name: fmt.toUpperCase(), extensions: [fmt] }]
     }
@@ -120,15 +121,15 @@ export function registerIpc(services: Services): void {
 
   handle(IPC.library.exportZip, async (e, ids) => {
     const list = strArray(ids)
-    if (!list.length) throw new Error('No hay capturas seleccionadas')
+    if (!list.length) throw new Error(tr('No hay capturas seleccionadas'))
     const paths = list.map((id) => library.resolveId(id))
     const parent = win(e)
     const date = new Date().toISOString().slice(0, 10)
     const options = {
-      title: 'Guardar capturas en un ZIP',
+      title: tr('Guardar capturas en un ZIP'),
       defaultPath: join(app.getPath('downloads'), `f2f3-${date}-${list.length}-capturas.zip`),
-      buttonLabel: 'Guardar ZIP',
-      filters: [{ name: 'Archivo ZIP', extensions: ['zip'] }],
+      buttonLabel: tr('Guardar ZIP'),
+      filters: [{ name: tr('Archivo ZIP'), extensions: ['zip'] }],
       properties: ['showOverwriteConfirmation', 'createDirectory'] as (
         'showOverwriteConfirmation' | 'createDirectory'
       )[]
@@ -152,13 +153,13 @@ export function registerIpc(services: Services): void {
     const parent = win(e)
     const safeName = table.fileName.replace(/[\\/:*?"<>|]/g, '-')
     const options = {
-      title: fmt === 'xlsx' ? 'Exportar tabla a Excel' : 'Exportar tabla a CSV',
+      title: fmt === 'xlsx' ? tr('Exportar tabla a Excel') : tr('Exportar tabla a CSV'),
       defaultPath: join(app.getPath('downloads'), `${safeName}.${fmt}`),
       buttonLabel: 'Exportar',
       filters: [
         fmt === 'xlsx'
-          ? { name: 'Libro de Excel', extensions: ['xlsx'] }
-          : { name: 'CSV (separado por comas)', extensions: ['csv'] }
+          ? { name: tr('Libro de Excel'), extensions: ['xlsx'] }
+          : { name: tr('CSV (separado por comas)'), extensions: ['csv'] }
       ],
       properties: ['showOverwriteConfirmation', 'createDirectory'] as (
         'showOverwriteConfirmation' | 'createDirectory'
@@ -196,11 +197,11 @@ export function registerIpc(services: Services): void {
           }
         ]
       })
-    if (!waypoints.length) throw new Error('Ninguna captura seleccionada tiene coordenadas')
+    if (!waypoints.length) throw new Error(tr('Ninguna captura seleccionada tiene coordenadas'))
     const safe = worldName.replace(/[^\p{L}\p{N} _-]+/gu, '_')
     const parent = win(e)
     const options = {
-      title: 'Exportar waypoints',
+      title: tr('Exportar waypoints'),
       defaultPath: join(app.getPath('downloads'), `f2f3-waypoints-${safe}.zip`),
       filters: [{ name: 'ZIP', extensions: ['zip'] }],
       properties: ['showOverwriteConfirmation', 'createDirectory'] as (
@@ -212,18 +213,21 @@ export function registerIpc(services: Services): void {
       : await dialog.showSaveDialog(options)
     if (res.canceled || !res.filePath) return null
     const readme = [
-      `Waypoints de F2+F3 · ${worldName} · ${waypoints.length} capturas`,
+      tr('Waypoints de F2+F3 · {0} · {1} capturas', worldName, waypoints.length),
       '',
       "Xaero's Minimap:",
-      `  Copia cada carpeta dim%… dentro de .minecraft/xaero/minimap/<tu mundo>/`,
-      `  Si ya tienes waypoints en ese mundo, no reemplaces ${XAERO_FILE}: abre el tuyo y pega`,
-      '  al final solo las líneas que empiezan por "waypoint:".',
+      tr('  Copia cada carpeta dim%… dentro de .minecraft/xaero/minimap/<tu mundo>/'),
+      tr(
+        '  Si ya tienes waypoints en ese mundo, no reemplaces {0}: abre el tuyo y pega',
+        XAERO_FILE
+      ),
+      tr('  al final solo las líneas que empiezan por "waypoint:".'),
       '',
       'JourneyMap 6:',
-      '  Coloca los archivos igual (carpeta xaero/minimap) y abre el gestor de waypoints de',
-      '  JourneyMap: ofrece "Importar Puntos de Ruta Externos" (Import External Waypoints).',
+      tr('  Coloca los archivos igual (carpeta xaero/minimap) y abre el gestor de waypoints de'),
+      tr('  JourneyMap: ofrece "Importar Puntos de Ruta Externos" (Import External Waypoints).'),
       '',
-      'Carpetas: dim%0 = Overworld, dim%-1 = Nether, dim%1 = End.'
+      tr('Carpetas: dim%0 = Overworld, dim%-1 = Nether, dim%1 = End.')
     ].join('\n')
     const files = Object.fromEntries(
       Object.entries({ ...xaeroFiles(waypoints), 'LEEME.txt': readme }).map(([k, v]) => [
@@ -256,9 +260,9 @@ export function registerIpc(services: Services): void {
     const version: ModVersion = isModVersion(wanted) ? wanted : '26.3'
     const parent = BrowserWindow.fromWebContents(e.sender)
     const options = {
-      title: 'Guardar el mod F2+F3 Companion',
+      title: tr('Guardar el mod F2+F3 Companion'),
       defaultPath: join(modsDirOrDownloads(), `f2f3-companion-1.0.0+${version}.jar`),
-      filters: [{ name: 'Mod de Fabric', extensions: ['jar'] }],
+      filters: [{ name: tr('Mod de Fabric'), extensions: ['jar'] }],
       properties: ['showOverwriteConfirmation', 'createDirectory'] as (
         'showOverwriteConfirmation' | 'createDirectory'
       )[]
@@ -273,15 +277,15 @@ export function registerIpc(services: Services): void {
 
   handle(IPC.companion.exportBuild, async (e, id) => {
     const src = buildFileOf(library.resolveId(str(id)))
-    if (!existsSync(src)) throw new Error('Esta captura no tiene un build guardado.')
+    if (!existsSync(src)) throw new Error(tr('Esta captura no tiene un build guardado.'))
     // Litematica's folder when it is there: "Cargar esquemas" lists it right away.
     const schematics = join(locator.gameDirOf(library.rootOf(str(id))), 'schematics')
     const dir = existsSync(schematics) ? schematics : app.getPath('downloads')
     const parent = BrowserWindow.fromWebContents(e.sender)
     const options = {
-      title: 'Guardar el build',
+      title: tr('Guardar el build'),
       defaultPath: join(dir, basename(src).replace(/\.(f2f3|craftshot)\.nbt$/, '.nbt')),
-      filters: [{ name: 'Estructura de Minecraft', extensions: ['nbt'] }],
+      filters: [{ name: tr('Estructura de Minecraft'), extensions: ['nbt'] }],
       properties: ['showOverwriteConfirmation', 'createDirectory'] as (
         'showOverwriteConfirmation' | 'createDirectory'
       )[]
@@ -301,10 +305,11 @@ export function registerIpc(services: Services): void {
   handle(IPC.companion.installBuild, async (_e, id, folder, template) => {
     const image = library.resolveId(str(id))
     const src = buildFileOf(image)
-    if (!existsSync(src)) throw new Error('Esta captura no tiene un build guardado.')
+    if (!existsSync(src)) throw new Error(tr('Esta captura no tiene un build guardado.'))
     const saves = savesDirFor(library.rootOf(str(id)))
     const known = await listSaves(saves)
-    if (!known.some((w) => w.folder === str(folder))) throw new Error('No se encontró ese mundo.')
+    if (!known.some((w) => w.folder === str(folder)))
+      throw new Error(tr('No se encontró ese mundo.'))
     // The mod's name (f2f3:build_3) when it saved one, so the same command works everywhere.
     const name = typeof template === 'string' && template ? template : templateId(basename(image))
     return installTemplate(saves, str(folder), name, src)
@@ -333,17 +338,17 @@ export function registerIpc(services: Services): void {
   handle(IPC.backup.restore, () => backup.restoreMissing())
   handle(IPC.backup.openFolder, async () => {
     const url = backup.current.folderUrl
-    if (!url) throw new Error('Aún no hay ningún respaldo en Drive')
+    if (!url) throw new Error(tr('Aún no hay ningún respaldo en Drive'))
     await shell.openExternal(url)
   })
 
   // Analysis
   handle(IPC.analysis.reanalyze, (_e, ids) => analysis.enqueueLocal(strArray(ids)))
   handle(IPC.analysis.vision, (_e, ids) => {
-    if (!settings.value.visionEnabled) throw new Error('Activa la IA avanzada en Ajustes.')
+    if (!settings.value.visionEnabled) throw new Error(tr('Activa la IA avanzada en Ajustes.'))
     if (!vision.isReady())
       throw new Error(
-        'Termina de configurar la IA avanzada en Ajustes (proveedor, clave y modelo).'
+        tr('Termina de configurar la IA avanzada en Ajustes (proveedor, clave y modelo).')
       )
     analysis.enqueueVision(strArray(ids))
   })
@@ -353,7 +358,12 @@ export function registerIpc(services: Services): void {
 
   // Settings
   handle(IPC.settings.get, () => settings.view())
-  handle(IPC.settings.update, (_e, patch) => settings.update((patch ?? {}) as Partial<AppSettings>))
+  handle(IPC.settings.update, (_e, patch) => {
+    const next = settings.update((patch ?? {}) as Partial<AppSettings>)
+    // Texts written from here on (dialogs, the tray menu, notices) follow the new language.
+    setLang(settings.value.language)
+    return next
+  })
   handle(IPC.settings.setApiKey, (_e, provider, key) =>
     settings.setProviderKey(visionProvider(provider), key == null ? null : str(key))
   )
@@ -362,7 +372,7 @@ export function registerIpc(services: Services): void {
   handle(IPC.settings.chooseDirectory, async (e) => {
     const parent = win(e)
     const options = {
-      title: 'Carpeta del juego o de capturas',
+      title: tr('Carpeta del juego o de capturas'),
       defaultPath: settings.value.screenshotsDir,
       properties: ['openDirectory', 'createDirectory'] as ('openDirectory' | 'createDirectory')[]
     }
@@ -375,7 +385,7 @@ export function registerIpc(services: Services): void {
   handle(IPC.settings.chooseFontSource, async (e) => {
     const parent = win(e)
     const options = {
-      title: 'Fuente de Minecraft (.jar del cliente o resource pack .zip)',
+      title: tr('Fuente de Minecraft (.jar del cliente o resource pack .zip)'),
       defaultPath: locator.launcherRootOf(settings.value.screenshotsDir),
       filters: [{ name: 'Minecraft', extensions: ['jar', 'zip'] }],
       properties: ['openFile'] as 'openFile'[]
@@ -437,11 +447,11 @@ function validTable(raw: unknown): DataTable {
     !Array.isArray(t.rows) ||
     !t.rows.every((r) => Array.isArray(r) && r.length === t.columns.length && r.every(cell))
   )
-    throw new TypeError('Tabla inválida')
+    throw new TypeError(tr('Tabla inválida'))
   return t
 }
 
 function visionProvider(v: unknown): VisionProviderId {
   if (v === 'anthropic' || v === 'openai' || v === 'gemini' || v === 'ollama') return v
-  throw new TypeError('Proveedor inválido')
+  throw new TypeError(tr('Proveedor inválido'))
 }

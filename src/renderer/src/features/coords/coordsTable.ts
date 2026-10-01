@@ -4,14 +4,15 @@ import { structureName } from '@shared/catalog/structures'
 import type { DataTable, TableCell } from '@shared/ipc'
 import type { InfoSource, ScreenshotEntry, Vec3 } from '@shared/types'
 import { blockString, convertDimension, DIRECTION_ES, distance, tpCommand } from '../../lib/coords'
+import { tr } from '@shared/i18n'
 
 const SOURCE: Record<InfoSource, string> = {
-  mod: 'Mod (exacto)',
-  f3: 'F3 (exacto)',
-  vision: 'IA avanzada',
-  local: 'Modelo local (estimado)',
-  heuristic: 'Colores (aproximado)',
-  manual: 'Manual'
+  mod: tr('Mod (exacto)'),
+  f3: tr('F3 (exacto)'),
+  vision: tr('IA avanzada'),
+  local: tr('Modelo local (estimado)'),
+  heuristic: tr('Colores (aproximado)'),
+  manual: tr('Manual')
 }
 
 const pad = (n: number): string => String(n).padStart(2, '0')
@@ -35,33 +36,33 @@ export interface CoordsTableOptions {
  * Screenshots passed in must have F3 block coordinates.
  */
 export function buildCoordsTable(rows: ScreenshotEntry[], opts: CoordsTableOptions): DataTable {
-  const suffix = opts.convert ? ' (convertida)' : ''
+  const suffix = opts.convert ? tr(' (convertida)') : ''
   const ref = opts.reference
   const columns = [
-    { header: 'Captura', width: 26 },
-    { header: 'Carpeta', width: 14 },
-    { header: 'Fecha', width: 20 },
-    { header: 'Dimensión', width: 12 },
+    { header: tr('Captura'), width: 26 },
+    { header: tr('Carpeta'), width: 14 },
+    { header: tr('Fecha'), width: 20 },
+    { header: tr('Dimensión'), width: 12 },
     { header: `X${suffix}`, width: opts.convert ? 16 : 10 },
     { header: `Y${suffix}`, width: opts.convert ? 16 : 8 },
     { header: `Z${suffix}`, width: opts.convert ? 16 : 10 },
-    { header: ref ? `Distancia a ${blockString(ref)}` : 'Distancia a 0,0', width: 22 },
-    { header: 'Bioma', width: 24 },
-    { header: 'Origen del bioma', width: 16 },
-    { header: 'X exacta', width: 12 },
-    { header: 'Y exacta', width: 12 },
-    { header: 'Z exacta', width: 12 },
-    { header: 'Chunk X', width: 9 },
-    { header: 'Chunk Z', width: 9 },
-    { header: 'Región', width: 13 },
-    { header: 'Orientación', width: 12 },
+    { header: ref ? tr('Distancia a {0}', blockString(ref)) : tr('Distancia a 0,0'), width: 22 },
+    { header: tr('Bioma'), width: 24 },
+    { header: tr('Origen del bioma'), width: 16 },
+    { header: tr('X exacta'), width: 12 },
+    { header: tr('Y exacta'), width: 12 },
+    { header: tr('Z exacta'), width: 12 },
+    { header: tr('Chunk X'), width: 9 },
+    { header: tr('Chunk Z'), width: 9 },
+    { header: tr('Región'), width: 13 },
+    { header: tr('Orientación'), width: 12 },
     { header: 'Yaw', width: 8 },
     { header: 'Pitch', width: 8 },
-    { header: 'Mobs', width: 24 },
-    { header: 'Estructuras', width: 26 },
-    { header: 'Versión', width: 10 },
-    { header: 'Nota', width: 30 },
-    { header: 'Comando /tp', width: 48 }
+    { header: tr('Mobs'), width: 24 },
+    { header: tr('Estructuras'), width: 26 },
+    { header: tr('Versión'), width: 10 },
+    { header: tr('Nota'), width: 30 },
+    { header: tr('Comando /tp'), width: 48 }
   ]
 
   const data: TableCell[][] = rows.map((s) => {
@@ -103,7 +104,7 @@ export function buildCoordsTable(rows: ScreenshotEntry[], opts: CoordsTableOptio
 
   const date = new Date().toISOString().slice(0, 10)
   return {
-    sheetName: 'Coordenadas',
+    sheetName: tr('Coordenadas'),
     fileName: `f2f3-coordenadas-${date}`,
     columns,
     rows: data

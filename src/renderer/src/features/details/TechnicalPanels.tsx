@@ -20,19 +20,20 @@ import {
   tickInfo
 } from '../../lib/technical'
 import { CopyButton, Row, Rows, Section, SourceTag } from './parts'
+import { tr } from '@shared/i18n'
 
 const ENTITY_LABEL: Record<string, string> = {
-  'minecraft:item': 'Ítems sueltos',
-  'minecraft:experience_orb': 'Orbes de experiencia',
-  'minecraft:arrow': 'Flechas',
-  'minecraft:falling_block': 'Bloques cayendo',
-  'minecraft:tnt': 'TNT encendida',
-  'minecraft:minecart': 'Vagonetas',
-  'minecraft:hopper_minecart': 'Vagonetas con tolva',
-  'minecraft:chest_minecart': 'Vagonetas con cofre',
-  'minecraft:armor_stand': 'Soportes de armadura',
-  'minecraft:item_frame': 'Marcos',
-  'minecraft:player': 'Jugadores'
+  'minecraft:item': tr('Ítems sueltos'),
+  'minecraft:experience_orb': tr('Orbes de experiencia'),
+  'minecraft:arrow': tr('Flechas'),
+  'minecraft:falling_block': tr('Bloques cayendo'),
+  'minecraft:tnt': tr('TNT encendida'),
+  'minecraft:minecart': tr('Vagonetas'),
+  'minecraft:hopper_minecart': tr('Vagonetas con tolva'),
+  'minecraft:chest_minecart': tr('Vagonetas con cofre'),
+  'minecraft:armor_stand': tr('Soportes de armadura'),
+  'minecraft:item_frame': tr('Marcos'),
+  'minecraft:player': tr('Jugadores')
 }
 export const entityName = (id: string): string => ENTITY_LABEL[id] ?? mobName(id)
 
@@ -91,39 +92,50 @@ export function TechnicalSection({
 
   return (
     <Section
-      title="Técnico"
+      title={tr('Técnico')}
       icon="gauge"
       action={<SourceTag source={fromMod.server || fromMod.spawnCounts ? 'mod' : 'f3'} />}
     >
       <Rows wrap>
         {tick && (
           <Row
-            k="Servidor"
-            v={`${formatNumber(server!.mspt!, 1)} ms/tick · ${formatNumber(tick.tps, 1)} TPS · ${tick.label}`}
-            hint="MSPT: milisegundos por tick. Por encima del objetivo (50 ms a 20 TPS) el juego va lento."
+            k={tr('Servidor')}
+            v={tr(
+              '{0} ms/tick · {1} TPS · {2}',
+              formatNumber(server!.mspt!, 1),
+              formatNumber(tick.tps, 1),
+              tick.label
+            )}
+            hint={tr(
+              'MSPT: milisegundos por tick. Por encima del objetivo (50 ms a 20 TPS) el juego va lento.'
+            )}
           />
         )}
         {server && !tick && server.targetMs && Math.round(1000 / server.targetMs) !== 20 && (
           <Row
-            k="Velocidad del tick"
-            v={`${formatNumber(1000 / server.targetMs, 1)} ticks/s (/tick rate)`}
+            k={tr('Velocidad del tick')}
+            v={tr('{0} ticks/s (/tick rate)', formatNumber(1000 / server.targetMs, 1))}
           />
         )}
-        {server?.brand && <Row k="Servidor" v={server.brand} />}
-        {f3?.day !== undefined && !mod && <Row k="Día del mundo" v={String(f3.day)} />}
+        {server?.brand && <Row k={tr('Servidor')} v={server.brand} />}
+        {f3?.day !== undefined && !mod && <Row k={tr('Día del mundo')} v={String(f3.day)} />}
         {f3?.speed !== undefined && (
           <Row
-            k="Velocidad"
-            v={`${formatNumber(f3.speed, 3)} bloques/tick (${formatNumber(f3.speed * 20, 2)} m/s)`}
+            k={tr('Velocidad')}
+            v={tr(
+              '{0} bloques/tick ({1} m/s)',
+              formatNumber(f3.speed, 3),
+              formatNumber(f3.speed * 20, 2)
+            )}
           />
         )}
         {heights && (
           <Row
-            k="Alturas"
+            k={tr('Alturas')}
             v={Object.entries(heights)
               .map(([k, y]) => `${HEIGHTMAP_LABEL[k] ?? k} ${y}`)
               .join(' · ')}
-            hint="Heightmaps del servidor: el bloque más alto de cada tipo en esta columna"
+            hint={tr('Heightmaps del servidor: el bloque más alto de cada tipo en esta columna')}
           />
         )}
       </Rows>
@@ -131,8 +143,11 @@ export function TechnicalSection({
       {caps.length > 0 && (
         <div className="mob-caps">
           <div className="mobs-head">
-            <CreeperFace size={16} /> Límite de mobs
-            <span className="muted small"> · {spawn!.chunks} chunks de spawn</span>
+            <CreeperFace size={16} /> {tr('Límite de mobs')}
+            <span className="muted small">
+              {' '}
+              · {spawn!.chunks} {tr('chunks de spawn')}
+            </span>
           </div>
           {caps.map((c) => (
             <div key={c.id} className={`cap-row ${c.full ? 'full' : ''}`} title={c.hint}>
@@ -149,8 +164,9 @@ export function TechnicalSection({
           ))}
           {caps.find((c) => c.id === 'monster')?.full && (
             <p className="muted small">
-              El límite de monstruos está lleno: no aparecerán más hostiles. Ilumina cuevas cercanas
-              o elimina mobs persistentes para que tu granja rinda.
+              {tr(
+                'El límite de monstruos está lleno: no aparecerán más hostiles. Ilumina cuevas cercanas o elimina mobs persistentes para que tu granja rinda.'
+              )}
             </p>
           )}
         </div>
@@ -159,7 +175,7 @@ export function TechnicalSection({
       {nearby.length > 0 && (
         <div className="block-state">
           <div className="mobs-head">
-            <Icon name="eye" size={15} /> Entidades cargadas a 128 bloques
+            <Icon name="eye" size={15} /> {tr('Entidades cargadas a 128 bloques')}
             <span className="muted small"> · {nearbyTotal}</span>
           </div>
           <div className="chip-row">
@@ -170,13 +186,14 @@ export function TechnicalSection({
             ))}
             {nearby.length > 8 && (
               <button className="f3-tip-toggle" onClick={() => setShowNearby(!showNearby)}>
-                <u>{showNearby ? 'Menos' : `+${nearby.length - 8} tipos`}</u>
+                <u>{showNearby ? tr('Menos') : tr('+{0} tipos', nearby.length - 8)}</u>
               </button>
             )}
           </div>
           {items >= 200 && (
             <p className="muted small">
-              Hay {items} ítems sueltos cerca: muchas entidades de ítem suelen causar lag.
+              {tr('Hay')} {items}{' '}
+              {tr('ítems sueltos cerca: muchas entidades de ítem suelen causar lag.')}
             </p>
           )}
         </div>
@@ -185,7 +202,7 @@ export function TechnicalSection({
       {target && hasState && (
         <div className="block-state">
           <div className="mobs-head">
-            <Icon name="layers" size={15} /> {target.id ?? 'Bloque apuntado'}
+            <Icon name="layers" size={15} /> {target.id ?? tr('Bloque apuntado')}
           </div>
           {target.state && (
             <div className="chip-row">
@@ -201,15 +218,20 @@ export function TechnicalSection({
           )}
           {blockExtra?.signal && (
             <Rows wrap>
-              <Row k="Señal de redstone recibida" v={String(blockExtra.signal.received)} />
+              <Row k={tr('Señal de redstone recibida')} v={String(blockExtra.signal.received)} />
               {blockExtra.signal.comparatorOutput !== undefined && (
-                <Row k="Salida del comparador" v={String(blockExtra.signal.comparatorOutput)} />
+                <Row
+                  k={tr('Salida del comparador')}
+                  v={String(blockExtra.signal.comparatorOutput)}
+                />
               )}
               {blockExtra.signal.containerSignal !== undefined && (
                 <Row
-                  k="Un comparador leería"
+                  k={tr('Un comparador leería')}
                   v={String(blockExtra.signal.containerSignal)}
-                  hint="Señal que da un comparador leyendo este contenedor (depende de lo lleno que está)"
+                  hint={tr(
+                    'Señal que da un comparador leyendo este contenedor (depende de lo lleno que está)'
+                  )}
                 />
               )}
             </Rows>
@@ -217,13 +239,17 @@ export function TechnicalSection({
           {blockExtra?.container && (
             <>
               <div className="muted small">
-                Contenido: {blockExtra.container.items.length}/{blockExtra.container.size} ranuras
-                ocupadas
+                {tr('Contenido:')} {blockExtra.container.items.length}/{blockExtra.container.size}{' '}
+                {tr('ranuras ocupadas')}
               </div>
               {blockExtra.container.items.length > 0 && (
                 <div className="chip-row">
                   {blockExtra.container.items.map((it) => (
-                    <span key={it.slot} className="chip" title={`Ranura ${it.slot} · ${it.id}`}>
+                    <span
+                      key={it.slot}
+                      className="chip"
+                      title={tr('Ranura {0} · {1}', it.slot, it.id)}
+                    >
                       {itemLabel(it)}
                     </span>
                   ))}
@@ -232,7 +258,7 @@ export function TechnicalSection({
             </>
           )}
           <div className="copy-grid">
-            {state && <CopyButton label="Estado" value={state} />}
+            {state && <CopyButton label={tr('Estado')} value={state} />}
             {setblock && <CopyButton label="/setblock" value={setblock} />}
           </div>
           {target.tags && (
@@ -243,7 +269,7 @@ export function TechnicalSection({
                 aria-expanded={showTags}
               >
                 <u>
-                  {showTags ? 'Ocultar' : 'Ver'} {target.tags.length} etiquetas
+                  {showTags ? tr('Ocultar') : tr('Ver')} {target.tags.length} {tr('etiquetas')}
                 </u>
               </button>
               {showTags && (
@@ -268,29 +294,31 @@ const posText = (p: { x: number; y: number; z: number }): string => `${p.x} ${p.
 /** The villager in the crosshair: job, level, bonds and trades (trading halls, iron farms). */
 export function VillagerSection({ v }: { v: CompanionVillager }) {
   return (
-    <Section title="Aldeano" icon="note" action={<SourceTag source="mod" />}>
+    <Section title={tr('Aldeano')} icon="note" action={<SourceTag source="mod" />}>
       <Rows wrap>
         {v.profession && (
           <Row
-            k="Profesión"
+            k={tr('Profesión')}
             v={`${professionName(v.profession)}${v.level ? ` · ${villagerLevelName(v.level)} (${v.level})` : ''}`}
           />
         )}
         {v.xp !== undefined && (
           <Row
-            k="Experiencia"
-            v={v.xp === 0 ? '0 · aún se puede cambiar su oficio' : String(v.xp)}
-            hint="Con 0 de experiencia, romper su estación de trabajo le vuelve a sortear los tratos"
+            k={tr('Experiencia')}
+            v={v.xp === 0 ? tr('0 · aún se puede cambiar su oficio') : String(v.xp)}
+            hint={tr(
+              'Con 0 de experiencia, romper su estación de trabajo le vuelve a sortear los tratos'
+            )}
           />
         )}
-        {v.jobSite && <Row k="Estación de trabajo" v={posText(v.jobSite)} />}
-        {v.home && <Row k="Cama" v={posText(v.home)} />}
-        {v.meetingPoint && <Row k="Campana" v={posText(v.meetingPoint)} />}
+        {v.jobSite && <Row k={tr('Estación de trabajo')} v={posText(v.jobSite)} />}
+        {v.home && <Row k={tr('Cama')} v={posText(v.home)} />}
+        {v.meetingPoint && <Row k={tr('Campana')} v={posText(v.meetingPoint)} />}
         {v.golemDetectedRecently !== undefined && (
           <Row
-            k="Vio un gólem hace poco"
-            v={v.golemDetectedRecently ? 'Sí (no invocará otro por ahora)' : 'No'}
-            hint="Los aldeanos solo invocan gólems si no han visto uno recientemente"
+            k={tr('Vio un gólem hace poco')}
+            v={v.golemDetectedRecently ? tr('Sí (no invocará otro por ahora)') : tr('No')}
+            hint={tr('Los aldeanos solo invocan gólems si no han visto uno recientemente')}
           />
         )}
       </Rows>
@@ -300,7 +328,7 @@ export function VillagerSection({ v }: { v: CompanionVillager }) {
             <div
               key={i}
               className={`trade ${t.uses >= t.maxUses ? 'out' : ''}`}
-              title={t.uses >= t.maxUses ? 'Agotado' : `${t.uses}/${t.maxUses} usos`}
+              title={t.uses >= t.maxUses ? tr('Agotado') : tr('{0}/{1} usos', t.uses, t.maxUses)}
             >
               <span>{t.buy.map(itemLabel).join(' + ')}</span>
               <Icon name="chevronRight" size={14} />
@@ -318,24 +346,24 @@ export function VillagerSection({ v }: { v: CompanionVillager }) {
 
 /** Game rules for technical play; the ones changed from the default stand out. */
 const KEY_RULES: Record<string, string> = {
-  'minecraft:random_tick_speed': 'Velocidad de ticks aleatorios',
-  'minecraft:spawn_mobs': 'Aparición de mobs',
-  'minecraft:spawn_monsters': 'Aparición de monstruos',
-  'minecraft:advance_time': 'Ciclo de día y noche',
-  'minecraft:advance_weather': 'Ciclo del clima',
-  'minecraft:mob_griefing': 'Mobs rompen bloques',
-  'minecraft:keep_inventory': 'Conservar inventario',
-  'minecraft:max_entity_cramming': 'Máximo de entidades apiladas',
-  'minecraft:players_sleeping_percentage': 'Jugadores durmiendo (%)',
-  'minecraft:spawn_phantoms': 'Aparición de phantoms',
-  'minecraft:spawn_patrols': 'Patrullas de saqueadores',
-  'minecraft:raids': 'Invasiones',
-  'minecraft:spawn_wandering_traders': 'Comerciante nómada',
-  'minecraft:tnt_explodes': 'La TNT explota'
+  'minecraft:random_tick_speed': tr('Velocidad de ticks aleatorios'),
+  'minecraft:spawn_mobs': tr('Aparición de mobs'),
+  'minecraft:spawn_monsters': tr('Aparición de monstruos'),
+  'minecraft:advance_time': tr('Ciclo de día y noche'),
+  'minecraft:advance_weather': tr('Ciclo del clima'),
+  'minecraft:mob_griefing': tr('Mobs rompen bloques'),
+  'minecraft:keep_inventory': tr('Conservar inventario'),
+  'minecraft:max_entity_cramming': tr('Máximo de entidades apiladas'),
+  'minecraft:players_sleeping_percentage': tr('Jugadores durmiendo (%)'),
+  'minecraft:spawn_phantoms': tr('Aparición de phantoms'),
+  'minecraft:spawn_patrols': tr('Patrullas de saqueadores'),
+  'minecraft:raids': tr('Invasiones'),
+  'minecraft:spawn_wandering_traders': tr('Comerciante nómada'),
+  'minecraft:tnt_explodes': tr('La TNT explota')
 }
 
 const ruleText = (v: boolean | number | string): string =>
-  v === true ? 'sí' : v === false ? 'no' : String(v)
+  v === true ? tr('sí') : v === false ? 'no' : String(v)
 
 export function GameRulesBlock({ rules }: { rules: NonNullable<CompanionData['gamerules']> }) {
   const [all, setAll] = useState(false)
@@ -345,10 +373,10 @@ export function GameRulesBlock({ rules }: { rules: NonNullable<CompanionData['ga
   return (
     <div className="block-state">
       <div className="mobs-head">
-        <Icon name="gear" size={15} /> Reglas del juego
+        <Icon name="gear" size={15} /> {tr('Reglas del juego')}
         <span className="muted small">
           {' '}
-          · {changed.length ? `${changed.length} cambiadas` : 'todas por defecto'}
+          · {changed.length ? tr('{0} cambiadas', changed.length) : tr('todas por defecto')}
         </span>
       </div>
       <Rows wrap>
@@ -356,13 +384,13 @@ export function GameRulesBlock({ rules }: { rules: NonNullable<CompanionData['ga
           <Row
             key={id}
             k={KEY_RULES[id] ?? prettifyId(id)}
-            v={`${ruleText(r.value)}${r.value !== r.default ? ` (por defecto: ${ruleText(r.default)})` : ''}`}
+            v={`${ruleText(r.value)}${r.value !== r.default ? tr(' (por defecto: {0})', ruleText(r.default)) : ''}`}
             hint={id}
           />
         ))}
       </Rows>
       <button className="f3-tip-toggle" onClick={() => setAll(!all)} aria-expanded={all}>
-        <u>{all ? 'Ver solo las importantes' : `Ver las ${entries.length} reglas`}</u>
+        <u>{all ? tr('Ver solo las importantes') : tr('Ver las {0} reglas', entries.length)}</u>
       </button>
     </div>
   )
@@ -374,7 +402,7 @@ export function ModsBlock({ mods }: { mods: NonNullable<CompanionData['mods']> }
     <div className="block-state">
       <button className="f3-tip-toggle" onClick={() => setOpen(!open)} aria-expanded={open}>
         <u>
-          {open ? 'Ocultar' : 'Ver'} {mods.length} mods instalados
+          {open ? tr('Ocultar') : tr('Ver')} {mods.length} {tr('mods instalados')}
         </u>
       </button>
       {open && (

@@ -9,6 +9,7 @@ import { GameFolderPicker } from './GameFolderPicker'
 import { GrassBlock, Icon } from './icons'
 import { McText } from './McText'
 import { SaveModButton } from './SaveModButton'
+import { tr } from '@shared/i18n'
 
 const STEPS = ['Inicio', 'Tu Minecraft', 'Los datos', 'El mod', 'Avanzado'] as const
 const FOLDER_STEP = 1
@@ -65,25 +66,33 @@ export function Onboarding() {
   }
   const folderStep = (
     <div className="onb-folder">
-      <h2>¿Dónde juegas?</h2>
+      <h2>{tr('¿Dónde juegas?')}</h2>
       <p>
-        F2+F3 trabaja con tus carpetas de juego: de ahí salen las capturas, los mundos y el sitio
-        del mod. Encontré estas, la más reciente primero. Marca todas las que quieras ver.
+        {tr(
+          'F2+F3 trabaja con tus carpetas de juego: de ahí salen las capturas, los mundos y el sitio del mod. Encontré estas, la más reciente primero. Marca todas las que quieras ver.'
+        )}
       </p>
       <GameFolderPicker values={folders} onChange={setPicked} onLoaded={preselect} />
-      <p className="muted small">Puedes añadir o quitar carpetas cuando quieras en Ajustes.</p>
+      <p className="muted small">
+        {tr('Puedes añadir o quitar carpetas cuando quieras en Ajustes.')}
+      </p>
     </div>
   )
 
   if (settings.onboardingDone) {
     return (
       <div className="modal-backdrop onboarding-backdrop">
-        <div className="modal onboarding" role="dialog" aria-modal aria-label="Carpeta del juego">
+        <div
+          className="modal onboarding"
+          role="dialog"
+          aria-modal
+          aria-label={tr('Carpeta del juego')}
+        >
           <div className="onb-body">{folderStep}</div>
           <div className="modal-foot onb-foot">
             <div className="toolbar-spacer" />
             <button className="btn primary" onClick={() => void confirmFolder()}>
-              {folders.length > 1 ? 'Usar estas carpetas' : 'Usar esta carpeta'}
+              {folders.length > 1 ? tr('Usar estas carpetas') : tr('Usar esta carpeta')}
             </button>
           </div>
         </div>
@@ -109,7 +118,12 @@ export function Onboarding() {
 
   return (
     <div className="modal-backdrop onboarding-backdrop">
-      <div className="modal onboarding" role="dialog" aria-modal aria-label="Introducción a F2+F3">
+      <div
+        className="modal onboarding"
+        role="dialog"
+        aria-modal
+        aria-label={tr('Introducción a F2+F3')}
+      >
         <div className="onb-steps">
           {STEPS.map((s, i) => (
             <button
@@ -128,25 +142,26 @@ export function Onboarding() {
               <GrassBlock size={64} />
               <McText text="F2+F3" scale={4} />
               <p>
-                Tus capturas de Minecraft, con todo lo que el juego sabía en ese momento: dónde
-                estabas, qué bioma era, qué había alrededor.
+                {tr(
+                  'Tus capturas de Minecraft, con todo lo que el juego sabía en ese momento: dónde estabas, qué bioma era, qué había alrededor.'
+                )}
               </p>
               <ul className="onb-list">
                 <li>
-                  <Icon name="pin" size={16} /> Coordenadas listas para copiar, con chunk, región y
-                  /tp
+                  <Icon name="pin" size={16} />{' '}
+                  {tr('Coordenadas listas para copiar, con chunk, región y /tp')}
                 </li>
                 <li>
-                  <Icon name="eye" size={16} /> Galería con visor, búsqueda, filtros, notas y
-                  carpetas
+                  <Icon name="eye" size={16} />{' '}
+                  {tr('Galería con visor, búsqueda, filtros, notas y carpetas')}
                 </li>
                 <li>
-                  <Icon name="cloud" size={16} /> Aviso al hacer una captura y respaldo en Google
-                  Drive
+                  <Icon name="cloud" size={16} />{' '}
+                  {tr('Aviso al hacer una captura y respaldo en Google Drive')}
                 </li>
               </ul>
               <p className="muted small">
-                Con eso basta para empezar. Lo avanzado está ahí cuando lo necesites.
+                {tr('Con eso basta para empezar. Lo avanzado está ahí cuando lo necesites.')}
               </p>
             </div>
           )}
@@ -155,9 +170,11 @@ export function Onboarding() {
 
           {step === 2 && (
             <div className="onb-levels">
-              <h2>De dónde sale cada dato</h2>
+              <h2>{tr('De dónde sale cada dato')}</h2>
               <p className="muted">
-                Cada dato lleva una etiqueta con su origen, del más fiable al más aproximado:
+                {tr(
+                  'Cada dato lleva una etiqueta con su origen, del más fiable al más aproximado:'
+                )}
               </p>
               {LEVELS.map((l, i) => {
                 const source = (['f3', 'local', 'vision'] as const)[i]
@@ -175,13 +192,16 @@ export function Onboarding() {
                         <div className="onb-inline">
                           {local?.state === 'ready' ? (
                             <span className="state-pill on">
-                              <Icon name="check" size={14} /> Modelo listo
+                              <Icon name="check" size={14} /> {tr('Modelo listo')}
                             </span>
                           ) : local?.state === 'downloading' || local?.state === 'loading' ? (
                             <span className="muted small">
                               {local.state === 'loading'
-                                ? 'Preparando…'
-                                : `Descargando… ${Math.round(local.progress * 100)}% (sigue en segundo plano)`}
+                                ? tr('Preparando…')
+                                : tr(
+                                    'Descargando… {0}% (sigue en segundo plano)',
+                                    Math.round(local.progress * 100)
+                                  )}
                             </span>
                           ) : (
                             <>
@@ -189,10 +209,12 @@ export function Onboarding() {
                                 className="btn small"
                                 onClick={() => void api.localModel.enable()}
                               >
-                                <Icon name="download" size={14} /> Descargar (~
-                                {local?.sizeMB ?? 170} MB)
+                                <Icon name="download" size={14} /> {tr('Descargar (~')}
+                                {local?.sizeMB ?? 170} {tr('MB)')}
                               </button>
-                              <span className="muted small">Opcional. Nada sale de tu equipo.</span>
+                              <span className="muted small">
+                                {tr('Opcional. Nada sale de tu equipo.')}
+                              </span>
                             </>
                           )}
                           {local?.state === 'error' && (
@@ -205,10 +227,12 @@ export function Onboarding() {
                 )
               })}
               <p className="muted small">
-                Haz las capturas (<span className="kbd">F2</span>) con el{' '}
-                <span className="kbd">F3</span> abierto. Desde Minecraft 1.21.9 el F3 oculta el
-                bioma: pulsa <span className="kbd">F3</span> + <span className="kbd">F6</span> y
-                activa la línea <b>Biome</b> una vez.
+                {tr('Haz las capturas (')}
+                <span className="kbd">F2</span>
+                {tr(') con el')} <span className="kbd">F3</span>{' '}
+                {tr('abierto. Desde Minecraft 1.21.9 el F3 oculta el bioma: pulsa')}{' '}
+                <span className="kbd">F3</span> + <span className="kbd">F6</span>{' '}
+                {tr('y activa la línea')} <b>{tr('Biome')}</b> {tr('una vez.')}
               </p>
             </div>
           )}
@@ -219,57 +243,62 @@ export function Onboarding() {
                 {MOD_LEVEL.title} <span className="source-tag mod">{SOURCE_INFO.mod.tag}</span>
               </h2>
               <p>
-                Opcional, para <b>Fabric 26.3, 1.21.1 o 1.20.1</b>. Con él, cada captura guarda los
-                datos reales del juego sin abrir el F3, y F2+F3 entra en la partida:
+                {tr('Opcional, para')} <b>{tr('Fabric 26.3, 1.21.1 o 1.20.1')}</b>
+                {tr(
+                  '. Con él, cada captura guarda los datos reales del juego sin abrir el F3, y F2+F3 entra en la partida:'
+                )}
               </p>
               <ul className="onb-list">
                 <li>
                   <Icon name="check" size={16} />
                   <span>
-                    <b>Datos exactos</b> en cada <span className="kbd">F2</span>: posición, bioma,
-                    mobs a la vista y estructuras.
+                    <b>{tr('Datos exactos')}</b> {tr('en cada')} <span className="kbd">F2</span>
+                    {tr(': posición, bioma, mobs a la vista y estructuras.')}
                   </span>
                 </li>
                 <li>
                   <Icon name="image" size={16} />
                   <span>
-                    <b>Tus capturas dentro del juego</b> con <span className="kbd">F6</span>, con
-                    sus notas y datos.
+                    <b>{tr('Tus capturas dentro del juego')}</b> {tr('con')}{' '}
+                    <span className="kbd">F6</span>
+                    {tr(', con sus notas y datos.')}
                   </span>
                 </li>
                 <li>
                   <Icon name="compass" size={16} />
                   <span>
-                    <b>Guía</b>: una flecha te lleva al lugar de cualquier captura.
+                    <b>{tr('Guía')}</b>
+                    {tr(': una flecha te lleva al lugar de cualquier captura.')}
                   </span>
                 </li>
                 <li>
                   <Icon name="layers" size={16} />
                   <span>
-                    <b>Builds</b>: <span className="kbd">Mayús+F2</span> guarda una construcción y
-                    luego la colocas donde quieras.
+                    <b>{tr('Builds')}</b>: <span className="kbd">{tr('Mayús+F2')}</span>{' '}
+                    {tr('guarda una construcción y luego la colocas donde quieras.')}
                   </span>
                 </li>
               </ul>
               <div className="onb-actions">
                 <SaveModButton />
                 <button className="btn" onClick={() => go(step + 1)}>
-                  Ahora no
+                  {tr('Ahora no')}
                 </button>
               </div>
               <p className="muted small">
-                Se guarda en la carpeta <code>mods</code> de tu juego. Lo tienes también en Ajustes
-                › Análisis.
+                {tr('Se guarda en la carpeta')} <code>{tr('mods')}</code>{' '}
+                {tr('de tu juego. Lo tienes también en Ajustes › Análisis.')}
               </p>
             </div>
           )}
 
           {step === 4 && (
             <div className="onb-advanced">
-              <h2>Para cuando quieras ir más lejos</h2>
+              <h2>{tr('Para cuando quieras ir más lejos')}</h2>
               <p className="muted">
-                No hay nada que configurar: estas herramientas aparecen solas cuando tus capturas
-                traen los datos.
+                {tr(
+                  'No hay nada que configurar: estas herramientas aparecen solas cuando tus capturas traen los datos.'
+                )}
               </p>
               <div className="onb-grid">
                 {ADVANCED.map((a) => (
@@ -282,37 +311,39 @@ export function Onboarding() {
                   </div>
                 ))}
               </div>
-              <p className="muted small">Puedes volver a ver esta introducción desde Ajustes.</p>
+              <p className="muted small">
+                {tr('Puedes volver a ver esta introducción desde Ajustes.')}
+              </p>
             </div>
           )}
         </div>
 
         <div className="modal-foot onb-foot">
           <button className="btn ghost" onClick={() => finish()}>
-            Saltar introducción
+            {tr('Saltar introducción')}
           </button>
           <div className="toolbar-spacer" />
           {step > 0 && (
             <button className="btn" onClick={() => go(step - 1)}>
-              Atrás
+              {tr('Atrás')}
             </button>
           )}
           {last ? (
             <>
               <button className="btn" onClick={() => finish(true)}>
-                Ver ajustes
+                {tr('Ver ajustes')}
               </button>
               <button className="btn primary" onClick={() => finish()}>
-                Empezar
+                {tr('Empezar')}
               </button>
             </>
           ) : (
             <button className="btn primary" onClick={() => go(step + 1)}>
               {step !== FOLDER_STEP
-                ? 'Siguiente'
+                ? tr('Siguiente')
                 : folders.length > 1
-                  ? 'Usar estas carpetas'
-                  : 'Usar esta carpeta'}
+                  ? tr('Usar estas carpetas')
+                  : tr('Usar esta carpeta')}
             </button>
           )}
         </div>

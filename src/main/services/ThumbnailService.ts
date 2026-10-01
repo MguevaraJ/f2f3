@@ -4,6 +4,7 @@ import { stat } from 'node:fs/promises'
 import { join } from 'node:path'
 import { nativeImage } from 'electron'
 import type { WorkerPool } from './WorkerPool'
+import { tr } from '@shared/i18n'
 
 /** Disk-cached thumbnails, generated in the worker pool (PNG) or by Chromium (JPEG). */
 export class ThumbnailService {
@@ -59,7 +60,7 @@ export class ThumbnailService {
       return path
     }
     const img = nativeImage.createFromPath(file)
-    if (img.isEmpty()) throw new Error('Imagen no soportada')
+    if (img.isEmpty()) throw new Error(tr('Imagen no soportada'))
     mkdirSync(join(path, '..'), { recursive: true })
     writeFileSync(path, img.resize({ width: this.targetWidth(), quality: 'good' }).toPNG())
     return path

@@ -1,3 +1,4 @@
+import { tr } from '@shared/i18n'
 /**
  * XDG autostart entry (freedesktop "Desktop Entry" spec), honoured by GNOME, KDE,
  * XFCE, Cinnamon… and by i3/sway setups that run `dex -a`.
@@ -20,7 +21,7 @@ export function desktopEntry(opts: { argv: string[]; icon: string }): string {
     'Type=Application',
     'Version=1.0',
     'Name=F2+F3',
-    'Comment=Avisos y respaldo de tus capturas de Minecraft',
+    tr('Comment=Avisos y respaldo de tus capturas de Minecraft'),
     `Exec=${execLine(opts.argv)}`,
     `Icon=${opts.icon}`,
     'Terminal=false',

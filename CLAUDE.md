@@ -2,10 +2,11 @@
 
 App de escritorio (Electron + React + TypeScript) que gestiona las capturas de Minecraft con estética del Minecraft
 Launcher, más un mod Fabric para Minecraft 26.3 (**F2+F3 Companion**, en el repo aparte `../f2f3-companion`) que guarda los datos exactos
-del juego junto a cada captura y lleva la app dentro del juego. **UI y textos en español. Código y comentarios en inglés.**
+del juego junto a cada captura y lleva la app dentro del juego. **Los textos se escriben en español (dentro de `tr()`); el
+inglés es un diccionario. Código y comentarios en inglés.**
 
 **Estado (2026-09-30):** app y mod estables; la hoja de ruta "Minecraft técnico" (6 fases) está completa. Árbol de
-trabajo limpio, 168 tests. Repo: github.com/MguevaraJ/f2f3 (`master`); el mod va en su propio repo
+trabajo limpio, 172 tests. Repo: github.com/MguevaraJ/f2f3 (`master`); el mod va en su propio repo
 (`../f2f3-companion`, github.com/MguevaraJ/f2f3-companion). Pendientes y decisiones abiertas al final.
 
 ## Nombre
@@ -22,11 +23,27 @@ autoarranque; el mod lee esos sidecars y migra `config/craftshot_companion.json`
 siguen en el espacio `craftshot:` (el sidecar guarda su id). La carpeta de Drive se localiza por `appProperties`, así
 que una ya creada conserva el nombre "Craftshot". Sin probar en real: la migración de la carpeta de datos.
 
+## Idiomas (español / inglés)
+`src/shared/i18n/`: `tr('Texto en español', …args)` devuelve el texto en el idioma activo; el inglés es `en.ts`, un
+diccionario **cuya clave es el texto en español** (`{0}`, `{1}`… para los valores). Un texto sin traducción se queda en
+español. Todo texto nuevo de la interfaz va dentro de `tr()` y su traducción en `en.ts`:
+`node scripts/i18n-keys.mjs --missing` lista lo que falta (lo que es igual en ambos idiomas no hace falta añadirlo).
+`scripts/i18n-wrap.mjs` es el codemod que envolvió los textos existentes (sirve para archivos nuevos; revisar el diff).
+- El idioma se fija **antes de construir la interfaz** (hay textos en constantes de módulo): cambiarlo recarga la
+  ventana. Renderer: `localStorage['f2f3.lang']`, y si no hay, el idioma del sistema (español → `es`, el resto → `en`).
+  Main: `main/language.ts` (primer import de `main/index.ts`) lee `settings.language`. `settings.language` manda; `App`
+  recarga si la ventana arrancó con otro.
+- Botón ES | EN en la cabecera y selector en Ajustes › General (`components/LanguageButton.tsx`).
+- Catálogos (`shared/catalog`): en inglés el nombre sale del id (`localName` → `prettifyId`), no del diccionario.
+- Números y fechas usan `getLang()` como locale. Los tests fijan español (`tests/setup.ts`).
+- Las filas de `app-index.json` para el mod salen en el idioma de la app; el mod sigue solo en español.
+- Sin revisar pantalla a pantalla en inglés: onboarding, mapa y planificadores, coordenadas, respaldo, popup y diálogos.
+
 ## Comandos
 ```bash
 npm run dev            # desarrollo
 npm run build          # typecheck + build + scripts/check-preload.mjs (falla si un preload usa chunks)
-npm run typecheck && npx eslint . && npx vitest run    # verificación estándar (168 tests)
+npm run typecheck && npx eslint . && npx vitest run    # verificación estándar (172 tests)
 npx prettier --write <archivos>                        # el repo va formateado con prettier
 npm run build:mod      # compila los tres mods de ../f2f3-companion y copia los jar a resources/ (juego de prueba CERRADO)
 npm run dist:linux     # AppImage (el .env con MAIN_VITE_GOOGLE_CLIENT_ID/SECRET se incrusta)

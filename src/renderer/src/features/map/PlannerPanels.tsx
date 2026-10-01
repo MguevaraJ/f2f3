@@ -12,6 +12,7 @@ import type { Vec3 } from '@shared/types'
 import { Icon } from '../../components/icons'
 import { copyText } from '../library/actions'
 import { afkSpot, farmVerdict, type AfkState, type PortalEnd, type PortalState } from './planners'
+import { tr } from '@shared/i18n'
 
 export type KnownPortal = PortalRef & { dimension: PortalDimension; label: string }
 
@@ -44,7 +45,7 @@ function PanelHead({ title, onClose }: { title: string; onClose: () => void }) {
   return (
     <div className="map-panel-head">
       <b>{title}</b>
-      <button className="icon-btn" onClick={onClose} title="Cerrar">
+      <button className="icon-btn" onClick={onClose} title={tr('Cerrar')}>
         <Icon name="close" size={14} />
       </button>
     </div>
@@ -55,18 +56,18 @@ function PanelHead({ title, onClose }: { title: string; onClose: () => void }) {
 function InGame({ ready, onSend }: { ready: boolean; onSend: (show: boolean) => void }) {
   return (
     <div className="map-panel-result">
-      <span>En el juego (mod F2+F3 Companion)</span>
+      <span>{tr('En el juego (mod F2+F3 Companion)')}</span>
       <div className="map-panel-actions">
         <button
           className="btn small"
           disabled={!ready}
           onClick={() => onSend(true)}
-          title="El mod lo dibuja en el mundo; J lo oculta o lo muestra"
+          title={tr('El mod lo dibuja en el mundo; J lo oculta o lo muestra')}
         >
-          <Icon name="pin" size={14} /> Mostrar en el juego
+          <Icon name="pin" size={14} /> {tr('Mostrar en el juego')}
         </button>
         <button className="btn small" onClick={() => onSend(false)}>
-          Quitar
+          {tr('Quitar')}
         </button>
       </div>
     </div>
@@ -93,28 +94,30 @@ export function AfkPanel({
   const working = verdicts.filter((v) => v.level !== 'bad').length
   return (
     <div className="map-panel">
-      <PanelHead title="Punto AFK" onClose={onClose} />
+      <PanelHead title={tr('Punto AFK')} onClose={onClose} />
       <p className="muted small">
-        Haz clic en las capturas de tus granjas (o en cualquier punto del mapa) para añadirlas.
+        {tr(
+          'Haz clic en las capturas de tus granjas (o en cualquier punto del mapa) para añadirlas.'
+        )}
       </p>
       <div className="segmented">
         <button
           className={state.kind === 'mobs' ? 'on' : ''}
           onClick={() => onChange({ ...state, kind: 'mobs' })}
-          title="Los mobs aparecen entre 24 y 128 bloques del jugador"
+          title={tr('Los mobs aparecen entre 24 y 128 bloques del jugador')}
         >
-          Granjas de mobs
+          {tr('Granjas de mobs')}
         </button>
         <button
           className={state.kind === 'load' ? 'on' : ''}
           onClick={() => onChange({ ...state, kind: 'load' })}
-          title="Redstone, cultivos, aldeanos: solo necesitan sus chunks cargados"
+          title={tr('Redstone, cultivos, aldeanos: solo necesitan sus chunks cargados')}
         >
-          Solo carga
+          {tr('Solo carga')}
         </button>
       </div>
       <label className="map-panel-row">
-        Distancia de simulación
+        {tr('Distancia de simulación')}
         <input
           className="input"
           type="number"
@@ -142,7 +145,7 @@ export function AfkPanel({
               </div>
               <button
                 className="icon-btn"
-                title="Quitar"
+                title={tr('Quitar')}
                 onClick={() =>
                   onChange({ ...state, farms: state.farms.filter((x) => x.key !== f.key) })
                 }
@@ -158,11 +161,11 @@ export function AfkPanel({
         <div className="map-panel-result">
           <div className="map-panel-row">
             <span>
-              Punto AFK {state.manual ? '(a mano)' : '(calculado)'}
+              {tr('Punto AFK')} {state.manual ? tr('(a mano)') : tr('(calculado)')}
               {state.farms.length > 0 && (
                 <>
                   {' '}
-                  · {working}/{state.farms.length} funcionan
+                  · {working}/{state.farms.length} {tr('funcionan')}
                 </>
               )}
             </span>
@@ -174,16 +177,16 @@ export function AfkPanel({
           <div className="map-panel-actions">
             <button
               className="btn small"
-              onClick={() => void copyText(`/tp @s ${xyz(spot)}`, 'Comando /tp')}
+              onClick={() => void copyText(`/tp @s ${xyz(spot)}`, tr('Comando /tp'))}
             >
-              <Icon name="copy" size={14} /> /tp
+              <Icon name="copy" size={14} /> {tr('/tp')}
             </button>
             {state.manual && (
               <button
                 className="btn small"
                 onClick={() => onChange({ ...state, manual: null, placing: false })}
               >
-                Calcular
+                {tr('Calcular')}
               </button>
             )}
           </div>
@@ -194,16 +197,17 @@ export function AfkPanel({
         onClick={() => onChange({ ...state, placing: !state.placing })}
       >
         <Icon name="pin" size={14} />{' '}
-        {state.placing ? 'Haz clic en el mapa…' : 'Colocar el punto AFK'}
+        {state.placing ? tr('Haz clic en el mapa…') : tr('Colocar el punto AFK')}
       </button>
       <InGame ready={spot !== null} onSend={onSend} />
       <p className="muted small legend">
-        <i className="sw sim" /> entidades (simulación) <i className="sw blk" /> solo bloques
+        <i className="sw sim" /> {tr('entidades (simulación)')} <i className="sw blk" />{' '}
+        {tr('solo bloques')}
         {state.kind === 'mobs' && (
           <>
             {' '}
-            <i className="sw near" /> 24 <i className="sw far" /> 128 bloques (corte a la altura del
-            punto)
+            <i className="sw near" /> 24 <i className="sw far" />{' '}
+            {tr('128 bloques (corte a la altura del punto)')}
           </>
         )}
       </p>
@@ -228,10 +232,14 @@ function LinkLine({
     <li className={ok ? 'ok' : 'bad'}>
       <b>{label}</b>{' '}
       {ok
-        ? `llega a ${expected}`
+        ? tr('llega a {0}', expected)
         : landed
-          ? `va a otro portal más cercano (${landed.label ?? landed.id}, ${xyz(landed.pos)})`
-          : `no encuentra ${expected}: creará un portal nuevo cerca de ${xyz(newNear)}`}
+          ? tr(
+              'va a otro portal más cercano ({0}, {1})',
+              landed.label ?? landed.id,
+              xyz(landed.pos)
+            )
+          : tr('no encuentra {0}: creará un portal nuevo cerca de {1}', expected, xyz(newNear))}
     </li>
   )
 }
@@ -262,7 +270,7 @@ export function PortalPanel({
       : null
   const setEnd = (which: 'a' | 'b', pos: Vec3): void => {
     const cur = state[which]
-    const end: PortalEnd = { id: which.toUpperCase(), label: cur?.label ?? 'A mano', pos }
+    const end: PortalEnd = { id: which.toUpperCase(), label: cur?.label ?? tr('A mano'), pos }
     onChange({ ...state, [which]: end, picking: null })
   }
   const pick = (which: 'a' | 'b'): void =>
@@ -270,9 +278,9 @@ export function PortalPanel({
 
   return (
     <div className="map-panel">
-      <PanelHead title="Enlace de portales" onClose={onClose} />
+      <PanelHead title={tr('Enlace de portales')} onClose={onClose} />
       <div className="map-panel-row">
-        <span>Portal A en</span>
+        <span>{tr('Portal A en')}</span>
         <div className="segmented">
           {(['minecraft:overworld', 'minecraft:the_nether'] as const).map((d) => (
             <button
@@ -289,7 +297,7 @@ export function PortalPanel({
         <CoordInputs value={state.a.pos} onChange={(p) => setEnd('a', p)} />
       ) : (
         <button className="btn small" onClick={() => setEnd('a', { x: 0, y: 64, z: 0 })}>
-          Escribir coordenadas
+          {tr('Escribir coordenadas')}
         </button>
       )}
       <button
@@ -297,35 +305,42 @@ export function PortalPanel({
         onClick={() => pick('a')}
       >
         <Icon name="pin" size={14} />{' '}
-        {state.picking === 'a' ? 'Haz clic en el mapa…' : 'Elegir A en el mapa'}
+        {state.picking === 'a' ? tr('Haz clic en el mapa…') : tr('Elegir A en el mapa')}
       </button>
 
       {exit && (
         <div className="map-panel-result">
           <span>
-            Destino ideal en el {dimensionName(bDim)}: <b className="mono">{xyz(exit.pos)}</b>
+            {tr('Destino ideal en el')} {dimensionName(bDim)}:{' '}
+            <b className="mono">{xyz(exit.pos)}</b>
           </span>
           <span className="muted small">
-            El juego busca un portal en un cuadrado de ±{exit.radius} bloques ({exit.radius * 2 + 1}
-            ×{exit.radius * 2 + 1}, toda la altura) y elige el más cercano.
+            {tr('El juego busca un portal en un cuadrado de ±')}
+            {exit.radius} {tr('bloques (')}
+            {exit.radius * 2 + 1}×{exit.radius * 2 + 1}
+            {tr(', toda la altura) y elige el más cercano.')}
           </span>
           {!state.b && (
             <span className="small">
               {landsOn
-                ? `Ahora llegarías al portal de «${(landsOn as KnownPortal).label}» (${xyz(landsOn.pos)}).`
-                : 'Ningún portal conocido ahí: se creará uno nuevo.'}
+                ? tr(
+                    'Ahora llegarías al portal de «{0}» ({1}).',
+                    (landsOn as KnownPortal).label,
+                    xyz(landsOn.pos)
+                  )
+                : tr('Ningún portal conocido ahí: se creará uno nuevo.')}
             </span>
           )}
           <div className="map-panel-actions">
             <button
               className="btn small"
-              onClick={() => void copyText(xyz(exit.pos), 'Coordenadas')}
+              onClick={() => void copyText(xyz(exit.pos), tr('Coordenadas'))}
             >
-              <Icon name="copy" size={14} /> Copiar
+              <Icon name="copy" size={14} /> {tr('Copiar')}
             </button>
             {!state.b && (
               <button className="btn small" onClick={() => setEnd('b', exit.pos)}>
-                Usar como portal B
+                {tr('Usar como portal B')}
               </button>
             )}
           </div>
@@ -335,7 +350,9 @@ export function PortalPanel({
       {state.a && (
         <>
           <div className="map-panel-row">
-            <span>Portal B en el {dimensionName(bDim)}</span>
+            <span>
+              {tr('Portal B en el')} {dimensionName(bDim)}
+            </span>
           </div>
           {state.b && <CoordInputs value={state.b.pos} onChange={(p) => setEnd('b', p)} />}
           <button
@@ -343,7 +360,7 @@ export function PortalPanel({
             onClick={() => pick('b')}
           >
             <Icon name="pin" size={14} />{' '}
-            {state.picking === 'b' ? 'Haz clic en el mapa…' : 'Elegir B en el mapa'}
+            {state.picking === 'b' ? tr('Haz clic en el mapa…') : tr('Elegir B en el mapa')}
           </button>
         </>
       )}
@@ -351,14 +368,14 @@ export function PortalPanel({
       {pair && state.a && state.b && (
         <ul className="link-check">
           <LinkLine
-            label="A → B:"
+            label={tr('A → B:')}
             ok={pair.forwardOk}
             landed={pair.forward}
             expected="B"
             newNear={portalExit(state.a.pos, state.aDim).pos}
           />
           <LinkLine
-            label="B → A:"
+            label={tr('B → A:')}
             ok={pair.backOk}
             landed={pair.back}
             expected="A"
@@ -369,8 +386,12 @@ export function PortalPanel({
       <InGame ready={state.a !== null} onSend={onSend} />
       <p className="muted small">
         {known.length
-          ? `${known.length} portal${known.length > 1 ? 'es' : ''} de capturas (apuntando al portal) compiten por el enlace.`
-          : 'Las capturas apuntando a un portal se tienen en cuenta como portales existentes.'}
+          ? tr(
+              '{0} portal{1} de capturas (apuntando al portal) compiten por el enlace.',
+              known.length,
+              known.length > 1 ? 'es' : ''
+            )
+          : tr('Las capturas apuntando a un portal se tienen en cuenta como portales existentes.')}
       </p>
     </div>
   )

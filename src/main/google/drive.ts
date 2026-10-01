@@ -1,4 +1,5 @@
 import { AuthError, type Fetch, type GoogleAuth } from './oauth'
+import { tr } from '@shared/i18n'
 
 /**
  * Minimal Google Drive v3 surface the backup needs. Every file/folder the app
@@ -113,7 +114,7 @@ export class DriveClient implements DriveApi {
     do {
       const params = new URLSearchParams({
         q: `appProperties has { key='cs_source' and value='${q(source)}' } and trashed=false`,
-        fields: `nextPageToken,files(${FIELDS})`,
+        fields: tr('nextPageToken,files({0})', FIELDS),
         pageSize: '1000',
         spaces: 'drive'
       })
@@ -216,7 +217,8 @@ export class DriveClient implements DriveApi {
       }
     )
     const location = session.headers.get('location')
-    if (!location) throw new DriveHttpError('Drive no abrió la sesión de subida', session.status)
+    if (!location)
+      throw new DriveHttpError(tr('Drive no abrió la sesión de subida'), session.status)
     const res = await this.json<{ id: string; md5Checksum: string }>(location, {
       method: 'PUT',
       headers: { 'Content-Type': file.mimeType },
@@ -307,11 +309,11 @@ export class DriveClient implements DriveApi {
       }
       const detail = (await res.json().catch(() => null)) as { error?: { message?: string } } | null
       if (res.status === 401)
-        throw new AuthError('Google rechazó la sesión. Vuelve a conectar la cuenta.', true)
+        throw new AuthError(tr('Google rechazó la sesión. Vuelve a conectar la cuenta.'), true)
       if (res.status === 403 && /storage quota/i.test(detail?.error?.message ?? ''))
-        throw new DriveHttpError('Tu Google Drive no tiene espacio suficiente', 403)
+        throw new DriveHttpError(tr('Tu Google Drive no tiene espacio suficiente'), 403)
       throw new DriveHttpError(
-        `Drive respondió ${res.status}: ${detail?.error?.message ?? res.statusText}`,
+        tr('Drive respondió {0}: {1}', res.status, detail?.error?.message ?? res.statusText),
         res.status
       )
     }

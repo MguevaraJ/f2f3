@@ -8,6 +8,7 @@ import { toast } from '../../store/toasts'
 import { DIRECTION_ES } from '../../lib/coords'
 import { CopyButton, Row, Rows, Section, SourceTag } from './parts'
 import { entityName } from './TechnicalPanels'
+import { getLang, tr } from '@shared/i18n'
 
 const MATERIALS_SHOWN = 10
 
@@ -15,13 +16,13 @@ const MATERIALS_SHOWN = 10
 export function stacks(n: number): string {
   const full = Math.floor(n / 64)
   const rest = n % 64
-  const count = n.toLocaleString('es')
+  const count = n.toLocaleString(getLang())
   if (!full) return count
   return `${count} (${full} stack${full > 1 ? 's' : ''}${rest ? ` + ${rest}` : ''})`
 }
 
 export function materialsText(b: BuildSummary): string {
-  return ['Bloque\tCantidad', ...b.materials.map((m) => `${prettifyId(m.id)}\t${m.count}`)].join(
+  return [tr('Bloque	Cantidad'), ...b.materials.map((m) => `${prettifyId(m.id)}\t${m.count}`)].join(
     '\n'
   )
 }
@@ -45,7 +46,7 @@ export function BuildSection({
   const save = async (): Promise<void> => {
     try {
       const path = await api.companion.exportBuild(shotId)
-      if (path) toast.success(`Build guardado en ${path}`)
+      if (path) toast.success(tr('Build guardado en {0}', path))
     } catch (err) {
       toast.error(err instanceof Error ? err.message : String(err))
     }
@@ -53,7 +54,7 @@ export function BuildSection({
   const copy = async (): Promise<void> => {
     if (!summary) return
     await api.system.copyText(materialsText(summary))
-    toast.success('Lista de materiales copiada')
+    toast.success(tr('Lista de materiales copiada'))
   }
   const materials = summary
     ? all
@@ -62,23 +63,36 @@ export function BuildSection({
     : []
 
   return (
-    <Section title="Build guardado" icon="layers" action={<SourceTag source="mod" />}>
+    <Section title={tr('Build guardado')} icon="layers" action={<SourceTag source="mod" />}>
       <Rows wrap>
         <Row
-          k="Área"
-          v={`${size.x}×${size.y}×${size.z} desde ${origin.x} ${origin.y} ${origin.z}`}
-          hint="La zona que viste en la vista previa (Mayús+F2): desde la esquina apuntada hacia el fondo y la izquierda, y tan alta como lo que había dentro; al pegarla también limpia el aire de dentro"
+          k={tr('Área')}
+          v={tr(
+            '{0}×{1}×{2} desde {3} {4} {5}',
+            size.x,
+            size.y,
+            size.z,
+            origin.x,
+            origin.y,
+            origin.z
+          )}
+          hint={tr(
+            'La zona que viste en la vista previa (Mayús+F2): desde la esquina apuntada hacia el fondo y la izquierda, y tan alta como lo que había dentro; al pegarla también limpia el aire de dentro'
+          )}
         />
-        <Row k="Bloques" v={`${build.blocks.toLocaleString('es')} (sin contar el aire)`} />
+        <Row
+          k={tr('Bloques')}
+          v={tr('{0} (sin contar el aire)', build.blocks.toLocaleString(getLang()))}
+        />
         {summary && summary.blockEntities > 0 && (
           <Row
-            k="Con datos"
-            v={`${summary.blockEntities} (cofres, hornos, carteles… con su contenido)`}
+            k={tr('Con datos')}
+            v={tr('{0} (cofres, hornos, carteles… con su contenido)', summary.blockEntities)}
           />
         )}
         {summary && summary.entities.length > 0 && (
           <Row
-            k="Entidades"
+            k={tr('Entidades')}
             v={summary.entities.map((e) => `${e.count} × ${entityName(e.id)}`).join(', ')}
           />
         )}
@@ -87,8 +101,11 @@ export function BuildSection({
       {summary ? (
         <div className="block-state">
           <div className="mobs-head">
-            <Icon name="list" size={15} /> Materiales
-            <span className="muted small"> · {summary.materials.length} tipos de bloque</span>
+            <Icon name="list" size={15} /> {tr('Materiales')}
+            <span className="muted small">
+              {' '}
+              · {summary.materials.length} {tr('tipos de bloque')}
+            </span>
           </div>
           <ol className="materials">
             {materials.map((m) => (
@@ -100,30 +117,35 @@ export function BuildSection({
           </ol>
           {summary.materials.length > MATERIALS_SHOWN && (
             <button className="f3-tip-toggle" onClick={() => setAll(!all)} aria-expanded={all}>
-              <u>{all ? 'Ver menos' : `Ver los ${summary.materials.length} materiales`}</u>
+              <u>
+                {all ? tr('Ver menos') : tr('Ver los {0} materiales', summary.materials.length)}
+              </u>
             </button>
           )}
         </div>
       ) : (
         <p className="muted small">
-          No se encontró el archivo <code>.f2f3.nbt</code> junto a la captura.
+          {tr('No se encontró el archivo')} <code>{tr('.f2f3.nbt')}</code>{' '}
+          {tr('junto a la captura.')}
         </p>
       )}
 
       {summary && (
         <div className="build-actions">
           <button className="btn small" onClick={() => void save()}>
-            <Icon name="download" size={14} /> Guardar .nbt…
+            <Icon name="download" size={14} /> {tr('Guardar .nbt…')}
           </button>
           <button className="btn small" onClick={() => void copy()}>
-            <Icon name="copy" size={14} /> Copiar materiales
+            <Icon name="copy" size={14} /> {tr('Copiar materiales')}
           </button>
         </div>
       )}
       {summary && <PlaceBlock shotId={shotId} shotName={shotName} build={build} mod={mod} />}
       <p className="muted small">
-        Litematica lo abre desde «Cargar esquemas» (el botón «Guardar .nbt…» propone su carpeta{' '}
-        <code>.minecraft/schematics</code>).
+        {tr(
+          'Litematica lo abre desde «Cargar esquemas» (el botón «Guardar .nbt…» propone su carpeta'
+        )}{' '}
+        <code>{tr('.minecraft/schematics')}</code>).
       </p>
     </Section>
   )
@@ -175,7 +197,7 @@ function PlaceBlock({
     try {
       await api.companion.installBuild(shotId, folder, build.template)
       setInstalled(folder)
-      toast.success('Build añadido al mundo')
+      toast.success(tr('Build añadido al mundo'))
     } catch (err) {
       toast.error(err instanceof Error ? err.message : String(err))
     }
@@ -184,16 +206,20 @@ function PlaceBlock({
   return (
     <div className="block-state place-block">
       <div className="mobs-head">
-        <Icon name="pin" size={15} /> Pegarlo donde estaba
+        <Icon name="pin" size={15} /> {tr('Pegarlo donde estaba')}
       </div>
       <p className="muted small">
-        Aparece en el mismo sitio respecto a ti: misma distancia, altura y lado. Colócate donde
-        quieras y ejecuta el comando (hacen falta trucos activados).
+        {tr(
+          'Aparece en el mismo sitio respecto a ti: misma distancia, altura y lado. Colócate donde quieras y ejecuta el comando (hacen falta trucos activados).'
+        )}
       </p>
       {inWorld && (
         <p className="small">
-          Ya está en el mundo «{mod.world.name}» como <code>{id}</code>. En el juego, escribe{' '}
-          <code>/place template f2f3:</code> y el juego te sugiere todos tus builds.
+          {tr('Ya está en el mundo «')}
+          {mod.world.name}
+          {tr('» como')} <code>{id}</code>
+          {tr('. En el juego, escribe')} <code>{tr('/place template f2f3:')}</code>{' '}
+          {tr('y el juego te sugiere todos tus builds.')}
         </p>
       )}
       {saves && saves.length > 0 ? (
@@ -205,7 +231,7 @@ function PlaceBlock({
               setFolder(e.target.value)
               setInstalled(null)
             }}
-            aria-label="Mundo"
+            aria-label={tr('Mundo')}
           >
             {saves.map((w) => (
               <option key={w.folder} value={w.folder}>
@@ -216,21 +242,27 @@ function PlaceBlock({
           </select>
           <button className="btn small" onClick={() => void install()}>
             <Icon name={installed === folder ? 'check' : 'folder'} size={14} />{' '}
-            {installed === folder ? 'Añadido' : inWorld ? 'Añadir a otro mundo' : 'Añadir al mundo'}
+            {installed === folder
+              ? tr('Añadido')
+              : inWorld
+                ? tr('Añadir a otro mundo')
+                : tr('Añadir al mundo')}
           </button>
         </div>
       ) : (
-        saves && <p className="muted small">No se encontraron mundos en .minecraft/saves.</p>
+        saves && (
+          <p className="muted small">{tr('No se encontraron mundos en .minecraft/saves.')}</p>
+        )
       )}
       <div className="place-row">
-        <span className="small">Mirando al</span>
+        <span className="small">{tr('Mirando al')}</span>
         <div className="segmented">
           {FACINGS.map((f) => (
             <button
               key={f}
               className={f === now ? 'on' : ''}
               onClick={() => setNow(f)}
-              title={f === then ? 'Como en la captura' : undefined}
+              title={f === then ? tr('Como en la captura') : undefined}
             >
               {DIRECTION_ES[f]}
               {f === then ? ' •' : ''}
@@ -238,11 +270,11 @@ function PlaceBlock({
           ))}
         </div>
       </div>
-      <CopyButton label="Comando" value={command} />
+      <CopyButton label={tr('Comando')} value={command} />
       <p className="muted small">
-        • = hacia donde mirabas en la captura. Si miras a otro lado, elige esa dirección (en el F3
-        aparece como «Facing») y el build gira contigo. Si probaste el comando antes de añadirlo,
-        sal y vuelve a entrar al mundo: el juego recuerda que no existía.
+        {tr(
+          '• = hacia donde mirabas en la captura. Si miras a otro lado, elige esa dirección (en el F3 aparece como «Facing») y el build gira contigo. Si probaste el comando antes de añadirlo, sal y vuelve a entrar al mundo: el juego recuerda que no existía.'
+        )}
       </p>
     </div>
   )

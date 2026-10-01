@@ -3,6 +3,7 @@ import { mobName } from './catalog/mobs'
 import { structureName } from './catalog/structures'
 import type { InfoSource, ScreenshotEntry, Vec3 } from './types'
 import { worldOf } from './worlds'
+import { tr } from './i18n'
 
 /**
  * What the app knows about each screenshot, written for the Companion mod's in-game
@@ -34,32 +35,36 @@ export interface GameIndex {
 }
 
 const SOURCE_TAG: Record<InfoSource, string> = {
-  manual: 'Manual',
+  manual: tr('Manual'),
   mod: 'Mod',
   f3: 'F3',
   vision: 'IA',
-  local: 'Modelo local',
-  heuristic: 'Estimado'
+  local: tr('Modelo local'),
+  heuristic: tr('Estimado')
 }
 
-const WEATHER: Record<string, string> = { clear: 'Despejado', rain: 'Lluvia', thunder: 'Tormenta' }
+const WEATHER: Record<string, string> = {
+  clear: tr('Despejado'),
+  rain: tr('Lluvia'),
+  thunder: tr('Tormenta')
+}
 const GAME_MODE: Record<string, string> = {
-  survival: 'Supervivencia',
-  creative: 'Creativo',
-  adventure: 'Aventura',
-  spectator: 'Espectador'
+  survival: tr('Supervivencia'),
+  creative: tr('Creativo'),
+  adventure: tr('Aventura'),
+  spectator: tr('Espectador')
 }
 const DIFFICULTY: Record<string, string> = {
-  peaceful: 'Pacífico',
-  easy: 'Fácil',
-  normal: 'Normal',
-  hard: 'Difícil'
+  peaceful: tr('Pacífico'),
+  easy: tr('Fácil'),
+  normal: tr('Normal'),
+  hard: tr('Difícil')
 }
 const FACING: Record<string, string> = {
-  north: 'Norte',
-  south: 'Sur',
-  east: 'Este',
-  west: 'Oeste'
+  north: tr('Norte'),
+  south: tr('Sur'),
+  east: tr('Este'),
+  west: tr('Oeste')
 }
 
 /** Ticks of the day → "14:30" (0 ticks = 06:00). */
@@ -85,20 +90,23 @@ function sectionsOf(e: ScreenshotEntry): GameIndexSection[] {
   const loc = a.location
   const world = worldOf(e).name
 
-  push('Ubicación', [
+  push(tr('Ubicación'), [
     world && ['Mundo', world],
-    a.dimension && ['Dimensión', tagged(dimensionName(a.dimension.id), a.dimension.source)],
-    loc?.block && ['Coordenadas', `${loc.block.x} ${loc.block.y} ${loc.block.z}`],
+    a.dimension && [tr('Dimensión'), tagged(dimensionName(a.dimension.id), a.dimension.source)],
+    loc?.block && [tr('Coordenadas'), `${loc.block.x} ${loc.block.y} ${loc.block.z}`],
     loc?.chunk && ['Chunk', `${loc.chunk.x} ${loc.chunk.z}`],
-    loc?.facing?.direction && ['Mirando al', FACING[loc.facing.direction] ?? loc.facing.direction],
-    a.biome && ['Bioma', tagged(biomeName(a.biome.id), a.biome.source)],
-    loc?.light && ['Luz', `cielo ${loc.light.sky} · bloque ${loc.light.block}`]
+    loc?.facing?.direction && [
+      tr('Mirando al'),
+      FACING[loc.facing.direction] ?? loc.facing.direction
+    ],
+    a.biome && [tr('Bioma'), tagged(biomeName(a.biome.id), a.biome.source)],
+    loc?.light && ['Luz', tr('cielo {0} · bloque {1}', loc.light.sky, loc.light.block)]
   ])
 
   const mod = a.mod
   if (mod) {
     push('Partida', [
-      ['Día', `${mod.world.day + 1} · ${gameClock(mod.world.timeOfDay)}`],
+      [tr('Día'), `${mod.world.day + 1} · ${gameClock(mod.world.timeOfDay)}`],
       ['Clima', WEATHER[mod.world.weather] ?? mod.world.weather],
       ['Modo', GAME_MODE[mod.player.gameMode] ?? mod.player.gameMode],
       mod.game?.difficulty && [
@@ -108,28 +116,28 @@ function sectionsOf(e: ScreenshotEntry): GameIndexSection[] {
       mod.world.seed && ['Semilla', mod.world.seed]
     ])
     const target = mod.target.block
-    push('Apuntando a', [
+    push(tr('Apuntando a'), [
       target && ['Bloque', prettifyId(target.id)],
-      target && ['Posición', `${target.pos.x} ${target.pos.y} ${target.pos.z}`],
+      target && [tr('Posición'), `${target.pos.x} ${target.pos.y} ${target.pos.z}`],
       mod.target.entity && ['Entidad', mobName(mod.target.entity.id)]
     ])
   }
 
   if (a.mobs.length)
     push(
-      'Mobs',
+      tr('Mobs'),
       a.mobs.map((m) => [mobName(m.id), `×${m.count}`])
     )
   if (a.structures.length)
     push(
-      'Estructuras',
+      tr('Estructuras'),
       a.structures.map((s) => [structureName(s.id), SOURCE_TAG[s.source]])
     )
 
   if (a.build) {
     const { size, blocks, materials } = a.build
     push('Build', [
-      ['Tamaño', `${size.x}×${size.y}×${size.z}`],
+      [tr('Tamaño'), `${size.x}×${size.y}×${size.z}`],
       ['Bloques', String(blocks)],
       ...materials.slice(0, 8).map((m): [string, string] => [prettifyId(m.id), `×${m.count}`])
     ])

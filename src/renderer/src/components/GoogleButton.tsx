@@ -1,4 +1,5 @@
 import type { ButtonHTMLAttributes } from 'react'
+import { tr } from '@shared/i18n'
 
 /** Official multicolour "G" mark, as used on Google sign-in buttons. */
 export function GoogleLogo({ size = 18 }: { size?: number }) {
@@ -26,7 +27,7 @@ export function GoogleLogo({ size = 18 }: { size?: number }) {
 
 /** Google-branded sign-in button (light theme, per Google's branding guidelines). */
 export function GoogleButton({
-  children = 'Continuar con Google',
+  children = tr('Continuar con Google'),
   ...rest
 }: ButtonHTMLAttributes<HTMLButtonElement>) {
   return (

@@ -14,6 +14,7 @@ import type { GameAfkPlan, GamePortalPlan } from '@shared/gamePlans'
 import type { Vec3 } from '@shared/types'
 import type { Shape } from './drawMap'
 import { convertXZ } from './view'
+import { tr } from '@shared/i18n'
 
 // ── AFK ──
 
@@ -39,19 +40,22 @@ export type Verdict = { level: 'ok' | 'warn' | 'bad'; text: string }
 
 export function farmVerdict(s: FarmStatus, kind: FarmKind): Verdict {
   if (kind === 'load') {
-    if (!s.blocks) return { level: 'bad', text: 'Fuera de la simulación: no funciona' }
+    if (!s.blocks) return { level: 'bad', text: tr('Fuera de la simulación: no funciona') }
     if (!s.entities)
-      return { level: 'warn', text: 'Solo bloques: redstone y cultivos sí, entidades no' }
-    return { level: 'ok', text: 'Cargada' }
+      return { level: 'warn', text: tr('Solo bloques: redstone y cultivos sí, entidades no') }
+    return { level: 'ok', text: tr('Cargada') }
   }
-  if (!s.entities) return { level: 'bad', text: 'Chunk fuera de la distancia de simulación' }
+  if (!s.entities) return { level: 'bad', text: tr('Chunk fuera de la distancia de simulación') }
   if (s.sphere === 'too-close')
-    return { level: 'bad', text: `A menos de ${NO_SPAWN_RADIUS} bloques: ahí no aparecen mobs` }
+    return {
+      level: 'bad',
+      text: tr('A menos de {0} bloques: ahí no aparecen mobs', NO_SPAWN_RADIUS)
+    }
   if (s.sphere === 'outside')
-    return { level: 'bad', text: `A más de ${DESPAWN_RADIUS} bloques: los mobs desaparecen` }
+    return { level: 'bad', text: tr('A más de {0} bloques: los mobs desaparecen', DESPAWN_RADIUS) }
   if (!s.spawning)
-    return { level: 'bad', text: 'Centro del chunk a más de 128 bloques: no aparecen mobs' }
-  return { level: 'ok', text: 'Funciona' }
+    return { level: 'bad', text: tr('Centro del chunk a más de 128 bloques: no aparecen mobs') }
+  return { level: 'ok', text: tr('Funciona') }
 }
 
 const VERDICT_COLOR = { ok: '#6ee08a', warn: '#ffd24a', bad: '#ff5c5c' }

@@ -3,6 +3,7 @@ import { mobName } from '@shared/catalog/mobs'
 import { structureName } from '@shared/catalog/structures'
 import type { InfoSource, ScreenshotEntry } from '@shared/types'
 import { enchantmentName, professionName } from '@shared/catalog/villagers'
+import { getLang, tr } from '@shared/i18n'
 
 export type SortKey = 'date' | 'name' | 'size' | 'x' | 'y' | 'z' | 'origin' | 'biome' | 'dimension'
 export type SortDir = 'asc' | 'desc'
@@ -73,7 +74,7 @@ export function searchableText(s: ScreenshotEntry): string {
     // Find the librarian selling Mending, or the chest with the diamonds.
     const v = a.mod.target.entity?.villager
     if (v) {
-      parts.push('aldeano', v.profession ?? '')
+      parts.push(tr('aldeano'), v.profession ?? '')
       if (v.profession) parts.push(professionName(v.profession))
       for (const t of v.trades)
         for (const it of [...t.buy, t.sell]) {
@@ -83,7 +84,7 @@ export function searchableText(s: ScreenshotEntry): string {
         }
     }
     for (const it of a.mod.target.block?.container?.items ?? []) parts.push(it.id)
-    if (a.mod.build) parts.push('build', 'estructura')
+    if (a.mod.build) parts.push('build', tr('estructura'))
   }
   // Builds are found by the blocks they contain ("minecraft:hopper").
   for (const m of a?.build?.materials ?? []) parts.push(m.id)
@@ -193,7 +194,7 @@ export function applyQuery(items: ScreenshotEntry[], q: Query): ScreenshotEntry[
     if (vb === null) return -1
     const cmp =
       typeof va === 'string'
-        ? va.localeCompare(vb as string, 'es', { numeric: true })
+        ? va.localeCompare(vb as string, getLang(), { numeric: true })
         : va - (vb as number)
     return cmp * dir || b.capturedAt - a.capturedAt
   })
@@ -217,7 +218,7 @@ export function facets(items: ScreenshotEntry[]): {
     for (const x of s.analysis?.structures ?? []) st.add(x.id)
   }
   const byName = (f: (id: string) => string) => (x: string, y: string) =>
-    f(x).localeCompare(f(y), 'es')
+    f(x).localeCompare(f(y), getLang())
   return {
     dimensions: [...d].sort(byName(dimensionName)),
     biomes: [...b].sort(byName(biomeName)),

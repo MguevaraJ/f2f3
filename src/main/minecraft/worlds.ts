@@ -1,6 +1,7 @@
 import { copyFile, mkdir, readdir, readFile } from 'node:fs/promises'
 import { dirname, join } from 'node:path'
 import { readNbt, type NbtCompound } from '@core/nbt/readNbt'
+import { tr } from '@shared/i18n'
 
 export interface SaveInfo {
   /** Folder under saves/. */
@@ -62,9 +63,9 @@ export async function installTemplate(
 ): Promise<string> {
   const [ns, path] = templateId.split(':', 2)
   if (!/^[a-z0-9_.-]+$/.test(ns) || !/^[a-z0-9_./-]+$/.test(path) || path.includes('..'))
-    throw new Error('Nombre de plantilla no válido.')
+    throw new Error(tr('Nombre de plantilla no válido.'))
   if (folder.includes('/') || folder.includes('\\') || folder === '..' || folder === '.')
-    throw new Error('Mundo no válido.')
+    throw new Error(tr('Mundo no válido.'))
   const dir =
     (await worldDataVersion(join(savesDir, folder))) < DATA_VERSION_1_21
       ? 'structures'
