@@ -73,7 +73,9 @@ public final class BuildPreview {
 			if (step == 1) {
 				// Base done: pin the box and let the wheel set its height, from what it had.
 				step = 2;
-				height = region.size().getY();
+				// The base was shown one block tall; the height starts at the highest block inside.
+				BuildRegion full = CompanionConfig.get().region(mc.level, target, size, facing, 0);
+				height = full != null ? full.size().getY() : 1;
 				lockedBeforeHeight = locked;
 				locked = true;
 				age = 0;
@@ -203,7 +205,8 @@ public final class BuildPreview {
 		if (aimed == null) {
 			region = null;
 		} else if (!aimed.equals(target) || computedSize != size || computedHeight != height || looking != facing || age % 10 == 0) {
-			BuildRegion fresh = CompanionConfig.get().region(mc.level, aimed, size, looking, height);
+			// While choosing the base the box is a single layer: easier to judge than a tall one.
+			BuildRegion fresh = CompanionConfig.get().region(mc.level, aimed, size, looking, step == 1 ? 1 : height);
 			// Far from a pinned box its chunks unload and it looks empty: keep the last one.
 			if (fresh != null || !locked) region = fresh;
 			computedSize = size;
@@ -224,7 +227,7 @@ public final class BuildPreview {
 			hudStatus = "Apunta a la base del build";
 			hudControls = "Esc cancela";
 		} else if (step == 1) {
-			hudStatus = "Paso 1 de 2: la base · " + (locked ? "FIJADA · " : "") + "Build " + region.sizeText() + " · " + region.blocks() + " bloques";
+			hudStatus = "Paso 1 de 2: la base · " + (locked ? "FIJADA · " : "") + region.size().getX() + "×" + region.size().getZ() + " bloques";
 			hudControls = "Rueda agachado: ancho (" + size + ") · F2 siguiente · " + pin + " · Esc cancela";
 		} else {
 			hudStatus = "Paso 2 de 2: la altura · Build " + region.sizeText() + " · " + region.blocks() + " bloques";

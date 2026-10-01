@@ -190,7 +190,7 @@ dentro del campo de visión de la cámara (FOV vertical de opciones + aspecto de
    `listSaves` (lee `Data.LevelName` de level.dat; saves = padre de screenshotsDir) e `installTemplate`
    (`saves/<mundo>/generated/minecraft/structure/craftshot/<img>.nbt`). IPC `companion.listSaves`/`installBuild`.
    UI: bloque "Pegarlo donde estaba" en `BuildSection` (mundo, "Añadir al mundo", dirección, comando).
-   **Dos pasos** (`BuildPreview.step`): 1 = base (rueda agachado → `size`), F2 → 2 = altura (fija la caja; rueda →
+   **Dos pasos** (`BuildPreview.step`): 1 = base (rueda agachado → `size`; la caja se dibuja de 1 bloque de alto), F2 → 2 = altura (fija la caja; rueda →
    `height`, parte de la altura automática; `BuildRegion.corner(..., height)` con 0 = automática), F2 → nombre.
    Esc en el paso 2 vuelve al 1 (altura automática y el fijado que tenía); "Volver" en el nombre regresa al paso 2.
    **Texto de la vista previa**: ya no usa la barra de acción (una sola línea, se cortaba); `BuildPreview.drawHud`
