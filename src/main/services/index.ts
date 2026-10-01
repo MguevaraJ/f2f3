@@ -7,9 +7,9 @@ import { CaptureWatcher } from './CaptureWatcher'
 import { GameIndexExporter } from './GameIndexExporter'
 import { LocalVisionService } from './LocalVisionService'
 import { SecretStore } from './SecretStore'
-import { join } from 'node:path'
+import { basename, dirname, join } from 'node:path'
 import { AnalysisService } from './AnalysisService'
-import { LibraryService } from './LibraryService'
+import { LibraryService, type LibraryRoot } from './LibraryService'
 import { MetadataStore } from './MetadataStore'
 import { MinecraftLocator } from './MinecraftLocator'
 import { SettingsService } from './SettingsService'
@@ -44,7 +44,17 @@ export function createServices(
   const secrets = new SecretStore(userDataDir)
   const settings = new SettingsService(userDataDir, locator, secrets)
   const metadata = new MetadataStore(userDataDir)
-  const library = new LibraryService(settings.value.screenshotsDir, metadata)
+  // Named like in the game folder list: launcher and instance, or the folder's own name.
+  const rootsOf = (dirs: string[]): LibraryRoot[] => {
+    const found = locator.detectSources()
+    return dirs.map((path) => ({
+      path,
+      label:
+        found.find((s) => s.path === path)?.label ??
+        basename(basename(path).toLowerCase() === 'screenshots' ? dirname(path) : path)
+    }))
+  }
+  const library = new LibraryService(rootsOf(settings.value.screenshotsDirs), metadata)
   const pool = new WorkerPool(workerEntry)
   const thumbs = new ThumbnailService(
     join(userDataDir, 'thumbs'),
@@ -67,12 +77,15 @@ export function createServices(
 
   let cachedFont: { key: string; value: string | null } | null = null
   const fontSource = (): string | null => {
-    const { fontSource: custom, screenshotsDir } = settings.value
-    const key = `${custom}|${screenshotsDir}`
+    const { fontSource: custom, screenshotsDirs } = settings.value
+    const key = `${custom}|${screenshotsDirs.join('|')}`
     if (cachedFont?.key !== key)
       cachedFont = {
         key,
-        value: custom && existsSync(custom) ? custom : locator.findFontSource(screenshotsDir)
+        value:
+          custom && existsSync(custom)
+            ? custom
+            : (screenshotsDirs.map((d) => locator.findFontSource(d)).find(Boolean) ?? null)
       }
     return cachedFont.value
   }
@@ -126,7 +139,8 @@ export function createServices(
     backup.scheduleAuto()
   })
   settings.on('changed', (next, prev) => {
-    if (next.screenshotsDir !== prev.screenshotsDir) library.setRoot(next.screenshotsDir)
+    if (next.screenshotsDirs.join('|') !== prev.screenshotsDirs.join('|'))
+      library.setRoots(rootsOf(next.screenshotsDirs))
     if (next.fontSource !== prev.fontSource)
       void library.snapshot().then((s) => analysis.enqueueLocal(s.screenshots.map((x) => x.id)))
     if (next.backupAuto && !prev.backupAuto) backup.scheduleAuto(1000)

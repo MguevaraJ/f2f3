@@ -180,7 +180,13 @@ export class BackupService extends EventEmitter<{ status: [BackupStatus] }> {
       for (const [i, e] of entries.entries()) {
         if (this.cancelled) return this.finish(summary, 'Cancelado')
         const abs = this.library.resolveId(e.id)
-        local.push({ path: e.id, size: e.size, md5: await this.md5(abs, e), entry: e, abs })
+        local.push({
+          path: this.library.backupPath(e.id),
+          size: e.size,
+          md5: await this.md5(abs, e),
+          entry: e,
+          abs
+        })
         if (i % 10 === 0) this.set({ done: i + 1, current: e.name })
       }
 
@@ -292,7 +298,7 @@ export class BackupService extends EventEmitter<{ status: [BackupStatus] }> {
       })
       try {
         const snap = await this.library.snapshot()
-        const have = new Set(snap.screenshots.map((s) => s.id))
+        const have = new Set(snap.screenshots.map((s) => this.library.backupPath(s.id)))
         const remote = (await this.drive.listSource(sourceName(snap.root))).filter(
           (r) => r.kind === 'file' && !have.has(r.path) && safeRelative(r.path)
         )
@@ -305,7 +311,7 @@ export class BackupService extends EventEmitter<{ status: [BackupStatus] }> {
           if (this.cancelled) return
           this.set({ current: r.name })
           try {
-            const target = this.library.resolveId(r.path)
+            const target = this.library.resolveId(this.library.idOfBackupPath(r.path))
             if (!existsSync(target)) {
               const data = await this.drive.download(r.id)
               await mkdir(dirname(target), { recursive: true })

@@ -152,7 +152,7 @@ function PlaceBlock({
 
   useEffect(() => {
     let alive = true
-    void api.companion.listSaves().then((list) => {
+    void api.companion.listSaves(shotId).then((list) => {
       if (!alive) return
       setSaves(list)
       // The world the screenshot comes from, when its name matches.
@@ -164,7 +164,7 @@ function PlaceBlock({
     return () => {
       alive = false
     }
-  }, [mod.world.name, build.template])
+  }, [mod.world.name, build.template, shotId])
 
   const id = build.template ?? templateId(shotName)
   const inWorld = !!build.template

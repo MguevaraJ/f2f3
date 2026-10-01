@@ -263,7 +263,7 @@ export function registerIpc(services: Services): void {
     const src = buildPathFor(library.resolveId(str(id)))
     if (!existsSync(src)) throw new Error('Esta captura no tiene un build guardado.')
     // Litematica's folder when it is there: "Cargar esquemas" lists it right away.
-    const schematics = join(locator.gameDirOf(settings.value.screenshotsDir), 'schematics')
+    const schematics = join(locator.gameDirOf(library.rootOf(str(id))), 'schematics')
     const dir = existsSync(schematics) ? schematics : app.getPath('downloads')
     const parent = BrowserWindow.fromWebContents(e.sender)
     const options = {
@@ -282,12 +282,15 @@ export function registerIpc(services: Services): void {
     return res.filePath
   })
 
-  handle(IPC.companion.listSaves, () => listSaves(savesDirFor(settings.value.screenshotsDir)))
+  // The worlds of the game folder the screenshot is in.
+  handle(IPC.companion.listSaves, (_e, id) =>
+    listSaves(savesDirFor(library.rootOf(typeof id === 'string' ? id : '')))
+  )
   handle(IPC.companion.installBuild, async (_e, id, folder, template) => {
     const image = library.resolveId(str(id))
     const src = buildPathFor(image)
     if (!existsSync(src)) throw new Error('Esta captura no tiene un build guardado.')
-    const saves = savesDirFor(settings.value.screenshotsDir)
+    const saves = savesDirFor(library.rootOf(str(id)))
     const known = await listSaves(saves)
     if (!known.some((w) => w.folder === str(folder))) throw new Error('No se encontró ese mundo.')
     // The mod's name (craftshot:build_3) when it saved one, so the same command works everywhere.

@@ -9,11 +9,12 @@ const DELAY_MS = 1500
 /**
  * Keeps "<game dir>/craftshot/app-index.json" up to date for the Companion mod's in-game
  * gallery: notes, tags, favourites and everything the app worked out for each screenshot.
- * Only written when the screenshots folder sits inside a game folder.
+ * One file per game folder; only written when the screenshots folder sits inside one.
  */
 export class GameIndexExporter {
   private timer: NodeJS.Timeout | null = null
-  private last = ''
+  /** Last content written, by file. */
+  private readonly last = new Map<string, string>()
 
   constructor(private readonly library: LibraryService) {}
 
@@ -33,14 +34,20 @@ export class GameIndexExporter {
 
   private async write(): Promise<void> {
     const snap = await this.library.snapshot()
-    const gameDir = dirname(snap.root)
-    if (!existsSync(join(gameDir, 'saves')) && !existsSync(join(gameDir, 'options.txt'))) return
-    const json = JSON.stringify(buildGameIndex(snap.screenshots))
-    const file = join(gameDir, 'craftshot', 'app-index.json')
-    if (json === this.last && existsSync(file)) return
-    await mkdir(dirname(file), { recursive: true })
-    await writeFile(file + '.tmp', json, 'utf8')
-    await rename(file + '.tmp', file)
-    this.last = json
+    // One index per game folder, with ids as the mod sees them: relative to its screenshots.
+    for (const root of snap.roots) {
+      const gameDir = dirname(root.path)
+      if (!existsSync(join(gameDir, 'saves')) && !existsSync(join(gameDir, 'options.txt'))) continue
+      const own = snap.screenshots
+        .filter((s) => (s.source ?? '') === root.mount)
+        .map((s) => (root.mount ? { ...s, id: s.id.slice(root.mount.length + 1) } : s))
+      const json = JSON.stringify(buildGameIndex(own))
+      const file = join(gameDir, 'craftshot', 'app-index.json')
+      if (json === this.last.get(file) && existsSync(file)) continue
+      await mkdir(dirname(file), { recursive: true })
+      await writeFile(file + '.tmp', json, 'utf8')
+      await rename(file + '.tmp', file)
+      this.last.set(file, json)
+    }
   }
 }

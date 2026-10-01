@@ -23,33 +23,29 @@ export function Onboarding() {
   const local = useLocalModel((s) => s.status)
   const setTab = useUi((s) => s.setTab)
   const [step, setStep] = useState(0)
-  const [picked, setPicked] = useState<string | null>(null)
+  const [picked, setPicked] = useState<string[] | null>(null)
   if (!settings || (settings.onboardingDone && settings.gameDirConfirmed)) return null
 
-  const folder = picked ?? settings.screenshotsDir
+  const folders = picked ?? settings.screenshotsDirs
   const confirmFolder = (): Promise<void> =>
-    update({ screenshotsDir: folder, gameDirConfirmed: true })
-  // New users start from where they played last; the rest keep their folder unless it is gone.
+    update({ screenshotsDirs: folders, gameDirConfirmed: true })
+  // New users start with where they played last and whatever already has screenshots;
+  // the rest keep their folder (unless it is gone) and tick the ones they want to add.
   const preselect = (found: MinecraftSource[]): void => {
-    const keep = settings.onboardingDone && found.some((s) => s.path === settings.screenshotsDir)
-    if (!picked && !keep && found[0]) setPicked(found[0].path)
+    if (picked || !found.length) return
+    const known = settings.screenshotsDirs.filter((d) => found.some((s) => s.path === d))
+    if (settings.onboardingDone && known.length) return
+    setPicked(found.filter((s, i) => i === 0 || s.count > 0).map((s) => s.path))
   }
   const folderStep = (
     <div className="onb-folder">
       <h2>¿Dónde juegas?</h2>
       <p>
-        Craftshot trabaja con la carpeta del juego: de ahí salen tus capturas, tus mundos y el sitio
-        del mod. Encontré estas; la primera es donde jugaste por última vez.
+        Craftshot trabaja con tus carpetas de juego: de ahí salen las capturas, los mundos y el
+        sitio del mod. Encontré estas, la más reciente primero. Marca todas las que quieras ver.
       </p>
-      <GameFolderPicker
-        value={folder}
-        current={
-          settings.gameDirConfirmed || settings.onboardingDone ? settings.screenshotsDir : ''
-        }
-        onChange={setPicked}
-        onLoaded={preselect}
-      />
-      <p className="muted small">Puedes cambiarla cuando quieras en Ajustes.</p>
+      <GameFolderPicker values={folders} onChange={setPicked} onLoaded={preselect} />
+      <p className="muted small">Puedes añadir o quitar carpetas cuando quieras en Ajustes.</p>
     </div>
   )
 
@@ -61,7 +57,7 @@ export function Onboarding() {
           <div className="modal-foot onb-foot">
             <div className="toolbar-spacer" />
             <button className="btn primary" onClick={() => void confirmFolder()}>
-              Usar esta carpeta
+              {folders.length > 1 ? 'Usar estas carpetas' : 'Usar esta carpeta'}
             </button>
           </div>
         </div>
@@ -275,7 +271,11 @@ export function Onboarding() {
             </>
           ) : (
             <button className="btn primary" onClick={() => go(step + 1)}>
-              {step === FOLDER_STEP ? 'Usar esta carpeta' : 'Siguiente'}
+              {step !== FOLDER_STEP
+                ? 'Siguiente'
+                : folders.length > 1
+                  ? 'Usar estas carpetas'
+                  : 'Usar esta carpeta'}
             </button>
           )}
         </div>

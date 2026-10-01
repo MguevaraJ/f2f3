@@ -347,6 +347,8 @@ export interface ScreenshotEntry {
   height: number
   analysis: ScreenshotAnalysis | null
   meta: UserMeta
+  /** With several game folders: the one it is in (the first segment of its id). */
+  source?: string
 }
 
 export interface FolderNode {
@@ -357,9 +359,21 @@ export interface FolderNode {
   children: FolderNode[]
 }
 
+/** A game folder's screenshots shown in the library. */
+export interface LibraryRootInfo {
+  path: string
+  label: string
+  /** First segment of the ids inside it; '' when it is the only one. */
+  mount: string
+  exists: boolean
+}
+
 export interface LibrarySnapshot {
+  /** The first folder (the only one, for most people). */
   root: string
+  /** At least one of the folders exists. */
   rootExists: boolean
+  roots: LibraryRootInfo[]
   folders: FolderNode
   screenshots: ScreenshotEntry[]
 }
@@ -385,7 +399,10 @@ export interface MinecraftSource {
 export type CloseAction = 'ask' | 'background' | 'quit'
 
 export interface AppSettings {
+  /** Always the first of `screenshotsDirs`. */
   screenshotsDir: string
+  /** Screenshots folders of every game folder the user added. */
+  screenshotsDirs: string[]
   /** Optional override for the font source (.jar or resource pack .zip). */
   fontSource: string
   autoAnalyze: boolean

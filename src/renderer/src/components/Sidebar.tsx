@@ -61,8 +61,12 @@ export function Sidebar() {
         </div>
         <div className="side-account-text">
           <div className="side-account-name">Craftshot</div>
-          <div className="side-account-sub" title={snapshot?.root}>
-            {snapshot?.root.replace(/^\/home\/[^/]+/, '~') ?? 'Cargando…'}
+          <div className="side-account-sub" title={snapshot?.roots.map((r) => r.path).join('\n')}>
+            {!snapshot
+              ? 'Cargando…'
+              : snapshot.roots.length > 1
+                ? `${snapshot.roots.length} carpetas de juego`
+                : snapshot.root.replace(/^\/home\/[^/]+/, '~')}
           </div>
         </div>
       </div>
@@ -196,7 +200,7 @@ function FolderTree({ node, depth }: { node: FolderNode; depth: number }) {
           <Icon name="chevronRight" size={14} />
         </button>
         <Icon name={active ? 'folderOpen' : 'folder'} size={16} />
-        <span className="tree-name">{node.path === '' ? 'screenshots' : node.name}</span>
+        <span className="tree-name">{node.name}</span>
         <span className="tree-count">{total}</span>
       </div>
       {open && node.children.map((c) => <FolderTree key={c.path} node={c} depth={depth + 1} />)}

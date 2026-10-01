@@ -1,4 +1,12 @@
-import { existsSync, mkdtempSync, rmSync, writeFileSync, statSync, utimesSync } from 'node:fs'
+import {
+  mkdirSync,
+  existsSync,
+  mkdtempSync,
+  rmSync,
+  writeFileSync,
+  statSync,
+  utimesSync
+} from 'node:fs'
 import { rm } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
@@ -29,7 +37,7 @@ describe('LibraryService file operations', () => {
     png(join(root, '2026-09-20_05.19.44.png'), 1918, 1078)
     png(join(root, 'other.png'))
     meta = new MetadataStore(data)
-    lib = new LibraryService(root, meta)
+    lib = new LibraryService([{ path: root, label: 'Juego' }], meta)
     await lib.refresh()
   })
   afterEach(() => {
@@ -122,6 +130,38 @@ describe('LibraryService file operations', () => {
     await lib.paste(['other.png'], 'Old', 'cut')
     expect((await lib.remove(['Old'])).ok).toBe(true)
     expect((await lib.snapshot()).screenshots).toHaveLength(1)
+  })
+  it('shows several game folders as one library', async () => {
+    const other = mkdtempSync(join(tmpdir(), 'craftshot-root2-'))
+    mkdirSync(join(other, 'mundo'))
+    png(join(other, 'mundo', 'b.png'))
+    lib.setRoots([
+      { path: root, label: 'Launcher oficial' },
+      { path: other, label: 'SKLauncher: Fabric 26.3' }
+    ])
+    const snap = await lib.refresh()
+    const mount = 'SKLauncher - Fabric 26.3'
+    expect(snap.roots.map((r) => r.mount)).toEqual(['Launcher oficial', mount])
+    expect(snap.folders.children.map((c) => c.name)).toEqual([
+      'Launcher oficial',
+      'SKLauncher: Fabric 26.3'
+    ])
+    const b = snap.screenshots.find((s) => s.name === 'b.png')!
+    expect(b).toMatchObject({ id: `${mount}/mundo/b.png`, folder: `${mount}/mundo`, source: mount })
+    expect(lib.resolveId(b.id)).toBe(join(other, 'mundo', 'b.png'))
+    expect(lib.rootOf(b.id)).toBe(other)
+    expect(lib.toId(join(root, 'other.png'))).toBe('Launcher oficial/other.png')
+    // Not inside any game folder, and no escaping from one.
+    expect(() => lib.resolveId('')).toThrow()
+    expect(() => lib.resolveId(`${mount}/../x.png`)).toThrow()
+    expect((await lib.remove([mount])).ok).toBe(false)
+    expect((await lib.createFolder('', 'nueva')).ok).toBe(false)
+    // The first folder keeps its bare paths in the backup.
+    expect(lib.backupPath('Launcher oficial/other.png')).toBe('other.png')
+    expect(lib.backupPath(b.id)).toBe(b.id)
+    expect(lib.idOfBackupPath('other.png')).toBe('Launcher oficial/other.png')
+    expect(lib.idOfBackupPath(b.id)).toBe(b.id)
+    rmSync(other, { recursive: true, force: true })
   })
 })
 

@@ -21,33 +21,52 @@ const MC_NAME_RE = /^(\d{4})-(\d{2})-(\d{2})_(\d{2})\.(\d{2})\.(\d{2})/
 export const fingerprintOf = (size: number, mtimeMs: number, companionMtimeMs?: number): string =>
   `${size}-${Math.round(mtimeMs)}${companionMtimeMs === undefined ? '' : `-m${Math.round(companionMtimeMs)}`}`
 
+export interface LibraryRoot {
+  path: string
+  label: string
+}
+
+interface Mount extends LibraryRoot {
+  /** First segment of the ids inside this root; '' when it is the only root. */
+  mount: string
+}
+
+const PICK_ROOT = 'Elige primero una de tus carpetas de juego'
+
 /**
- * The screenshots folder as a library: scanning, watching and every file
+ * The screenshots folders as one library: scanning, watching and every file
  * operation (folders, rename, copy/cut/paste, delete to trash, import).
- * Ids are paths relative to the root with forward slashes; every id coming
- * from the renderer is resolved through `resolveId`, which rejects traversal.
+ * Ids are paths with forward slashes: relative to the root when there is one, and
+ * prefixed with the root's mount name ("SKLauncher - Fabric 26.3/…") when there are
+ * several. Every id coming from the renderer is resolved through `resolveId`, which
+ * rejects traversal.
  */
 export class LibraryService extends EventEmitter<{ changed: [LibrarySnapshot] }> {
-  private rootDir: string
-  private watcher: FSWatcher | null = null
+  private mounts: Mount[]
+  private watchers: FSWatcher[] = []
   private rescanTimer: NodeJS.Timeout | null = null
   private cache: LibrarySnapshot | null = null
   private scanning: Promise<LibrarySnapshot> | null = null
 
   constructor(
-    root: string,
+    roots: LibraryRoot[],
     private readonly metadata: MetadataStore
   ) {
     super()
-    this.rootDir = resolve(root)
+    this.mounts = mountsFor(roots)
   }
 
+  /** The first root. */
   get root(): string {
-    return this.rootDir
+    return this.mounts[0].path
   }
 
-  setRoot(root: string): void {
-    this.rootDir = resolve(root)
+  get roots(): readonly LibraryRoot[] {
+    return this.mounts
+  }
+
+  setRoots(roots: LibraryRoot[]): void {
+    this.mounts = mountsFor(roots)
     this.cache = null
     this.startWatching()
     void this.refresh()
@@ -57,7 +76,7 @@ export class LibraryService extends EventEmitter<{ changed: [LibrarySnapshot] }>
     return this.cache ?? this.refresh()
   }
 
-  /** Rescans the folder. Concurrent callers share the same scan. */
+  /** Rescans the folders. Concurrent callers share the same scan. */
   refresh(): Promise<LibrarySnapshot> {
     this.scanning ??= this.scan().finally(() => (this.scanning = null))
     return this.scanning.then((snap) => {
@@ -71,33 +90,80 @@ export class LibraryService extends EventEmitter<{ changed: [LibrarySnapshot] }>
     return this.cache?.screenshots.find((s) => s.id === id)
   }
 
-  /** Absolute path for an id, guaranteed to live inside the root. */
+  /** The root an id is in and its path inside it. */
+  private locate(id: string): { mount: Mount; rel: string[] } {
+    const parts = id.split('/').filter(Boolean)
+    if (this.mounts.length === 1) return { mount: this.mounts[0], rel: parts }
+    const mount = this.mounts.find((m) => m.mount === parts[0])
+    if (!mount) throw new Error(PICK_ROOT)
+    return { mount, rel: parts.slice(1) }
+  }
+
+  /** Absolute path for an id, guaranteed to live inside one of the roots. */
   resolveId(id: string): string {
-    const abs = resolve(this.rootDir, ...id.split('/').filter(Boolean))
-    if (abs !== this.rootDir && !abs.startsWith(this.rootDir + sep))
+    const { mount, rel } = this.locate(id)
+    const abs = resolve(mount.path, ...rel)
+    if (abs !== mount.path && !abs.startsWith(mount.path + sep))
       throw new Error('Ruta fuera de la carpeta de capturas')
     return abs
   }
 
+  /** The screenshots folder an id belongs to (the first one for the library's top). */
+  rootOf(id: string): string {
+    try {
+      return this.locate(id).mount.path
+    } catch {
+      return this.root
+    }
+  }
+
   toId(abs: string): string {
-    return relative(this.rootDir, abs).split(sep).join('/')
+    const mount =
+      this.mounts.find((m) => abs === m.path || abs.startsWith(m.path + sep)) ?? this.mounts[0]
+    const rel = relative(mount.path, abs).split(sep).join('/')
+    return mount.mount ? (rel ? `${mount.mount}/${rel}` : mount.mount) : rel
+  }
+
+  /**
+   * Path of an id in the backup: the first root keeps its bare paths, so adding a second
+   * game folder does not upload everything again.
+   */
+  backupPath(id: string): string {
+    const first = this.mounts[0].mount
+    return first && id.startsWith(first + '/') ? id.slice(first.length + 1) : id
+  }
+
+  /** The id a backup path restores to. */
+  idOfBackupPath(path: string): string {
+    const first = this.mounts[0].mount
+    if (!first) return path
+    const top = path.split('/')[0]
+    return this.mounts.some((m, i) => i > 0 && m.mount === top) ? path : `${first}/${path}`
   }
 
   startWatching(): void {
-    this.watcher?.close()
-    this.watcher = null
-    if (!existsSync(this.rootDir)) return
-    try {
-      this.watcher = watch(this.rootDir, { recursive: true }, () => this.scheduleRescan())
-      this.watcher.on('error', () => this.watcher?.close())
-    } catch {
-      /* recursive watch unsupported: manual refresh still works */
+    for (const w of this.watchers) w.close()
+    this.watchers = []
+    for (const { path } of this.mounts) {
+      if (!existsSync(path)) continue
+      try {
+        const watcher = watch(path, { recursive: true }, () => this.scheduleRescan())
+        watcher.on('error', () => watcher.close())
+        this.watchers.push(watcher)
+      } catch {
+        /* recursive watch unsupported: manual refresh still works */
+      }
     }
   }
 
   dispose(): void {
-    this.watcher?.close()
+    for (const w of this.watchers) w.close()
     if (this.rescanTimer) clearTimeout(this.rescanTimer)
+  }
+
+  /** The library's top, or with several roots one of the game folders themselves. */
+  private isTop(id: string): boolean {
+    return !id || (this.mounts.length > 1 && !id.includes('/'))
   }
 
   // ───────────────────────────── file operations ─────────────────────────────
@@ -113,7 +179,7 @@ export class LibraryService extends EventEmitter<{ changed: [LibrarySnapshot] }>
 
   async rename(id: string, newName: string): Promise<FileOpResult> {
     return this.op(async () => {
-      if (!id) throw new Error('No se puede renombrar la carpeta raíz')
+      if (this.isTop(id)) throw new Error('No se puede renombrar una carpeta de juego')
       const from = this.resolveId(id)
       const isDir = (await stat(from)).isDirectory()
       let name = validName(newName)
@@ -133,7 +199,7 @@ export class LibraryService extends EventEmitter<{ changed: [LibrarySnapshot] }>
     return this.op(async () => {
       const done: string[] = []
       for (const id of ids) {
-        if (!id) throw new Error('No se puede eliminar la carpeta raíz')
+        if (this.isTop(id)) throw new Error('No se puede eliminar una carpeta de juego')
         const abs = this.resolveId(id)
         await shell.trashItem(abs)
         await withSidecar(abs, null, (p) => shell.trashItem(p))
@@ -208,45 +274,70 @@ export class LibraryService extends EventEmitter<{ changed: [LibrarySnapshot] }>
   }
 
   private async scan(): Promise<LibrarySnapshot> {
-    const root = this.rootDir
-    const rootNode: FolderNode = { path: '', name: basename(root), count: 0, children: [] }
+    const many = this.mounts.length > 1
+    const rootNode: FolderNode = {
+      path: '',
+      name: many ? 'Carpetas de juego' : 'screenshots',
+      count: 0,
+      children: []
+    }
     const screenshots: ScreenshotEntry[] = []
-    if (!existsSync(root)) return { root, rootExists: false, folders: rootNode, screenshots }
+    const roots = this.mounts.map((m) => ({ ...m, exists: existsSync(m.path) }))
 
-    const walk = async (dir: string, node: FolderNode, depth: number): Promise<number> => {
+    const walk = async (
+      dir: string,
+      node: FolderNode,
+      depth: number,
+      source: string
+    ): Promise<void> => {
       let dirents
       try {
         dirents = await readdir(dir, { withFileTypes: true })
       } catch {
-        return 0
+        return
       }
-      let count = 0
       for (const d of dirents) {
         if (d.name.startsWith('.')) continue
         const abs = join(dir, d.name)
         if (d.isDirectory() && depth < MAX_DEPTH) {
           const child: FolderNode = { path: this.toId(abs), name: d.name, count: 0, children: [] }
           node.children.push(child)
-          count += await walk(abs, child, depth + 1)
+          await walk(abs, child, depth + 1, source)
         } else if (d.isFile() && IMAGE_RE.test(d.name)) {
-          const entry = await this.buildEntry(abs, node.path)
+          const entry = await this.buildEntry(abs, node.path, source)
           if (entry) {
             screenshots.push(entry)
             node.count++
-            count++
           }
         }
       }
       node.children.sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true }))
-      return count
     }
-    rootNode.count = 0
-    await walk(root, rootNode, 0)
+    for (const root of roots) {
+      if (!many) {
+        if (root.exists) await walk(root.path, rootNode, 0, '')
+        continue
+      }
+      // Each game folder is a folder of the library, even before its first screenshot.
+      const node: FolderNode = { path: root.mount, name: root.label, count: 0, children: [] }
+      rootNode.children.push(node)
+      if (root.exists) await walk(root.path, node, 0, root.mount)
+    }
     screenshots.sort((a, b) => b.capturedAt - a.capturedAt)
-    return { root, rootExists: true, folders: rootNode, screenshots }
+    return {
+      root: this.root,
+      rootExists: roots.some((r) => r.exists),
+      roots,
+      folders: rootNode,
+      screenshots
+    }
   }
 
-  private async buildEntry(abs: string, folder: string): Promise<ScreenshotEntry | null> {
+  private async buildEntry(
+    abs: string,
+    folder: string,
+    source: string
+  ): Promise<ScreenshotEntry | null> {
     try {
       const st = await stat(abs)
       const name = basename(abs)
@@ -268,12 +359,32 @@ export class LibraryService extends EventEmitter<{ changed: [LibrarySnapshot] }>
         width,
         height,
         analysis: stored?.fingerprint === fingerprint ? stored : null,
-        meta: this.metadata.meta(abs)
+        meta: this.metadata.meta(abs),
+        ...(source ? { source } : {})
       }
     } catch {
       return null
     }
   }
+}
+
+/** One root keeps bare ids; several get a unique folder-safe name each, from their label. */
+function mountsFor(roots: LibraryRoot[]): Mount[] {
+  const list = roots.map((r) => ({ ...r, path: resolve(r.path) }))
+  if (list.length <= 1) return list.map((r) => ({ ...r, mount: '' }))
+  const used = new Set<string>()
+  return list.map((r) => {
+    const base =
+      r.label
+        // eslint-disable-next-line no-control-regex
+        .replace(/[\\/:*?"<>|\u0000-\u001f]+/g, ' -')
+        .replace(/\s+/g, ' ')
+        .trim() || 'Minecraft'
+    let mount = base
+    for (let i = 2; used.has(mount.toLowerCase()); i++) mount = `${base} (${i})`
+    used.add(mount.toLowerCase())
+    return { ...r, mount }
+  })
 }
 
 function validName(name: string): string {

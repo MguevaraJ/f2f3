@@ -38,6 +38,7 @@ describe('CaptureWatcher', () => {
     ({
       root: r,
       rootExists: true,
+      roots: [{ path: r, label: 'Juego', mount: '', exists: true }],
       folders: {} as never,
       screenshots: ids.map(entry)
     }) as LibrarySnapshot

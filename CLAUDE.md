@@ -55,6 +55,15 @@ cada instancia es una carpeta de juego y `versions/`/`assets/` están más arrib
   `settings.gameDirConfirmed`: a los usuarios anteriores se les pregunta una vez solo ese paso. Primera ejecución:
   `screenshotsDir` por defecto = la carpeta jugada más recientemente.
 - "Guardar el mod" propone `mods/` de la instancia (no en el `.minecraft` oficial, compartido entre versiones).
+- **Varias carpetas de juego a la vez**: `settings.screenshotsDirs` (lista; `screenshotsDir` = la primera, se
+  sincroniza en `sanitize`; migración en `SettingsService`). `LibraryService(roots: {path, label}[])`: con una raíz
+  los ids son relativos como siempre; con varias llevan delante el "mount" (etiqueta saneada, p. ej.
+  `SKLauncher - Fabric 26.3/2026….png`), cada raíz es una carpeta de primer nivel del árbol y `entry.source` = mount.
+  `resolveId`/`toId`/`rootOf(id)`; en el nivel superior no se puede crear/pegar/importar ni renombrar/borrar una raíz.
+  `snapshot.roots` {path, label, mount, exists}. Por raíz: `app-index.json` (ids relativos a su `screenshots`),
+  mundos y `schematics` (`rootOf(id)`; `companion.listSaves(id)`). Respaldo: `backupPath`/`idOfBackupPath` — la
+  primera raíz conserva rutas sin prefijo para no volver a subir nada al añadir una segunda. `worldOf` salta el
+  mount al deducir el mundo por carpeta. El selector (`GameFolderPicker`) es de casillas; siempre queda una marcada.
 - En scripts de prueba poner `onboardingDone` **y** `gameDirConfirmed` en settings.json.
 
 ## Gotchas

@@ -1017,3 +1017,16 @@
   max-height: 300px;
   overflow-y: auto;
 }
+.game-folder-check {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 18px;
+  height: 18px;
+  border: 1px solid var(--border-strong);
+  border-radius: 3px;
+  color: var(--green);
+}
+.game-folder.active .game-folder-check {
+  border-color: var(--green);
+}

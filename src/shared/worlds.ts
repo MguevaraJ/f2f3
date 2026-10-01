@@ -12,7 +12,8 @@ export function worldOf(e: ScreenshotEntry): { name: string; source: WorldSource
   if (e.meta.world) return { name: e.meta.world, source: 'manual' }
   const mod = e.analysis?.mod
   if (mod?.world.name) return { name: mod.world.name, source: 'mod' }
-  const top = e.folder.split('/')[0]
+  // With several game folders the first segment names the game folder, not a world.
+  const top = e.folder.split('/')[e.source ? 1 : 0]
   if (top) return { name: top, source: 'folder' }
   return { name: NO_WORLD, source: 'none' }
 }

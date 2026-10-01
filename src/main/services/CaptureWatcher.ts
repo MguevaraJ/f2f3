@@ -44,9 +44,10 @@ export class CaptureWatcher extends EventEmitter<Events> {
   onSnapshot(snap: LibrarySnapshot): void {
     const ids = new Set(snap.screenshots.map((s) => s.id))
     // First snapshot, or a different folder: just take a baseline.
-    if (!this.known || this.root !== snap.root) {
+    const root = snap.roots.map((r) => r.path).join('|')
+    if (!this.known || this.root !== root) {
       this.known = ids
-      this.root = snap.root
+      this.root = root
       return
     }
     const fresh = snap.screenshots.filter((s) => !this.known!.has(s.id) && this.isFresh(s))
@@ -78,8 +79,7 @@ export class CaptureWatcher extends EventEmitter<Events> {
    */
   private async waitForCompanion(id: string): Promise<void> {
     const path = companionPathFor(this.library.resolveId(id))
-    for (let i = 0; i < 20 && !existsSync(path); i++)
-      await new Promise((r) => setTimeout(r, 120))
+    for (let i = 0; i < 20 && !existsSync(path); i++) await new Promise((r) => setTimeout(r, 120))
   }
 
   /** Minecraft writes the PNG in a background thread: wait until its size settles. */

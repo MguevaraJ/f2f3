@@ -14,18 +14,15 @@ const LOADER: Record<string, string> = {
 /**
  * Where the user plays: every game folder found on the machine (official launcher,
  * SKLauncher, Prism, Modrinth…), most recently played first, plus any folder they pick.
- * `value` is the screenshots folder in use or about to be.
+ * Several can be ticked; `values` are their screenshots folders, in the order added.
  */
 export function GameFolderPicker({
-  value,
-  current,
+  values,
   onChange,
   onLoaded
 }: {
-  value: string
-  /** The folder the app is using now, tagged in the list. */
-  current: string
-  onChange: (path: string) => void
+  values: string[]
+  onChange: (paths: string[]) => void
   /** Called once with what was found, to preselect. */
   onLoaded?: (sources: MinecraftSource[]) => void
 }) {
@@ -43,14 +40,19 @@ export function GameFolderPicker({
   if (!sources) return <p className="muted small">Buscando tus carpetas de Minecraft…</p>
 
   // Folders that were not detected (picked by hand) still show up in the list.
-  const extra = [...new Set([value, current])]
-    .filter((p) => p && !sources.some((s) => s.path === p))
+  const extra = values
+    .filter((p) => !sources.some((s) => s.path === p))
     .map((p): MinecraftSource => ({ label: 'Otra carpeta', path: p, count: -1 }))
   const all = [...sources, ...extra]
 
+  // At least one stays ticked; new ones go last so the first keeps its place.
+  const toggle = (path: string): void => {
+    if (!values.includes(path)) onChange([...values, path])
+    else if (values.length > 1) onChange(values.filter((v) => v !== path))
+  }
   const choose = async (): Promise<void> => {
     const dir = await api.settings.chooseDirectory()
-    if (dir) onChange(dir)
+    if (dir && !values.includes(dir)) onChange([...values, dir])
   }
 
   return (
@@ -70,14 +72,17 @@ export function GameFolderPicker({
         return (
           <button
             key={s.path}
-            className={`game-folder ${s.path === value ? 'active' : ''}`}
-            onClick={() => onChange(s.path)}
+            className={`game-folder ${values.includes(s.path) ? 'active' : ''}`}
+            role="checkbox"
+            aria-checked={values.includes(s.path)}
+            onClick={() => toggle(s.path)}
           >
-            <Icon name={s.path === value ? 'check' : 'folder'} size={18} />
+            <span className="game-folder-check">
+              {values.includes(s.path) && <Icon name="check" size={14} />}
+            </span>
             <span className="game-folder-main">
               <span className="game-folder-title">
                 {s.label}
-                {s.path === current && <span className="game-folder-tag">En uso</span>}
                 {s.hasMod && <span className="game-folder-tag mod">Mod instalado</span>}
               </span>
               <span className="game-folder-meta">{meta.join(' · ')}</span>
@@ -88,7 +93,7 @@ export function GameFolderPicker({
       })}
       <div>
         <button className="btn small" onClick={() => void choose()}>
-          <Icon name="folder" size={14} /> Elegir otra carpeta…
+          <Icon name="folder" size={14} /> Añadir otra carpeta…
         </button>
       </div>
     </div>

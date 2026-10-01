@@ -136,7 +136,7 @@ describe('BackupService', () => {
     writeFileSync(join(root, 'Nether', 'b.png'), 'BBBB')
     const meta = new MetadataStore(data)
     meta.setMeta(join(root, 'a.png'), { note: 'base principal', favorite: true })
-    lib = new LibraryService(root, meta)
+    lib = new LibraryService([{ path: root, label: 'Juego' }], meta)
     await lib.refresh()
     drive = new FakeDrive()
     const settings = { value: { backupAuto: false } } as never

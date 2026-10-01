@@ -17,7 +17,7 @@ export function SettingsView() {
 
   useEffect(() => {
     void api.system.info().then(setInfo)
-  }, [settings?.fontSource, settings?.screenshotsDir])
+  }, [settings?.fontSource, settings?.screenshotsDirs])
 
   if (!settings) return null
 
@@ -29,13 +29,12 @@ export function SettingsView() {
     <div className="settings">
       <div className="settings-inner">
         <Group
-          title="Carpeta del juego"
-          desc="Craftshot trabaja con una carpeta de juego: muestra sus capturas, lee sus mundos y guarda ahí los datos para el mod. Estas son las que hay en tu equipo, la más reciente primero."
+          title="Carpetas de juego"
+          desc="Craftshot muestra juntas las capturas de las carpetas que marques, lee sus mundos y guarda en cada una los datos para el mod. Estas son las que hay en tu equipo, la más reciente primero."
         >
           <GameFolderPicker
-            value={settings.screenshotsDir}
-            current={settings.screenshotsDir}
-            onChange={(path) => void update({ screenshotsDir: path, gameDirConfirmed: true })}
+            values={settings.screenshotsDirs}
+            onChange={(paths) => void update({ screenshotsDirs: paths, gameDirConfirmed: true })}
           />
         </Group>
 

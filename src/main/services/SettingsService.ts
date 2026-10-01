@@ -35,6 +35,7 @@ export class SettingsService extends EventEmitter<{ changed: [AppSettings, AppSe
     super()
     this.store = new JsonStore<AppSettings>(join(userDataDir, 'settings.json'), {
       screenshotsDir: locator.defaultScreenshotsDir(),
+      screenshotsDirs: [],
       fontSource: '',
       autoAnalyze: true,
       visionEnabled: false,
@@ -58,6 +59,14 @@ export class SettingsService extends EventEmitter<{ changed: [AppSettings, AppSe
       launchAtLogin: false,
       worldSeeds: {}
     })
+    this.migrate()
+  }
+
+  /** Settings from before several game folders: the list is the one folder there was. */
+  private migrate(): void {
+    const s = this.store.value
+    if (!Array.isArray(s.screenshotsDirs) || !s.screenshotsDirs.length)
+      this.store.update((d) => (d.screenshotsDirs = [d.screenshotsDir]))
   }
 
   get value(): AppSettings {
@@ -103,6 +112,17 @@ export class SettingsService extends EventEmitter<{ changed: [AppSettings, AppSe
 
 function sanitize(patch: Partial<AppSettings>): Partial<AppSettings> {
   const out: Partial<AppSettings> = { ...patch }
+  // The list is what counts; the single folder mirrors its first entry.
+  if (out.screenshotsDirs !== undefined) {
+    const dirs = [...new Set(out.screenshotsDirs.map((d) => String(d).trim()).filter(Boolean))]
+    if (dirs.length) {
+      out.screenshotsDirs = dirs
+      out.screenshotsDir = dirs[0]
+    } else {
+      delete out.screenshotsDirs
+      delete out.screenshotsDir
+    }
+  } else if (out.screenshotsDir !== undefined) out.screenshotsDirs = [out.screenshotsDir]
   if (out.thumbnailSize !== undefined)
     out.thumbnailSize = Math.min(420, Math.max(140, out.thumbnailSize))
   if (out.closeAction !== undefined && !['ask', 'background', 'quit'].includes(out.closeAction))
