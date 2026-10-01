@@ -176,7 +176,8 @@ dentro del campo de visión de la cámara (FOV vertical de opciones + aspecto de
    (`Gizmos.cuboid` desde `Minecraft.tick()` TAIL, dentro de `collectPerTickGizmos`; aristas `setAlwaysOnTop`), sigue
    la mira y se recalcula al cambiar de bloque/tamaño o cada 10 ticks. Rueda agachado = lado ±1 (3–97, mixin
    `MouseHandler.onScroll`); F2 guarda esa caja exacta (la captura se retrasa 2 ticks para que no salga la caja y se
-   vacía la barra de acción); Esc cancela sin abrir el menú de pausa (mixin `KeyboardHandler.keyPress` HEAD,
+   vacía la barra de acción); **Enter fija/suelta** la caja (`locked`: conserva esquina y dirección, aristas azules,
+   `KeyEvent.isConfirmation()`; si los chunks se descargan se mantiene la última región); Esc cancela sin abrir el menú de pausa (mixin `KeyboardHandler.keyPress` HEAD,
    `KeyEvent.isEscape()`, acción 1 = pulsación); abrir cualquier pantalla también cancela. Mixins: `Screenshot.grab(Minecraft,boolean)` HEAD
    cancelable (la tecla, solo en pulsación), `Minecraft.tick`, `MouseHandler.onScroll`. `build: "always"` guarda sin
    vista previa en cada F2 (caja calculada en el servidor). `Minecraft.screen` ahora es `mc.gui.screen()`.

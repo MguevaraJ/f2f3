@@ -24,9 +24,13 @@ public final class BuildPreview {
 	private static final double PICK_RANGE = 96;
 	private static final GizmoStyle BOX_FILL = GizmoStyle.fill(0x185CE07A);
 	private static final GizmoStyle BOX_EDGES = GizmoStyle.stroke(0xFF5CE07A, 2.5f);
+	/** Blue while the box is pinned in place. */
+	private static final GizmoStyle BOX_EDGES_LOCKED = GizmoStyle.stroke(0xFF4FC3F7, 2.5f);
 	private static final GizmoStyle TARGET = GizmoStyle.stroke(0xFFFFD24A, 2.0f);
 
 	private static boolean active;
+	/** Pinned: the box stops following the aim, so the player can walk around and check it. */
+	private static boolean locked;
 	private static int size;
 	private static Direction facing;
 	private static BlockPos target;
@@ -74,6 +78,7 @@ public final class BuildPreview {
 		CompanionConfig config = CompanionConfig.get();
 		if (config.build().equals("sneak") && mc.player != null && mc.player.isShiftKeyDown() && mc.hasSingleplayerServer()) {
 			active = true;
+			locked = false;
 			size = config.buildSize();
 			target = null;
 			region = null;
@@ -102,6 +107,18 @@ public final class BuildPreview {
 		if (!active || mc.gui.screen() != null) return false;
 		active = false;
 		message(mc, "Guardado del build cancelado");
+		return true;
+	}
+
+	/** Enter pins the box where it is, or lets it follow the aim again; true consumes the key. */
+	public static boolean onLockKey(Minecraft mc) {
+		if (!active || mc.gui.screen() != null) return false;
+		if (!locked && region == null) {
+			message(mc, "Apunta a la base del build para fijar la caja");
+			return true;
+		}
+		locked = !locked;
+		age = 0;
 		return true;
 	}
 
@@ -142,14 +159,18 @@ public final class BuildPreview {
 			return;
 		}
 		// Our own ray, much longer than the hand's reach: the build is framed from outside.
-		HitResult hit = mc.player.pick(PICK_RANGE, 1.0f, false);
-		BlockPos aimed = hit instanceof BlockHitResult b && hit.getType() == HitResult.Type.BLOCK ? b.getBlockPos() : null;
-		Direction looking = mc.player.getDirection();
+		// Pinned: keep the corner and the direction it had, wherever the player looks now.
+		HitResult hit = locked ? null : mc.player.pick(PICK_RANGE, 1.0f, false);
+		BlockPos aimed = locked ? target
+			: hit instanceof BlockHitResult b && hit.getType() == HitResult.Type.BLOCK ? b.getBlockPos() : null;
+		Direction looking = locked ? facing : mc.player.getDirection();
 		// The scan is up to 97³ blocks: redo it when the aim or the size changes, or twice a second.
 		if (aimed == null) {
 			region = null;
 		} else if (!aimed.equals(target) || computedSize != size || looking != facing || age % 10 == 0) {
-			region = CompanionConfig.get().region(mc.level, aimed, size, looking);
+			BuildRegion fresh = CompanionConfig.get().region(mc.level, aimed, size, looking);
+			// Far from a pinned box its chunks unload and it looks empty: keep the last one.
+			if (fresh != null || !locked) region = fresh;
 			computedSize = size;
 		}
 		facing = looking;
@@ -158,13 +179,14 @@ public final class BuildPreview {
 			// Edges drawn over the blocks (the bottom ones are inside the ground), like a selection.
 			var box = region.aabb().inflate(0.02);
 			Gizmos.cuboid(box, BOX_FILL);
-			Gizmos.cuboid(box, BOX_EDGES).setAlwaysOnTop();
+			Gizmos.cuboid(box, locked ? BOX_EDGES_LOCKED : BOX_EDGES).setAlwaysOnTop();
 		}
 		if (aimed != null) Gizmos.cuboid(aimed, TARGET).setAlwaysOnTop();
 		if (age % 10 == 0) {
 			message(mc, region == null
 				? "Apunta a la base del build · Esc cancela"
-				: "Build " + region.sizeText() + " · " + region.blocks() + " bloques · F2 guarda · rueda agachado: tamaño (" + size + ") · Esc cancela");
+				: (locked ? "FIJADA · " : "") + "Build " + region.sizeText() + " · " + region.blocks() + " bloques · F2 guarda · Enter "
+					+ (locked ? "suelta" : "fija") + " · rueda agachado: tamaño (" + size + ") · Esc cancela");
 		}
 		age++;
 	}
