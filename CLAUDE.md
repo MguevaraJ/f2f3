@@ -54,7 +54,7 @@ cada instancia es una carpeta de juego y `versions/`/`assets/` están más arrib
 - Onboarding: paso obligatorio "Tu Minecraft" (`components/GameFolderPicker.tsx`, también en Ajustes).
   `settings.gameDirConfirmed`: a los usuarios anteriores se les pregunta una vez solo ese paso. Primera ejecución:
   `screenshotsDir` por defecto = la carpeta jugada más recientemente.
-- "Guardar el mod" propone `mods/` de la instancia (no en el `.minecraft` oficial, compartido entre versiones).
+- "Guardar el mod" abre el diálogo en `mods/` de la carpeta de juego (la primera marcada que ya tenga `mods/`, si no la primera; la crea si falta). Sigue siendo el usuario quien confirma.
 - **Varias carpetas de juego a la vez**: `settings.screenshotsDirs` (lista; `screenshotsDir` = la primera, se
   sincroniza en `sanitize`; migración en `SettingsService`). `LibraryService(roots: {path, label}[])`: con una raíz
   los ids son relativos como siempre; con varias llevan delante el "mount" (etiqueta saneada, p. ej.

@@ -1,5 +1,5 @@
 import { copyFile, writeFile } from 'node:fs/promises'
-import { existsSync } from 'node:fs'
+import { existsSync, mkdirSync } from 'node:fs'
 import { basename, join } from 'node:path'
 import { buildPathFor } from '@core/companion/parseCompanion'
 import { templateId } from '@shared/placement'
@@ -232,14 +232,16 @@ export function registerIpc(services: Services): void {
   })
 
   // Craftshot Companion mod: the .jar ships inside the app
-  // An instance has its own mods folder; the official launcher's is shared by every
-  // version, so there the user decides where it goes.
+  // The dialog opens in the game folder's mods/ (of the ticked folders, the first that
+  // has one; else the first), so nobody has to browse there. Still the user's click.
   const modsDirOrDownloads = (): string => {
-    const gameDir = locator.gameDirOf(settings.value.screenshotsDir)
+    const gameDirs = settings.value.screenshotsDirs.map((d) => locator.gameDirOf(d))
+    const gameDir = gameDirs.find((d) => existsSync(join(d, 'mods'))) ?? gameDirs[0]
+    if (!gameDir || !existsSync(gameDir)) return app.getPath('downloads')
     const mods = join(gameDir, 'mods')
-    return gameDir !== locator.defaultMinecraftDir() && existsSync(mods)
-      ? mods
-      : app.getPath('downloads')
+    // A dialog cannot open in a folder that is not there; Fabric creates it anyway.
+    mkdirSync(mods, { recursive: true })
+    return mods
   }
   handle(IPC.companion.saveMod, async (e) => {
     const parent = BrowserWindow.fromWebContents(e.sender)
