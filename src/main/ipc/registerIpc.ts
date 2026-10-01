@@ -3,6 +3,7 @@ import { existsSync } from 'node:fs'
 import { basename, join } from 'node:path'
 import { buildPathFor } from '@core/companion/parseCompanion'
 import { templateId } from '@shared/placement'
+import { screenshotsDirFor } from '../minecraft/gameDirs'
 import { installTemplate, listSaves, savesDirFor } from '../minecraft/worlds'
 import {
   app,
@@ -231,11 +232,20 @@ export function registerIpc(services: Services): void {
   })
 
   // Craftshot Companion mod: the .jar ships inside the app
+  // An instance has its own mods folder; the official launcher's is shared by every
+  // version, so there the user decides where it goes.
+  const modsDirOrDownloads = (): string => {
+    const gameDir = locator.gameDirOf(settings.value.screenshotsDir)
+    const mods = join(gameDir, 'mods')
+    return gameDir !== locator.defaultMinecraftDir() && existsSync(mods)
+      ? mods
+      : app.getPath('downloads')
+  }
   handle(IPC.companion.saveMod, async (e) => {
     const parent = BrowserWindow.fromWebContents(e.sender)
     const options = {
       title: 'Guardar el mod Craftshot Companion',
-      defaultPath: join(app.getPath('downloads'), 'craftshot-companion-1.0.0+26.3.jar'),
+      defaultPath: join(modsDirOrDownloads(), 'craftshot-companion-1.0.0+26.3.jar'),
       filters: [{ name: 'Mod de Fabric', extensions: ['jar'] }],
       properties: ['showOverwriteConfirmation', 'createDirectory'] as (
         'showOverwriteConfirmation' | 'createDirectory'
@@ -253,7 +263,7 @@ export function registerIpc(services: Services): void {
     const src = buildPathFor(library.resolveId(str(id)))
     if (!existsSync(src)) throw new Error('Esta captura no tiene un build guardado.')
     // Litematica's folder when it is there: "Cargar esquemas" lists it right away.
-    const schematics = join(app.getPath('home'), '.minecraft', 'schematics')
+    const schematics = join(locator.gameDirOf(settings.value.screenshotsDir), 'schematics')
     const dir = existsSync(schematics) ? schematics : app.getPath('downloads')
     const parent = BrowserWindow.fromWebContents(e.sender)
     const options = {
@@ -331,20 +341,21 @@ export function registerIpc(services: Services): void {
   handle(IPC.settings.chooseDirectory, async (e) => {
     const parent = win(e)
     const options = {
-      title: 'Carpeta de capturas',
+      title: 'Carpeta del juego o de capturas',
       defaultPath: settings.value.screenshotsDir,
       properties: ['openDirectory', 'createDirectory'] as ('openDirectory' | 'createDirectory')[]
     }
     const res = parent
       ? await dialog.showOpenDialog(parent, options)
       : await dialog.showOpenDialog(options)
-    return res.canceled ? null : (res.filePaths[0] ?? null)
+    // A game folder is as good as its screenshots folder: nobody has to know the layout.
+    return res.canceled || !res.filePaths[0] ? null : screenshotsDirFor(res.filePaths[0])
   })
   handle(IPC.settings.chooseFontSource, async (e) => {
     const parent = win(e)
     const options = {
       title: 'Fuente de Minecraft (.jar del cliente o resource pack .zip)',
-      defaultPath: locator.defaultMinecraftDir(),
+      defaultPath: locator.launcherRootOf(settings.value.screenshotsDir),
       filters: [{ name: 'Minecraft', extensions: ['jar', 'zip'] }],
       properties: ['openFile'] as 'openFile'[]
     }

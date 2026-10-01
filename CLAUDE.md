@@ -42,6 +42,21 @@ Seguridad: contextIsolation, sandbox, CSP, rutas del renderer validadas con `Lib
 - Etiquetas de origen en la UI: `src/renderer/src/lib/sources.ts` (SOURCE_INFO, LEVELS). Onboarding: components/Onboarding.tsx.
 - El análisis offline corre en `src/main/workers/analysis.worker.ts` (decodifica PNG con pngjs y llama `analyzeImage`).
 
+## Carpeta del juego (2026-09-30)
+Todo cuelga de la **carpeta del juego** = padre de `settings.screenshotsDir` (saves/, mods/, schematics/, `craftshot/app-index.json`).
+No asumir `~/.minecraft`: en launchers de instancias (SKLauncher `~/.sklauncher/instances/<id>` con `instances.json`
+{name, directory, minecraftVersion, gameType, lastPlayed}; Prism, MultiMC, Modrinth, CurseForge, ATLauncher, GDLauncher)
+cada instancia es una carpeta de juego y `versions/`/`assets/` están más arriba.
+- `src/main/minecraft/gameDirs.ts` (tests `tests/gameDirs.test.ts`): `detectInstalls(env)` → `MinecraftSource[]`
+  (launcher, name, gameDir, version, loader, lastUsed, hasMod), más reciente primero; `launcherRootOf(gameDir)` (sube
+  hasta 4 niveles buscando `versions/`, lo usa la fuente del OCR); `screenshotsDirFor(elegida)` (acepta carpeta de
+  juego, de capturas o cualquiera). `MinecraftLocator` es una fachada sobre esto (`gameDirOf`, `launcherRootOf`).
+- Onboarding: paso obligatorio "Tu Minecraft" (`components/GameFolderPicker.tsx`, también en Ajustes).
+  `settings.gameDirConfirmed`: a los usuarios anteriores se les pregunta una vez solo ese paso. Primera ejecución:
+  `screenshotsDir` por defecto = la carpeta jugada más recientemente.
+- "Guardar el mod" propone `mods/` de la instancia (no en el `.minecraft` oficial, compartido entre versiones).
+- En scripts de prueba poner `onboardingDone` **y** `gameDirConfirmed` en settings.json.
+
 ## Gotchas
 - El usuario usa **i3** (tiling). Para capturar la ventana: `i3-msg '[title="^Craftshot$"] floating enable, resize set W H'`;
   captura de pantalla con `import -window root -crop …`; clics con `xdotool`. Probar con `--user-data-dir=<tmp>` para no tocar sus datos.

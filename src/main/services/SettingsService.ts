@@ -44,6 +44,7 @@ export class SettingsService extends EventEmitter<{ changed: [AppSettings, AppSe
       ollamaUrl: '',
       localModelEnabled: false,
       onboardingDone: false,
+      gameDirConfirmed: false,
       dismissedTips: [],
       visionAuto: false,
       thumbnailSize: 220,

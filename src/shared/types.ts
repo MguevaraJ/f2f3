@@ -364,10 +364,22 @@ export interface LibrarySnapshot {
   screenshots: ScreenshotEntry[]
 }
 
+/** A place the game is played in (a launcher's game folder or one of its instances). */
 export interface MinecraftSource {
   label: string
+  /** Its screenshots folder (it may not exist until the first F2). */
   path: string
   count: number
+  launcher?: string
+  name?: string
+  /** Parent of the screenshots folder: saves/, mods/, config/… */
+  gameDir?: string
+  version?: string
+  loader?: string
+  /** When it was last played (ms), as far as its files tell. */
+  lastUsed?: number
+  /** The Companion mod is in its mods folder. */
+  hasMod?: boolean
 }
 
 export type CloseAction = 'ask' | 'background' | 'quit'
@@ -388,6 +400,8 @@ export interface AppSettings {
   localModelEnabled: boolean
   /** First-run introduction was completed. */
   onboardingDone: boolean
+  /** The user confirmed which game folder to use (asked once, also to existing users). */
+  gameDirConfirmed: boolean
   /** One-off tips the user dismissed (e.g. "enable the biome line in F3"). */
   dismissedTips: string[]
   /** Analyse new screenshots with Claude automatically (costs API credits). */

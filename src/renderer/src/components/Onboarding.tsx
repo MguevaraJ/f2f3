@@ -1,26 +1,93 @@
 import { useState } from 'react'
+import type { MinecraftSource } from '@shared/types'
 import { api } from '../lib/api'
 import { LEVELS, MOD_LEVEL, SOURCE_INFO } from '../lib/sources'
 import { useLocalModel } from '../store/localModel'
 import { useSettings } from '../store/settings'
 import { useUi } from '../store/ui'
+import { GameFolderPicker } from './GameFolderPicker'
 import { GrassBlock, Icon } from './icons'
 import { McText } from './McText'
 
-const STEPS = ['Bienvenida', 'Cómo funciona', 'Modelo local', 'Consejo F3'] as const
+const STEPS = [
+  'Inicio',
+  'Tu Minecraft',
+  'Niveles',
+  'Modelo local',
+  'Consejo F3'
+] as const
+const FOLDER_STEP = 1
 
-/** First-run introduction: what Craftshot does and where each piece of data comes from. */
+/**
+ * First-run introduction: what Craftshot does, which game folder it works with and where
+ * each piece of data comes from. The game folder is the one thing that cannot be skipped;
+ * users from before that step existed are asked just that, once.
+ */
 export function Onboarding() {
   const settings = useSettings((s) => s.settings)
   const update = useSettings((s) => s.update)
   const local = useLocalModel((s) => s.status)
   const setTab = useUi((s) => s.setTab)
   const [step, setStep] = useState(0)
-  if (!settings || settings.onboardingDone) return null
+  const [picked, setPicked] = useState<string | null>(null)
+  if (!settings || (settings.onboardingDone && settings.gameDirConfirmed)) return null
+
+  const folder = picked ?? settings.screenshotsDir
+  const confirmFolder = (): Promise<void> =>
+    update({ screenshotsDir: folder, gameDirConfirmed: true })
+  // New users start from where they played last; the rest keep their folder unless it is gone.
+  const preselect = (found: MinecraftSource[]): void => {
+    const keep = settings.onboardingDone && found.some((s) => s.path === settings.screenshotsDir)
+    if (!picked && !keep && found[0]) setPicked(found[0].path)
+  }
+  const folderStep = (
+    <div className="onb-folder">
+      <h2>¿Dónde juegas?</h2>
+      <p>
+        Craftshot trabaja con la carpeta del juego: de ahí salen tus capturas, tus mundos y el sitio
+        del mod. Encontré estas; la primera es donde jugaste por última vez.
+      </p>
+      <GameFolderPicker
+        value={folder}
+        current={
+          settings.gameDirConfirmed || settings.onboardingDone ? settings.screenshotsDir : ''
+        }
+        onChange={setPicked}
+        onLoaded={preselect}
+      />
+      <p className="muted small">Puedes cambiarla cuando quieras en Ajustes.</p>
+    </div>
+  )
+
+  if (settings.onboardingDone) {
+    return (
+      <div className="modal-backdrop onboarding-backdrop">
+        <div className="modal onboarding" role="dialog" aria-modal aria-label="Carpeta del juego">
+          <div className="onb-body">{folderStep}</div>
+          <div className="modal-foot onb-foot">
+            <div className="toolbar-spacer" />
+            <button className="btn primary" onClick={() => void confirmFolder()}>
+              Usar esta carpeta
+            </button>
+          </div>
+        </div>
+      </div>
+    )
+  }
 
   const finish = (goToSettings = false): void => {
+    if (!settings.gameDirConfirmed) {
+      setStep(FOLDER_STEP)
+      return
+    }
     void update({ onboardingDone: true })
     if (goToSettings) setTab('settings')
+  }
+  const go = (to: number): void => {
+    // Leaving the folder step forwards confirms it; nothing past it opens before that.
+    if (step === FOLDER_STEP && to > step) void confirmFolder()
+    else if (to > FOLDER_STEP && !settings.gameDirConfirmed) to = FOLDER_STEP
+    setStep(to)
   }
   const last = step === STEPS.length - 1
 
@@ -37,7 +104,7 @@ export function Onboarding() {
             <button
               key={s}
               className={`onb-step ${i === step ? 'on' : i < step ? 'done' : ''}`}
-              onClick={() => setStep(i)}
+              onClick={() => go(i)}
             >
               <span>{i + 1}</span> {s}
             </button>
@@ -69,7 +136,9 @@ export function Onboarding() {
             </div>
           )}
 
-          {step === 1 && (
+          {step === FOLDER_STEP && folderStep}
+
+          {step === 2 && (
             <div className="onb-levels">
               <h2>Tres niveles de información (y un extra)</h2>
               <p className="muted">
@@ -115,7 +184,7 @@ export function Onboarding() {
             </div>
           )}
 
-          {step === 2 && (
+          {step === 3 && (
             <div className="onb-local">
               <h2>¿Descargar el modelo local?</h2>
               <p>
@@ -150,7 +219,7 @@ export function Onboarding() {
                   <button className="btn primary" onClick={() => void api.localModel.enable()}>
                     <Icon name="download" size={16} /> Descargar ahora
                   </button>
-                  <button className="btn" onClick={() => setStep(step + 1)}>
+                  <button className="btn" onClick={() => go(step + 1)}>
                     Ahora no
                   </button>
                   {local?.state === 'error' && <div className="details-error">{local.error}</div>}
@@ -163,7 +232,7 @@ export function Onboarding() {
             </div>
           )}
 
-          {step === 3 && (
+          {step === 4 && (
             <div className="onb-tip">
               <h2>Consejo: activa el bioma en tu F3</h2>
               <p>
@@ -197,7 +266,7 @@ export function Onboarding() {
           </button>
           <div className="toolbar-spacer" />
           {step > 0 && (
-            <button className="btn" onClick={() => setStep(step - 1)}>
+            <button className="btn" onClick={() => go(step - 1)}>
               Atrás
             </button>
           )}
@@ -211,8 +280,8 @@ export function Onboarding() {
               </button>
             </>
           ) : (
-            <button className="btn primary" onClick={() => setStep(step + 1)}>
-              Siguiente
+            <button className="btn primary" onClick={() => go(step + 1)}>
+              {step === FOLDER_STEP ? 'Usar esta carpeta' : 'Siguiente'}
             </button>
           )}
         </div>

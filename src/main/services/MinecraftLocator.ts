@@ -1,83 +1,57 @@
-import { existsSync, readdirSync, statSync } from 'node:fs'
 import { homedir } from 'node:os'
-import { basename, join } from 'node:path'
+import { dirname, join } from 'node:path'
 import type { MinecraftSource } from '@shared/types'
 import { findGameJars } from '@core/font/minecraftFont'
+import {
+  defaultMinecraftDir,
+  detectInstalls,
+  launcherRootOf,
+  type LocatorEnv
+} from '../minecraft/gameDirs'
 
 /** Knows where launchers keep game folders on each platform. */
 export class MinecraftLocator {
-  constructor(private readonly platform: NodeJS.Platform = process.platform) {}
+  private readonly env: LocatorEnv
+
+  constructor(platform: NodeJS.Platform = process.platform) {
+    this.env = { home: homedir(), platform, appData: process.env.APPDATA }
+  }
 
   defaultMinecraftDir(): string {
-    const home = homedir()
-    switch (this.platform) {
-      case 'win32':
-        return join(process.env.APPDATA ?? join(home, 'AppData', 'Roaming'), '.minecraft')
-      case 'darwin':
-        return join(home, 'Library', 'Application Support', 'minecraft')
-      default:
-        return join(home, '.minecraft')
-    }
+    return defaultMinecraftDir(this.env)
   }
 
+  /** For a first run: where the game was played last, or the official launcher's folder. */
   defaultScreenshotsDir(): string {
-    return join(this.defaultMinecraftDir(), 'screenshots')
+    return this.detectSources()[0]?.path ?? join(this.defaultMinecraftDir(), 'screenshots')
   }
 
-  /** Every screenshots folder we can find: vanilla launcher plus common third-party launchers. */
+  /** Every game folder we can find, most recently played first. */
   detectSources(): MinecraftSource[] {
-    const home = homedir()
-    const mc = this.defaultMinecraftDir()
-    const found: MinecraftSource[] = []
-    const add = (label: string, path: string): void => {
-      if (!existsSync(path) || found.some((f) => f.path === path)) return
-      found.push({ label, path, count: countImages(path) })
-    }
-    add('Launcher oficial', join(mc, 'screenshots'))
-
-    const instanceRoots: [string, string][] = [
-      ['Instancias', join(mc, 'instances')],
-      ['Prism', join(home, '.local', 'share', 'PrismLauncher', 'instances')],
-      ['Prism', join(process.env.APPDATA ?? '', 'PrismLauncher', 'instances')],
-      ['Prism', join(home, 'Library', 'Application Support', 'PrismLauncher', 'instances')],
-      ['MultiMC', join(home, '.local', 'share', 'multimc', 'instances')],
-      ['CurseForge', join(home, 'curseforge', 'minecraft', 'Instances')],
-      ['Modrinth', join(home, '.local', 'share', 'ModrinthApp', 'profiles')],
-      ['Modrinth', join(process.env.APPDATA ?? '', 'ModrinthApp', 'profiles')]
-    ]
-    for (const [label, root] of instanceRoots) {
-      for (const inst of safeReaddir(root)) {
-        add(`${label}: ${inst}`, join(root, inst, 'screenshots'))
-        add(`${label}: ${inst}`, join(root, inst, '.minecraft', 'screenshots'))
-        add(`${label}: ${inst}`, join(root, inst, 'minecraft', 'screenshots'))
-      }
-    }
-    return found
+    return detectInstalls(this.env)
   }
 
-  /** Best font source: a vanilla client jar next to the screenshots folder, or the default install. */
+  /** The game folder a screenshots folder belongs to. */
+  gameDirOf(screenshotsDir: string): string {
+    return dirname(screenshotsDir)
+  }
+
+  /** Where the launcher of that game folder keeps versions/, or the best guess. */
+  launcherRootOf(screenshotsDir: string): string {
+    return launcherRootOf(this.gameDirOf(screenshotsDir)) ?? this.defaultMinecraftDir()
+  }
+
+  /** Best font source: a vanilla client jar of the launcher in use, or of any other one. */
   findFontSource(screenshotsDir: string): string | null {
-    const candidates = [join(screenshotsDir, '..'), this.defaultMinecraftDir()]
-    for (const dir of candidates) {
+    const roots = [
+      this.launcherRootOf(screenshotsDir),
+      this.defaultMinecraftDir(),
+      ...this.detectSources().map((s) => launcherRootOf(s.gameDir ?? '') ?? '')
+    ]
+    for (const dir of new Set(roots.filter(Boolean))) {
       const jar = findGameJars(dir)[0]
       if (jar) return jar
     }
     return null
-  }
-}
-
-function safeReaddir(dir: string): string[] {
-  try {
-    return readdirSync(dir).filter((n) => statSync(join(dir, n)).isDirectory())
-  } catch {
-    return []
-  }
-}
-
-function countImages(dir: string): number {
-  try {
-    return readdirSync(dir).filter((n) => /\.(png|jpe?g)$/i.test(basename(n))).length
-  } catch {
-    return 0
   }
 }

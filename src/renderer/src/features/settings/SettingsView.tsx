@@ -1,6 +1,7 @@
 import { useEffect, useState, type ReactNode } from 'react'
-import type { CloseAction, MinecraftSource } from '@shared/types'
+import type { CloseAction } from '@shared/types'
 import type { SystemInfo } from '@shared/ipc'
+import { GameFolderPicker } from '../../components/GameFolderPicker'
 import { Icon } from '../../components/icons'
 import { BackupSettings } from './BackupSettings'
 import { api } from '../../lib/api'
@@ -12,20 +13,14 @@ import { Toggle } from '../../components/Toggle'
 export function SettingsView() {
   const settings = useSettings((s) => s.settings)
   const update = useSettings((s) => s.update)
-  const [sources, setSources] = useState<MinecraftSource[] | null>(null)
   const [info, setInfo] = useState<SystemInfo | null>(null)
 
   useEffect(() => {
-    void api.settings.detectSources().then(setSources)
     void api.system.info().then(setInfo)
   }, [settings?.fontSource, settings?.screenshotsDir])
 
   if (!settings) return null
 
-  const chooseDir = async (): Promise<void> => {
-    const dir = await api.settings.chooseDirectory()
-    if (dir) await update({ screenshotsDir: dir })
-  }
   const chooseFont = async (): Promise<void> => {
     const f = await api.settings.chooseFontSource()
     if (f) await update({ fontSource: f })
@@ -34,32 +29,14 @@ export function SettingsView() {
     <div className="settings">
       <div className="settings-inner">
         <Group
-          title="Carpeta de capturas"
-          desc="Craftshot muestra y organiza las imágenes de esta carpeta. Minecraft seguirá guardando nuevas capturas en ella."
+          title="Carpeta del juego"
+          desc="Craftshot trabaja con una carpeta de juego: muestra sus capturas, lee sus mundos y guarda ahí los datos para el mod. Estas son las que hay en tu equipo, la más reciente primero."
         >
-          <div className="path-row">
-            <code className="path">{settings.screenshotsDir}</code>
-            <button className="btn" onClick={() => void chooseDir()}>
-              <Icon name="folder" size={16} /> Cambiar
-            </button>
-          </div>
-          {sources && sources.length > 0 && (
-            <div className="sources">
-              <div className="filter-label">Carpetas detectadas</div>
-              {sources.map((s) => (
-                <button
-                  key={s.path}
-                  className={`source ${s.path === settings.screenshotsDir ? 'active' : ''}`}
-                  onClick={() => void update({ screenshotsDir: s.path })}
-                >
-                  <Icon name={s.path === settings.screenshotsDir ? 'check' : 'folder'} size={16} />
-                  <span className="source-label">{s.label}</span>
-                  <span className="source-path">{s.path}</span>
-                  <span className="source-count">{s.count}</span>
-                </button>
-              ))}
-            </div>
-          )}
+          <GameFolderPicker
+            value={settings.screenshotsDir}
+            current={settings.screenshotsDir}
+            onChange={(path) => void update({ screenshotsDir: path, gameDirConfirmed: true })}
+          />
         </Group>
 
         <Group
