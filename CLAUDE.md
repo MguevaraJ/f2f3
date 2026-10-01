@@ -209,7 +209,7 @@ top-1 ronda el 31 % en el Overworld, así que subir umbrales no lo arregla). Mej
 La landing (`../f2f3-web`) publica estas cifras tal cual.
 
 ## Pendientes y decisiones abiertas
-- Sin publicar (posteriores a la 1.0.1): traducción de los niveles de Ajustes › Análisis y de las fichas de
+- Publicado en la 1.0.2: traducción de los niveles de Ajustes › Análisis y de las fichas de
   `app-index.json` en inglés (salían en español), y los scripts de evaluación.
 - Ports 1.21.1 y 1.20.1 sin probar: multijugador, guía, deshacer, villagers/cofres apuntados, gráficos "Fabulosos",
   el selector de versión de "Guardar el mod" en pantalla y `installTemplate` en un mundo 1.20.1. Forge: no hay port.
