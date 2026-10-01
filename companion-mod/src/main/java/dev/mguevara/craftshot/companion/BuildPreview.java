@@ -86,7 +86,8 @@ public final class BuildPreview {
 		if (config.build().equals("sneak") && mc.player != null && mc.player.isShiftKeyDown() && mc.hasSingleplayerServer()) {
 			active = true;
 			locked = false;
-			size = config.buildSize();
+			// The size chosen with the wheel is kept for the next build of this session.
+			if (size == 0) size = config.buildSize();
 			target = null;
 			region = null;
 			age = 0;

@@ -11,16 +11,32 @@ import net.minecraft.world.phys.AABB;
  * on the server (when builds are saved on every F2 without a preview).
  */
 public record BuildRegion(BlockPos origin, Vec3i size, int blocks) {
+	/** How far up a corner box looks for blocks. */
+	private static final int MAX_HEIGHT = 97;
+
 	/**
-	 * A cube of `side` blocks with the target at its bottom corner nearest to the player,
-	 * on their right: it grows away from the player (`facing`), to their left and upwards.
-	 * Like framing a picture, the build can be selected from outside.
+	 * A box with the target at its bottom corner nearest to the player, on their right:
+	 * exactly `side` blocks away from the player (`facing`) and `side` to their left, so it
+	 * grows evenly as the size changes. Only the height adapts, up to the highest block
+	 * inside. Like framing a picture, the build can be selected from outside.
 	 */
 	public static BuildRegion corner(Level level, BlockPos target, int side, Direction facing) {
 		int n = side - 1;
-		Direction left = facing.getCounterClockWise();
-		BlockPos far = target.relative(facing, n).relative(left, n).above(n);
-		return trimmed(level, target, far);
+		BlockPos far = target.relative(facing, n).relative(facing.getCounterClockWise(), n);
+		int minX = Math.min(target.getX(), far.getX()), maxX = Math.max(target.getX(), far.getX());
+		int minZ = Math.min(target.getZ(), far.getZ()), maxZ = Math.max(target.getZ(), far.getZ());
+		int y0 = Math.max(level.getMinY(), target.getY());
+		int yMax = Math.min(level.getMaxY(), target.getY() + MAX_HEIGHT - 1);
+		if (y0 > yMax) return null;
+
+		int top = y0;
+		int blocks = 0;
+		for (BlockPos p : BlockPos.betweenClosed(minX, y0, minZ, maxX, yMax, maxZ)) {
+			if (level.getBlockState(p).isAir()) continue;
+			blocks++;
+			top = Math.max(top, p.getY());
+		}
+		return new BuildRegion(new BlockPos(minX, y0, minZ), new Vec3i(maxX - minX + 1, top - y0 + 1, maxZ - minZ + 1), blocks);
 	}
 
 	/** A cube of `side` blocks centred on the target. */

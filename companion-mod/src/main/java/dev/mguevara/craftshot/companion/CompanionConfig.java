@@ -13,11 +13,12 @@ import net.fabricmc.loader.api.FabricLoader;
  * "config/craftshot_companion.json": when to save the build around the targeted block
  * ("sneak": Shift+F2 opens a preview, "always": every F2, "never"), the side of the box in
  * blocks, and where the targeted block sits in it: "corner" (bottom corner nearest to the
- * player, on their right; the box grows away, to the left and up) or "center".
+ * player, on their right; the box is that many blocks away and to the left, as tall as
+ * what is inside) or "center" (a cube trimmed to its blocks).
  * Read once at startup; a missing or broken file falls back to the defaults.
  */
 public record CompanionConfig(String build, int buildSize, String buildBase) {
-	public static final CompanionConfig DEFAULTS = new CompanionConfig("sneak", 33, "corner");
+	public static final CompanionConfig DEFAULTS = new CompanionConfig("sneak", 16, "corner");
 	public static final int MIN_SIZE = 3;
 	/** 97 blocks per side at most: bigger areas would stall the server on F2. */
 	public static final int MAX_SIZE = 97;

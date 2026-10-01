@@ -170,7 +170,9 @@ dentro del campo de visión de la cámara (FOV vertical de opciones + aspecto de
    (área, materiales en stacks, copiar lista), búsqueda por bloques del build. Fixtures `tests/fixtures/companion/build-26.3.*`.
    **Esquina** (por defecto, `buildBase: "corner"`): el bloque apuntado es la esquina inferior más cercana al jugador,
    a su derecha; la caja (`buildSize` lado, 33 por defecto, 3–97; `buildRadius` antiguo = 2r+1) crece hacia donde
-   mira (`player.getDirection()`), a su izquierda (`getCounterClockWise`) y arriba, y se recorta a lo no-aire.
+   mira (`player.getDirection()`) y a su izquierda (`getCounterClockWise`) **exactamente `buildSize` bloques** (sin
+   recortar: así crece de forma uniforme de uno en uno; por defecto 16 y la sesión recuerda el último tamaño); solo
+   la altura se ajusta al bloque más alto de dentro (hasta 97).
    `"center"` la centra. La vista previa apunta con un rayo propio de 96 bloques (`player.pick`), no con el alcance de la mano.
    **Vista previa** (`BuildPreview`, `BuildRegion`): Mayús+F2 no captura; muestra la caja con gizmos de 26.x
    (`Gizmos.cuboid` desde `Minecraft.tick()` TAIL, dentro de `collectPerTickGizmos`; aristas `setAlwaysOnTop`), sigue
