@@ -29,6 +29,7 @@ public final class GalleryScreen extends Screen {
 	private static final int TOP = 30;
 	private static final int GAP = 4;
 	private static final int LABEL = 11;
+	private static final int BUTTON = 16;
 	private static final int ACCENT = 0xFF5CE07A;
 	private static final int MUTED = 0xFFA0A0A0;
 	private static final int WHITE = 0xFFFFFFFF;
@@ -75,20 +76,20 @@ public final class GalleryScreen extends Screen {
 		}).bounds(width - MARGIN - 120, 6, 120, 18).build());
 
 		int x = panelX + 4, w = panelWidth - 8, y = 0;
-		guideButton = addRenderableWidget(Button.builder(Component.empty(), b -> guide()).bounds(x, y, w, 20).build());
-		copyButton = addRenderableWidget(Button.builder(Component.literal("Copiar coordenadas"), b -> {
+		guideButton = addRenderableWidget(Button.builder(Component.empty(), b -> guide()).bounds(x, y, w, BUTTON).build());
+		copyButton = addRenderableWidget(Button.builder(Component.literal("Copiar XYZ"), b -> {
 			BlockPos p = selected.pos();
 			minecraft.keyboardHandler.setClipboard(p.getX() + " " + p.getY() + " " + p.getZ());
-			b.setMessage(Component.literal("Coordenadas copiadas"));
-		}).bounds(x, y, w, 20).build());
-		placeButton = addRenderableWidget(Button.builder(Component.literal("Colocar el build"), b -> {
+			b.setMessage(Component.literal("Copiadas"));
+		}).bounds(x, y, w, BUTTON).build());
+		placeButton = addRenderableWidget(Button.builder(Component.literal("Colocar build"), b -> {
 			minecraft.gui.setScreen(null);
 			BuildPlacer.start(minecraft, selected);
-		}).bounds(x, y, w, 20).build());
-		undoButton = addRenderableWidget(Button.builder(Component.literal("Deshacer la última colocación"), b -> {
+		}).bounds(x, y, w, BUTTON).build());
+		undoButton = addRenderableWidget(Button.builder(Component.literal("Deshacer"), b -> {
 			minecraft.gui.setScreen(null);
 			BuildPlacer.undo(minecraft);
-		}).bounds(x, y, w, 20).build());
+		}).bounds(x, y, w, BUTTON).build());
 
 		if (!requested) {
 			requested = true;
@@ -115,31 +116,39 @@ public final class GalleryScreen extends Screen {
 		details = capture == null ? List.of() : describe(capture);
 
 		boolean guided = Guide.isFor(capture) || (capture == null && Guide.isActive());
-		guideButton.setMessage(Component.literal(guided ? "Quitar la guía" : "Guiarme hasta aquí"));
+		guideButton.setMessage(Component.literal(guided ? "Quitar guía" : "Guiarme"));
 		String blocked = guided ? null
 			: capture == null ? "Elige una captura"
 			: capture.pos() == null ? "Esta captura no tiene coordenadas"
 			: !capture.world().isEmpty() && !capture.world().equals(world) ? "Esta captura es de otro mundo (" + capture.world() + ")"
 			: null;
 		guideButton.active = blocked == null;
-		guideButton.setTooltip(blocked == null ? null : Tooltip.create(Component.literal(blocked)));
+		guideButton.setTooltip(Tooltip.create(Component.literal(blocked != null ? blocked
+			: guided ? "Deja de señalar el lugar de la captura" : "Una flecha te lleva al lugar de esta captura")));
 
 		copyButton.visible = capture != null && capture.pos() != null;
-		copyButton.setMessage(Component.literal("Copiar coordenadas"));
+		copyButton.setMessage(Component.literal("Copiar XYZ"));
+		copyButton.setTooltip(Tooltip.create(Component.literal("Copia las coordenadas de la captura al portapapeles")));
 		placeButton.visible = capture != null && capture.build() != null;
 		placeButton.active = minecraft.hasSingleplayerServer();
-		placeButton.setTooltip(placeButton.active ? null : Tooltip.create(Component.literal("Solo en mundos de un jugador")));
+		placeButton.setTooltip(Tooltip.create(Component.literal(placeButton.active ? "Coloca el build guardado con esta captura" : "Solo en mundos de un jugador")));
+		undoButton.setTooltip(Tooltip.create(Component.literal("Deshace la última colocación de un build")));
 		undoButton.visible = BuildPlacer.canUndo(minecraft);
 
-		// Stacked from the bottom of the panel; the details take the rest.
-		int y = bottom - 4;
-		for (Button button : new Button[] { undoButton, placeButton, copyButton, guideButton }) {
-			if (!button.visible) continue;
-			y -= 20;
-			button.setY(y);
-			y -= 2;
+		// Two per row at the bottom of the panel (a lone one takes the row); the details take the rest.
+		List<Button> visible = new ArrayList<>();
+		for (Button button : new Button[] { guideButton, copyButton, placeButton, undoButton }) if (button.visible) visible.add(button);
+		int rows = (visible.size() + 1) / 2;
+		int left = panelX + 4, full = panelWidth - 8, half = (full - 2) / 2;
+		int top = bottom - 3 - rows * (BUTTON + 2);
+		for (int i = 0; i < visible.size(); i++) {
+			boolean alone = i == visible.size() - 1 && i % 2 == 0;
+			Button button = visible.get(i);
+			button.setX(left + (i % 2) * (half + 2));
+			button.setY(top + (i / 2) * (BUTTON + 2));
+			button.setWidth(alone ? full : half);
 		}
-		detailBottom = y - 2;
+		detailBottom = top - 4;
 	}
 
 	private void guide() {
@@ -151,7 +160,7 @@ public final class GalleryScreen extends Screen {
 	/** Everything known about a screenshot, wrapped to the panel. */
 	private List<Line> describe(CaptureIndex.Capture c) {
 		List<Line> out = new ArrayList<>();
-		int max = panelWidth - 12;
+		int max = panelWidth - 20;
 		add(out, Component.literal(c.name()), WHITE, max);
 		add(out, Component.literal(new SimpleDateFormat("dd/MM/yyyy HH:mm").format(new Date(c.time()))), MUTED, max);
 		if (c.favorite()) add(out, Component.literal("★ Favorita"), 0xFFFFD24A, max);
@@ -243,17 +252,27 @@ public final class GalleryScreen extends Screen {
 			detailTop = TOP + 6;
 			g.centeredText(font, "Elige una captura", panelX + panelWidth / 2, TOP + 30, MUTED);
 		} else {
-			int w = panelWidth - 8, h = w * 9 / 16;
-			g.fill(panelX + 4, TOP + 2, panelX + 4 + w, TOP + 2 + h, 0xFF1A1A1A);
-			image(g, selected, panelX + 4, TOP + 2, w, h);
-			detailTop = TOP + 2 + h + 5;
-			g.enableScissor(panelX, detailTop, panelX + panelWidth, detailBottom);
+			// A small picture: the panel is for the data.
+			int w = (panelWidth - 8) * 3 / 5, h = w * 9 / 16, x = panelX + (panelWidth - w) / 2;
+			g.fill(x, TOP + 2, x + w, TOP + 2 + h, 0xFF1A1A1A);
+			image(g, selected, x, TOP + 2, w, h);
+			detailTop = TOP + 2 + h + 6;
+			// A darker well with a scrollbar: it reads as a list that goes on below.
+			g.fill(panelX + 3, detailTop - 3, panelX + panelWidth - 3, detailBottom + 1, 0xC0000000);
+			g.enableScissor(panelX + 3, detailTop - 1, panelX + panelWidth - 3, detailBottom);
 			int y = detailTop - (int) detailScroll;
 			for (Line line : details) {
-				if (y + font.lineHeight >= detailTop && y <= detailBottom) g.text(font, line.text(), panelX + 6, y, line.color());
+				if (y + font.lineHeight >= detailTop && y <= detailBottom) g.text(font, line.text(), panelX + 7, y, line.color());
 				y += font.lineHeight + 1;
 			}
 			g.disableScissor();
+			if (maxDetailScroll() > 0) {
+				int track = detailBottom - detailTop;
+				int thumb = Math.max(10, (int) (track * (double) track / (details.size() * (font.lineHeight + 1))));
+				int at = detailTop + (int) ((track - thumb) * detailScroll / maxDetailScroll());
+				g.fill(panelX + panelWidth - 6, detailTop - 1, panelX + panelWidth - 4, detailBottom - 1, 0x30FFFFFF);
+				g.fill(panelX + panelWidth - 6, at, panelX + panelWidth - 4, at + thumb, 0xC0FFFFFF);
+			}
 		}
 		super.extractRenderState(g, mouseX, mouseY, partial);
 	}

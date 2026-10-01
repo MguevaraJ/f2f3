@@ -16,13 +16,12 @@ public record BuildRegion(BlockPos origin, Vec3i size, int blocks) {
 
 	/**
 	 * A box with the target at its bottom corner nearest to the player, on their right:
-	 * exactly `side` blocks away from the player (`facing`) and `side` to their left, so it
-	 * grows evenly as the size changes. `height` blocks tall, or with 0 as tall as the
+	 * exactly `depth` blocks away from the player (`facing`) and `width` to their left, so it
+	 * grows evenly as either changes. `height` blocks tall, or with 0 as tall as the
 	 * highest block inside. Like framing a picture, the build can be selected from outside.
 	 */
-	public static BuildRegion corner(Level level, BlockPos target, int side, Direction facing, int height) {
-		int n = side - 1;
-		BlockPos far = target.relative(facing, n).relative(facing.getCounterClockWise(), n);
+	public static BuildRegion corner(Level level, BlockPos target, int depth, int width, Direction facing, int height) {
+		BlockPos far = target.relative(facing, depth - 1).relative(facing.getCounterClockWise(), width - 1);
 		int minX = Math.min(target.getX(), far.getX()), maxX = Math.max(target.getX(), far.getX());
 		int minZ = Math.min(target.getZ(), far.getZ()), maxZ = Math.max(target.getZ(), far.getZ());
 		int y0 = Math.max(level.getMinY(), target.getY());

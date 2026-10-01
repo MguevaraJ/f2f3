@@ -230,6 +230,11 @@ dentro del campo de visión de la cámara (FOV vertical de opciones + aspecto de
    La pantalla y `setScreen` están en `mc.gui` en 26.3. La app usa ese nombre; "Añadir a otro mundo" instala con el mismo id.
    Ojo: `run/saves/CraftshotTest` ya no carga (falta world_gen_settings) y el juego abre "New World (1)".
    No recompilar el mod (`build:mod`) con `runClient` abierto: el cliente se cerró al hacerlo.
+   **Tres pasos (sustituye a los dos de arriba)**: 1 = fondo (`depth`, hacia donde mira), 2 = ancho (`width`, a la
+   izquierda; la caja se fija al entrar aquí), 3 = altura. `BuildRegion.corner(level, target, depth, width, facing,
+   height)`; en los pasos 1 y 2 la caja es de 1 bloque de alto. Esc retrocede un paso (del 2 al 1 recupera el fijado).
+   Galería: panel con imagen al 60 %, botones de 16 px en dos columnas ("Guiarme", "Copiar XYZ", "Colocar build",
+   "Deshacer", con tooltips) y los datos en un recuadro oscuro con barra de scroll.
 6. **Hecho** (2026-09-30) — **Craftshot dentro del juego** (tecla `galleryKey`, F6 por defecto; nombre tras
    `key.keyboard.` en `config/craftshot_companion.json`; se detecta en el mixin de `KeyboardHandler`, sin KeyMapping).
    - `GalleryScreen`: cuadrícula de capturas (filtro "Solo este mundo"/"Todos los mundos") + panel con los datos.

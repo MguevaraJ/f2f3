@@ -80,9 +80,9 @@ public record CompanionConfig(String build, int buildSize, String buildBase, Str
 	}
 
 	/** The box for a target, as configured. */
-	public BuildRegion region(net.minecraft.world.level.Level level, net.minecraft.core.BlockPos target, int size,
+	public BuildRegion region(net.minecraft.world.level.Level level, net.minecraft.core.BlockPos target, int depth, int width,
 			net.minecraft.core.Direction facing, int height) {
-		return buildBase.equals("center") ? BuildRegion.centred(level, target, size)
-			: BuildRegion.corner(level, target, size, facing, height);
+		return buildBase.equals("center") ? BuildRegion.centred(level, target, Math.max(depth, width))
+			: BuildRegion.corner(level, target, depth, width, facing, height);
 	}
 }

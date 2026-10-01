@@ -20,8 +20,10 @@ import net.minecraft.world.phys.HitResult;
 
 /**
  * Sneak+F2 does not save right away: it shows the box that would be saved, following the
- * aim, with the aimed block at its near right corner. Scrolling while sneaking resizes it, F2 saves exactly that box (the screenshot is
- * taken a moment later, once the box is gone) and Esc cancels. Client thread only.
+ * aim, with the aimed block at its near right corner. Three steps, each set by scrolling
+ * while sneaking and confirmed with F2: how far it goes, how wide to the left, how tall.
+ * The last F2 saves exactly that box (the screenshot is taken a moment later, once the box
+ * is gone); Esc goes back a step or cancels. Client thread only.
  */
 public final class BuildPreview {
 	/** Ticks to wait so a frame without the box is rendered before the screenshot. */
@@ -36,16 +38,19 @@ public final class BuildPreview {
 	private static boolean active;
 	/** Pinned: the box stops following the aim, so the player can walk around and check it. */
 	private static boolean locked;
-	private static int size;
+	/** Blocks away from the player, and to their left. */
+	private static int depth;
+	private static int width;
 	private static Direction facing;
 	private static BlockPos target;
-	private static int computedSize;
-	/** 1: choosing the base (width and depth); 2: choosing the height, with the box pinned. */
+	private static int computedDepth;
+	private static int computedWidth;
+	/** 1: how far the base goes; 2: how wide (pinned from here on); 3: how tall. */
 	private static int step = 1;
-	/** Height chosen in step 2; 0 = as tall as the highest block inside. */
+	/** Height chosen in step 3; 0 = as tall as the highest block inside. */
 	private static int height;
 	private static int computedHeight;
-	private static boolean lockedBeforeHeight;
+	private static boolean lockedBeforeWidth;
 	private static BuildRegion region;
 	private static int age;
 	private static String hudStatus = "";
@@ -71,13 +76,18 @@ public final class BuildPreview {
 				return true;
 			}
 			if (step == 1) {
-				// Base done: pin the box and let the wheel set its height, from what it had.
+				// Depth done: pin the corner and let the wheel set the width.
 				step = 2;
-				// The base was shown one block tall; the height starts at the highest block inside.
-				BuildRegion full = CompanionConfig.get().region(mc.level, target, size, facing, 0);
-				height = full != null ? full.size().getY() : 1;
-				lockedBeforeHeight = locked;
+				lockedBeforeWidth = locked;
 				locked = true;
+				age = 0;
+				return true;
+			}
+			if (step == 2) {
+				step = 3;
+				// The base was shown one block tall; the height starts at the highest block inside.
+				BuildRegion full = CompanionConfig.get().region(mc.level, target, depth, width, facing, 0);
+				height = full != null ? full.size().getY() : 1;
 				age = 0;
 				return true;
 			}
@@ -107,7 +117,7 @@ public final class BuildPreview {
 			step = 1;
 			height = 0;
 			// The size chosen with the wheel is kept for the next build of this session.
-			if (size == 0) size = config.buildSize();
+			if (depth == 0) depth = width = config.buildSize();
 			target = null;
 			region = null;
 			age = 0;
@@ -133,11 +143,16 @@ public final class BuildPreview {
 	/** Esc with the preview on screen (and nothing else open) cancels it; true consumes the key. */
 	public static boolean onEscape(Minecraft mc) {
 		if (!active || mc.gui.screen() != null) return false;
-		if (step == 2) {
-			// Back to the base.
-			step = 1;
+		if (step == 3) {
+			// Back to the width, with the automatic height again.
+			step = 2;
 			height = 0;
-			locked = lockedBeforeHeight;
+			age = 0;
+			return true;
+		}
+		if (step == 2) {
+			step = 1;
+			locked = lockedBeforeWidth;
 			age = 0;
 			return true;
 		}
@@ -162,8 +177,9 @@ public final class BuildPreview {
 	public static boolean onScroll(Minecraft mc, double amount) {
 		if (!active || amount == 0 || mc.player == null || !mc.player.isShiftKeyDown()) return false;
 		int delta = amount > 0 ? 1 : -1;
-		if (step == 2) height = Math.max(1, Math.min(BuildRegion.MAX_HEIGHT, height + delta));
-		else size = Math.max(CompanionConfig.MIN_SIZE, Math.min(CompanionConfig.MAX_SIZE, size + delta));
+		if (step == 3) height = Math.max(1, Math.min(BuildRegion.MAX_HEIGHT, height + delta));
+		else if (step == 2) width = side(width + delta);
+		else depth = side(depth + delta);
 		age = 0;
 		return true;
 	}
@@ -205,12 +221,13 @@ public final class BuildPreview {
 		// The scan is up to 97³ blocks: redo it when the aim or the size changes, or twice a second.
 		if (aimed == null) {
 			region = null;
-		} else if (!aimed.equals(target) || computedSize != size || computedHeight != height || looking != facing || age % 10 == 0) {
+		} else if (!aimed.equals(target) || computedDepth != depth || computedWidth != width || computedHeight != height || looking != facing || age % 10 == 0) {
 			// While choosing the base the box is a single layer: easier to judge than a tall one.
-			BuildRegion fresh = CompanionConfig.get().region(mc.level, aimed, size, looking, step == 1 ? 1 : height);
+			BuildRegion fresh = CompanionConfig.get().region(mc.level, aimed, depth, width, looking, step < 3 ? 1 : height);
 			// Far from a pinned box its chunks unload and it looks empty: keep the last one.
 			if (fresh != null || !locked) region = fresh;
-			computedSize = size;
+			computedDepth = depth;
+			computedWidth = width;
 			computedHeight = height;
 		}
 		facing = looking;
@@ -228,11 +245,14 @@ public final class BuildPreview {
 			hudStatus = "Apunta a la base del build";
 			hudControls = "Esc cancela";
 		} else if (step == 1) {
-			hudStatus = "Paso 1 de 2: la base · " + (locked ? "FIJADA · " : "") + region.size().getX() + "×" + region.size().getZ() + " bloques";
-			hudControls = "Rueda agachado: ancho (" + size + ") · F2 siguiente · " + pin + " · Esc cancela";
+			hudStatus = "Paso 1 de 3: el fondo · " + (locked ? "FIJADA · " : "") + depth + " hacia el fondo × " + width + " a la izquierda";
+			hudControls = "Rueda agachado: fondo (" + depth + ") · F2 siguiente · " + pin + " · Esc cancela";
+		} else if (step == 2) {
+			hudStatus = "Paso 2 de 3: el ancho · " + (locked ? "" : "SUELTA · ") + depth + " hacia el fondo × " + width + " a la izquierda";
+			hudControls = "Rueda agachado: ancho (" + width + ") · F2 siguiente · " + pin + " · Esc vuelve al fondo";
 		} else {
-			hudStatus = "Paso 2 de 2: la altura · Build " + region.sizeText() + " · " + region.blocks() + " bloques";
-			hudControls = "Rueda agachado: altura (" + height + ") · F2 guardar · " + pin + " · Esc vuelve a la base";
+			hudStatus = "Paso 3 de 3: la altura · Build " + region.sizeText() + " · " + region.blocks() + " bloques";
+			hudControls = "Rueda agachado: altura (" + height + ") · F2 guardar · " + pin + " · Esc vuelve al ancho";
 		}
 		age++;
 	}
@@ -296,6 +316,10 @@ public final class BuildPreview {
 			FormattedCharSequence line = lines.get(i);
 			g.text(font, line, (g.guiWidth() - font.width(line)) / 2, top + i * lineHeight, i < statusLines ? 0xFFFFE066 : 0xFFFFFFFF);
 		}
+	}
+
+	private static int side(int n) {
+		return Math.max(CompanionConfig.MIN_SIZE, Math.min(CompanionConfig.MAX_SIZE, n));
 	}
 
 	/** Drops the preview without a message (another tool took over). */
