@@ -36,7 +36,8 @@ español. Todo texto nuevo de la interfaz va dentro de `tr()` y su traducción e
 - Botón ES | EN en la cabecera y selector en Ajustes › General (`components/LanguageButton.tsx`).
 - Catálogos (`shared/catalog`): en inglés el nombre sale del id (`localName` → `prettifyId`), no del diccionario.
 - Números y fechas usan `getLang()` como locale. Los tests fijan español (`tests/setup.ts`).
-- Las filas de `app-index.json` para el mod salen en el idioma de la app; el mod sigue solo en español.
+- Las filas de `app-index.json` para el mod salen en el idioma de la app. El mod tiene su propio diccionario (`Tr.java`)
+  y sigue el idioma del juego. `MOD_RELEASE` (`shared/modVersions.ts`) es la versión del mod incluida.
 - Sin revisar pantalla a pantalla en inglés: onboarding, mapa y planificadores, coordenadas, respaldo, popup y diálogos.
 
 ## Comandos

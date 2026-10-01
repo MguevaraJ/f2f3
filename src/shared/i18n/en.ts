@@ -706,9 +706,9 @@ export const EN: Record<string, string> = {
   'vuelve un paso o cancela.': 'goes back a step or cancels.',
   'F2+F3 dentro del juego:': 'F2+F3 inside the game:',
   'abre tus capturas con los mismos datos que ves aquí (notas, etiquetas y favoritas incluidas). Desde ahí, «Guiarme hasta aquí» muestra una flecha y la distancia hasta el lugar de la captura, y se quita sola al llegar (':
-    'opens your screenshots with the same data you see here (notes, tags and favorites included). From there, "Guiarme" shows an arrow and the distance to the place of the screenshot, and it goes away by itself when you arrive (',
+    'opens your screenshots with the same data you see here (notes, tags and favorites included). From there, "Guide me" shows an arrow and the distance to the place of the screenshot, and it goes away by itself when you arrive (',
   'la oculta o la muestra); «Copiar coordenadas» las deja en el portapapeles; «Colocar el build» te deja ponerlo apuntando a un bloque (':
-    'hides or shows it); "Copiar XYZ" puts the coordinates on the clipboard; "Colocar build" lets you put it down aiming at a block (',
+    'hides or shows it); "Copy XYZ" puts the coordinates on the clipboard; "Place build" lets you put it down aiming at a block (',
   'lo coloca, gírate para rotarlo y se puede deshacer desde la misma pantalla).':
     'places it, turn around to rotate it, and it can be undone from the same screen).',
   'Descargar modelo local (~': 'Download local model (~',

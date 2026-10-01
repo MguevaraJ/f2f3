@@ -1,7 +1,7 @@
 // Builds the F2+F3 Companion mod (its own repository, next to this one) for every
 // Minecraft version and copies the jars into resources/, where the app bundles them.
 import { execFileSync } from 'node:child_process'
-import { copyFileSync, existsSync } from 'node:fs'
+import { copyFileSync, existsSync, readFileSync } from 'node:fs'
 import { join, resolve } from 'node:path'
 
 const repo = resolve(process.env.F2F3_COMPANION_DIR ?? '../f2f3-companion')
@@ -18,9 +18,13 @@ if (!existsSync(repo)) {
 }
 for (const [folder, version, target] of builds) {
   const dir = join(repo, folder)
+  // The mod's own version, from its gradle.properties.
+  const release = readFileSync(join(dir, 'gradle.properties'), 'utf8')
+    .match(/^version=(.+)$/m)[1]
+    .trim()
   execFileSync('./gradlew', ['build', '-q'], { cwd: dir, stdio: 'inherit' })
   copyFileSync(
-    join(dir, 'build', 'libs', `f2f3-companion-1.0.0+${version}.jar`),
+    join(dir, 'build', 'libs', `f2f3-companion-${release}+${version}.jar`),
     join('resources', target)
   )
   console.log(`✓ ${target}`)

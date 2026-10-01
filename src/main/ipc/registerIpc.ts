@@ -22,7 +22,7 @@ import type { DataTable, FontGlyphs } from '@shared/ipc'
 import modJar from '../../../resources/f2f3-companion.jar?asset'
 import modJar1211 from '../../../resources/f2f3-companion-1.21.1.jar?asset'
 import modJar1201 from '../../../resources/f2f3-companion-1.20.1.jar?asset'
-import { isModVersion, type ModVersion } from '@shared/modVersions'
+import { isModVersion, MOD_RELEASE, type ModVersion } from '@shared/modVersions'
 import { copyImageToClipboard } from '../clipboardImage'
 import { strToU8, zipSync } from 'fflate'
 import { xaeroFiles, XAERO_COLOR, XAERO_FILE } from '@core/export/xaero'
@@ -261,7 +261,7 @@ export function registerIpc(services: Services): void {
     const parent = BrowserWindow.fromWebContents(e.sender)
     const options = {
       title: tr('Guardar el mod F2+F3 Companion'),
-      defaultPath: join(modsDirOrDownloads(), `f2f3-companion-1.0.0+${version}.jar`),
+      defaultPath: join(modsDirOrDownloads(), `f2f3-companion-${MOD_RELEASE}+${version}.jar`),
       filters: [{ name: tr('Mod de Fabric'), extensions: ['jar'] }],
       properties: ['showOverwriteConfirmation', 'createDirectory'] as (
         'showOverwriteConfirmation' | 'createDirectory'
