@@ -12,6 +12,8 @@ import { createMainWindow } from './window'
 
 registerSchemePrivileges()
 
+// The packaged name is file-safe ("F2F3"); this is the one shown to people.
+app.setName('F2+F3')
 // The app was called Craftshot: its data folder keeps that name so nothing is lost
 // (unless one is given explicitly, as the tests do).
 if (!app.commandLine.hasSwitch('user-data-dir'))

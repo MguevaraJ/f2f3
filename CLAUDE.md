@@ -1,7 +1,7 @@
 # F2+F3 (antes Craftshot) — contexto para agentes
 
 **Nombre (2026-09-30):** la app se llama **F2+F3** y el mod **F2+F3 Companion** (ya existía otra "Craftshot").
-Solo cambió lo visible (títulos, textos, `productName`, nombre del mod y de su pantalla). Se conservan a propósito los
+Solo cambió lo visible (títulos, textos, `app.setName`; en electron-builder `productName: F2F3` porque "+" no vale en nombres de archivo, y `linux.desktop.entry.Name: F2+F3`; nombre del mod y de su pantalla). Se conservan a propósito los
 identificadores internos: carpeta de datos `~/.config/Craftshot` (fijada con `app.setPath('userData', …)` salvo que se
 pase `--user-data-dir`), `appId`, protocolo `craftshot://`, sufijos `.craftshot.json/.nbt`, formato
 `craftshot-companion`, id del mod `craftshot_companion`, jar `craftshot-companion-*.jar`, espacio `craftshot:` de las

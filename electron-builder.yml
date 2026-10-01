@@ -1,5 +1,6 @@
 appId: dev.mguevara.craftshot
-productName: F2+F3
+# File-safe: "+" is not allowed in file names. The visible name is "F2+F3" (desktop entry, window).
+productName: F2F3
 directories:
   buildResources: build
   output: dist
@@ -20,6 +21,9 @@ linux:
   target: [AppImage, deb]
   category: Graphics
   icon: build/icon.png
+  desktop:
+    entry:
+      Name: F2+F3
 win:
   target: nsis
 mac:
