@@ -1,7 +1,7 @@
 import { copyFile, writeFile } from 'node:fs/promises'
 import { existsSync, mkdirSync } from 'node:fs'
 import { basename, join } from 'node:path'
-import { buildPathFor } from '@core/companion/parseCompanion'
+import { buildFileOf } from '../sidecars'
 import { templateId } from '@shared/placement'
 import { screenshotsDirFor } from '../minecraft/gameDirs'
 import { isGameDir, writeGamePlans } from '../minecraft/plans'
@@ -19,9 +19,9 @@ import { IPC, type ExportFormat } from '@shared/ipc'
 import type { AppSettings, ClipboardMode, UserMeta, VisionProviderId } from '@shared/types'
 import { loadFontFrom, ROW_OFFSET } from '@core/font/minecraftFont'
 import type { DataTable, FontGlyphs } from '@shared/ipc'
-import modJar from '../../../resources/craftshot-companion.jar?asset'
-import modJar1211 from '../../../resources/craftshot-companion-1.21.1.jar?asset'
-import modJar1201 from '../../../resources/craftshot-companion-1.20.1.jar?asset'
+import modJar from '../../../resources/f2f3-companion.jar?asset'
+import modJar1211 from '../../../resources/f2f3-companion-1.21.1.jar?asset'
+import modJar1201 from '../../../resources/f2f3-companion-1.20.1.jar?asset'
 import { isModVersion, type ModVersion } from '@shared/modVersions'
 import { copyImageToClipboard } from '../clipboardImage'
 import { strToU8, zipSync } from 'fflate'
@@ -107,7 +107,7 @@ export function registerIpc(services: Services): void {
     const parent = win(e)
     const options = {
       title: 'Exportar datos de capturas',
-      defaultPath: `craftshot-${new Date().toISOString().slice(0, 10)}.${fmt}`,
+      defaultPath: `f2f3-${new Date().toISOString().slice(0, 10)}.${fmt}`,
       filters: [{ name: fmt.toUpperCase(), extensions: [fmt] }]
     }
     const res = parent
@@ -126,7 +126,7 @@ export function registerIpc(services: Services): void {
     const date = new Date().toISOString().slice(0, 10)
     const options = {
       title: 'Guardar capturas en un ZIP',
-      defaultPath: join(app.getPath('downloads'), `craftshot-${date}-${list.length}-capturas.zip`),
+      defaultPath: join(app.getPath('downloads'), `f2f3-${date}-${list.length}-capturas.zip`),
       buttonLabel: 'Guardar ZIP',
       filters: [{ name: 'Archivo ZIP', extensions: ['zip'] }],
       properties: ['showOverwriteConfirmation', 'createDirectory'] as (
@@ -201,7 +201,7 @@ export function registerIpc(services: Services): void {
     const parent = win(e)
     const options = {
       title: 'Exportar waypoints',
-      defaultPath: join(app.getPath('downloads'), `craftshot-waypoints-${safe}.zip`),
+      defaultPath: join(app.getPath('downloads'), `f2f3-waypoints-${safe}.zip`),
       filters: [{ name: 'ZIP', extensions: ['zip'] }],
       properties: ['showOverwriteConfirmation', 'createDirectory'] as (
         'showOverwriteConfirmation' | 'createDirectory'
@@ -257,7 +257,7 @@ export function registerIpc(services: Services): void {
     const parent = BrowserWindow.fromWebContents(e.sender)
     const options = {
       title: 'Guardar el mod F2+F3 Companion',
-      defaultPath: join(modsDirOrDownloads(), `craftshot-companion-1.0.0+${version}.jar`),
+      defaultPath: join(modsDirOrDownloads(), `f2f3-companion-1.0.0+${version}.jar`),
       filters: [{ name: 'Mod de Fabric', extensions: ['jar'] }],
       properties: ['showOverwriteConfirmation', 'createDirectory'] as (
         'showOverwriteConfirmation' | 'createDirectory'
@@ -272,7 +272,7 @@ export function registerIpc(services: Services): void {
   })
 
   handle(IPC.companion.exportBuild, async (e, id) => {
-    const src = buildPathFor(library.resolveId(str(id)))
+    const src = buildFileOf(library.resolveId(str(id)))
     if (!existsSync(src)) throw new Error('Esta captura no tiene un build guardado.')
     // Litematica's folder when it is there: "Cargar esquemas" lists it right away.
     const schematics = join(locator.gameDirOf(library.rootOf(str(id))), 'schematics')
@@ -280,7 +280,7 @@ export function registerIpc(services: Services): void {
     const parent = BrowserWindow.fromWebContents(e.sender)
     const options = {
       title: 'Guardar el build',
-      defaultPath: join(dir, basename(src).replace(/\.craftshot\.nbt$/, '.nbt')),
+      defaultPath: join(dir, basename(src).replace(/\.(f2f3|craftshot)\.nbt$/, '.nbt')),
       filters: [{ name: 'Estructura de Minecraft', extensions: ['nbt'] }],
       properties: ['showOverwriteConfirmation', 'createDirectory'] as (
         'showOverwriteConfirmation' | 'createDirectory'
@@ -300,12 +300,12 @@ export function registerIpc(services: Services): void {
   )
   handle(IPC.companion.installBuild, async (_e, id, folder, template) => {
     const image = library.resolveId(str(id))
-    const src = buildPathFor(image)
+    const src = buildFileOf(image)
     if (!existsSync(src)) throw new Error('Esta captura no tiene un build guardado.')
     const saves = savesDirFor(library.rootOf(str(id)))
     const known = await listSaves(saves)
     if (!known.some((w) => w.folder === str(folder))) throw new Error('No se encontró ese mundo.')
-    // The mod's name (craftshot:build_3) when it saved one, so the same command works everywhere.
+    // The mod's name (f2f3:build_3) when it saved one, so the same command works everywhere.
     const name = typeof template === 'string' && template ? template : templateId(basename(image))
     return installTemplate(saves, str(folder), name, src)
   })

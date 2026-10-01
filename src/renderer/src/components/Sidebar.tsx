@@ -18,7 +18,7 @@ import { useUi } from '../store/ui'
 import { formatRelative } from '../lib/format'
 import { CreeperFace, GrassBlock, Icon } from './icons'
 
-export const DRAG_MIME = 'application/x-craftshot-ids'
+export const DRAG_MIME = 'application/x-f2f3-ids'
 
 const sameView = (a: LibraryView, b: LibraryView): boolean =>
   a.kind === b.kind && (a.kind !== 'folder' || (b.kind === 'folder' && a.path === b.path))

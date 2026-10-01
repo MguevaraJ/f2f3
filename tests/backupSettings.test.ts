@@ -3,7 +3,7 @@ import { act, createElement } from 'react'
 import { createRoot } from 'react-dom/client'
 import type { BackupStatus, SettingsView } from '../src/shared/types'
 
-Object.assign(window, { craftshot: {} })
+Object.assign(window, { f2f3: {} })
 ;(globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true
 const { BackupSettings } = await import('../src/renderer/src/features/settings/BackupSettings')
 const { useBackup } = await import('../src/renderer/src/store/backup')

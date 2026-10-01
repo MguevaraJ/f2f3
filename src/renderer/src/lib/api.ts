@@ -1,4 +1,4 @@
-import type { CraftshotApi } from '@shared/ipc'
+import type { F2F3Api } from '@shared/ipc'
 
 /** Typed handle to the preload bridge. */
-export const api: CraftshotApi = window.craftshot
+export const api: F2F3Api = window.f2f3

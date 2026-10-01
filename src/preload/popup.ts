@@ -19,4 +19,4 @@ const api: CapturePopupApi = {
   dismiss: () => ipcRenderer.invoke(POPUP_IPC.dismiss)
 }
 
-contextBridge.exposeInMainWorld('craftshotPopup', api)
+contextBridge.exposeInMainWorld('f2f3Popup', api)

@@ -32,8 +32,8 @@ describe('LibraryService file operations', () => {
   let meta: InstanceType<typeof MetadataStore>
 
   beforeEach(async () => {
-    root = mkdtempSync(join(tmpdir(), 'craftshot-root-'))
-    data = mkdtempSync(join(tmpdir(), 'craftshot-data-'))
+    root = mkdtempSync(join(tmpdir(), 'f2f3-root-'))
+    data = mkdtempSync(join(tmpdir(), 'f2f3-data-'))
     png(join(root, '2026-09-20_05.19.44.png'), 1918, 1078)
     png(join(root, 'other.png'))
     meta = new MetadataStore(data)
@@ -100,7 +100,7 @@ describe('LibraryService file operations', () => {
   })
 
   it('carries the Companion mod sidecar through rename, copy, cut and delete', async () => {
-    const side = (name: string): string => join(root, name.replace(/\.png$/, '.craftshot.json'))
+    const side = (name: string): string => join(root, name.replace(/\.png$/, '.f2f3.json'))
     writeFileSync(side('2026-09-20_05.19.44.png'), '{}')
     await lib.refresh()
     // The gallery ignores the .json; the fingerprint includes its mtime.
@@ -115,14 +115,14 @@ describe('LibraryService file operations', () => {
     expect(existsSync(side('2026-09-20_05.19.44.png'))).toBe(false)
 
     await lib.paste(['aldea.png'], 'Bases', 'copy')
-    expect(existsSync(join(root, 'Bases', 'aldea.craftshot.json'))).toBe(true)
+    expect(existsSync(join(root, 'Bases', 'aldea.f2f3.json'))).toBe(true)
     await lib.paste(['aldea.png'], 'Bases', 'cut')
     // Name taken in Bases: the image becomes "aldea (2).png" and its sidecar follows.
-    expect(existsSync(join(root, 'Bases', 'aldea (2).craftshot.json'))).toBe(true)
+    expect(existsSync(join(root, 'Bases', 'aldea (2).f2f3.json'))).toBe(true)
     expect(existsSync(side('aldea.png'))).toBe(false)
 
     await lib.remove(['Bases/aldea.png'])
-    expect(existsSync(join(root, 'Bases', 'aldea.craftshot.json'))).toBe(false)
+    expect(existsSync(join(root, 'Bases', 'aldea.f2f3.json'))).toBe(false)
   })
 
   it('deletes files and folders (to trash)', async () => {
@@ -132,7 +132,7 @@ describe('LibraryService file operations', () => {
     expect((await lib.snapshot()).screenshots).toHaveLength(1)
   })
   it('shows several game folders as one library', async () => {
-    const other = mkdtempSync(join(tmpdir(), 'craftshot-root2-'))
+    const other = mkdtempSync(join(tmpdir(), 'f2f3-root2-'))
     mkdirSync(join(other, 'mundo'))
     png(join(other, 'mundo', 'b.png'))
     lib.setRoots([
@@ -181,7 +181,7 @@ describe('file helpers', () => {
   })
 
   it('reads PNG dimensions from the header', () => {
-    const dir = mkdtempSync(join(tmpdir(), 'craftshot-'))
+    const dir = mkdtempSync(join(tmpdir(), 'f2f3-'))
     const p = join(dir, 'x.png')
     png(p, 320, 180)
     utimesSync(p, new Date(), new Date())

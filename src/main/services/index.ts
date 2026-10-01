@@ -103,9 +103,9 @@ export function createServices(
   // The app's own Google OAuth client, registered once by the publisher and baked in at
   // build time (.env). End users only ever see "Continuar con Google".
   const googleClient = (): OAuthClient | null => {
-    const id = import.meta.env.MAIN_VITE_GOOGLE_CLIENT_ID || process.env.CRAFTSHOT_GOOGLE_CLIENT_ID
+    const id = import.meta.env.MAIN_VITE_GOOGLE_CLIENT_ID || process.env.F2F3_GOOGLE_CLIENT_ID
     const secret =
-      import.meta.env.MAIN_VITE_GOOGLE_CLIENT_SECRET || process.env.CRAFTSHOT_GOOGLE_CLIENT_SECRET
+      import.meta.env.MAIN_VITE_GOOGLE_CLIENT_SECRET || process.env.F2F3_GOOGLE_CLIENT_SECRET
     return id ? { clientId: id, clientSecret: secret ?? '' } : null
   }
   const http = (input: string | URL | Request, init?: RequestInit): Promise<Response> =>

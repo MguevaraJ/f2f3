@@ -6,7 +6,7 @@ import { worldOf } from './worlds'
 
 /**
  * What the app knows about each screenshot, written for the Companion mod's in-game
- * gallery ("<game dir>/craftshot/app-index.json"). The rows are already worded (Spanish
+ * gallery ("<game dir>/f2f3/app-index.json"). The rows are already worded (Spanish
  * names, sources), so the mod only lays them out. Pure.
  */
 
@@ -27,7 +27,7 @@ export interface GameIndexShot {
 }
 
 export interface GameIndex {
-  format: 'craftshot-app-index'
+  format: 'f2f3-app-index'
   schema: 1
   /** By screenshot id: its path relative to the screenshots folder. */
   shots: Record<string, GameIndexShot>
@@ -150,5 +150,5 @@ export function buildGameIndex(entries: ScreenshotEntry[]): GameIndex {
     if (e.meta.tags?.length) shot.tags = e.meta.tags
     shots[e.id] = shot
   }
-  return { format: 'craftshot-app-index', schema: 1, shots }
+  return { format: 'f2f3-app-index', schema: 1, shots }
 }

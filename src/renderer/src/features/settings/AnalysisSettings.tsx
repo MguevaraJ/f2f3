@@ -170,7 +170,7 @@ function ModCard() {
           <span className="kbd">F2</span> para pasar al siguiente: <b>1)</b> cuánto llega hacia el
           fondo, <b>2)</b> cuánto hacia tu izquierda y <b>3)</b> la altura. Otro{' '}
           <span className="kbd">F2</span> te pide un nombre (p. ej. «Casa del Lago»), hace la
-          captura y guarda el build en el mundo como <code>craftshot:casa_del_lago</code> (vacío:{' '}
+          captura y guarda el build en el mundo como <code>f2f3:casa_del_lago</code> (vacío:{' '}
           <code>build_1</code>, <code>build_2</code>…); el chat te da el comando para pegarlo.{' '}
           <span className="kbd">Enter</span> fija la zona para que puedas moverte y revisarla, y{' '}
           <span className="kbd">Esc</span> vuelve un paso o cancela.

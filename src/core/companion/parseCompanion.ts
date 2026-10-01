@@ -3,24 +3,40 @@ import type { CompanionData, LocationData, Vec3 } from '@shared/types'
 
 /**
  * Sidecar written by the F2+F3 Companion mod (Fabric) next to each screenshot:
- * "2026-09-29_21.38.54.png" → "2026-09-29_21.38.54.craftshot.json".
+ * "2026-09-29_21.38.54.png" → "2026-09-29_21.38.54.f2f3.json".
  * Pure module — the caller reads the file.
  */
-export const COMPANION_SUFFIX = '.craftshot.json'
+export const COMPANION_SUFFIX = '.f2f3.json'
+/** Files written before the app and the mod were renamed; still read and moved along. */
+const LEGACY_COMPANION_SUFFIX = '.craftshot.json'
+const LEGACY_BUILD_SUFFIX = '.craftshot.nbt'
+
+const stem = (imagePath: string): string => imagePath.replace(/\.[^./\\]+$/, '')
 
 export const companionPathFor = (imagePath: string): string =>
   imagePath.replace(/\.[^./\\]+$/, '') + COMPANION_SUFFIX
 
 /** Structure saved on sneak+F2; found by name (the JSON's "file" goes stale on rename). */
-export const BUILD_SUFFIX = '.craftshot.nbt'
+export const BUILD_SUFFIX = '.f2f3.nbt'
 
 export const buildPathFor = (imagePath: string): string =>
   imagePath.replace(/\.[^./\\]+$/, '') + BUILD_SUFFIX
 
-/** Every file the mod writes next to an image. */
-export const sidecarPathsFor = (imagePath: string): string[] => [
+/** Where the sidecar of an image may be, the current name first. */
+export const companionPathsFor = (imagePath: string): string[] => [
   companionPathFor(imagePath),
-  buildPathFor(imagePath)
+  stem(imagePath) + LEGACY_COMPANION_SUFFIX
+]
+
+export const buildPathsFor = (imagePath: string): string[] => [
+  buildPathFor(imagePath),
+  stem(imagePath) + LEGACY_BUILD_SUFFIX
+]
+
+/** Every file the mod writes (or wrote) next to an image. */
+export const sidecarPathsFor = (imagePath: string): string[] => [
+  ...companionPathsFor(imagePath),
+  ...buildPathsFor(imagePath)
 ]
 
 const num = z.number().finite()
@@ -45,7 +61,7 @@ const ruleValue = z.union([z.boolean(), z.number(), z.string()])
 const lenient = <T extends z.ZodType>(t: T) => t.optional().catch(undefined)
 
 const schema = z.object({
-  format: z.literal('craftshot-companion'),
+  format: z.enum(['f2f3-companion', 'craftshot-companion']),
   schema: z.literal(1),
   mod: z.object({ version: z.string(), minecraft: z.string() }),
   capturedAt: z.string(),

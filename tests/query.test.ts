@@ -134,8 +134,8 @@ describe('library query', () => {
     const load = (f: string) =>
       parseCompanion(readFileSync(join(__dirname, 'fixtures/companion', f), 'utf8'))
     const shots = [
-      shot('librarian.png', 3, { mod: load('librarian-26.3.craftshot.json') }),
-      shot('chest.png', 2, { mod: load('chest-26.3.craftshot.json') }),
+      shot('librarian.png', 3, { mod: load('librarian-26.3.f2f3.json') }),
+      shot('chest.png', 2, { mod: load('chest-26.3.f2f3.json') }),
       ...items
     ]
     expect(ids(applyQuery(shots, q({ search: 'reparacion' })))).toEqual(['librarian.png'])

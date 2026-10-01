@@ -11,11 +11,11 @@ import {
 import { companionTechnical } from '../src/shared/companion'
 import type { F3Data, ScreenshotAnalysis } from '../src/shared/types'
 
-const real = readFileSync(join(__dirname, 'fixtures/companion/real-26.3.craftshot.json'), 'utf8')
+const real = readFileSync(join(__dirname, 'fixtures/companion/real-26.3.f2f3.json'), 'utf8')
 
 /** Sidecar as the mod writes it in singleplayer, inside a village, looking at a cow. */
 const village = {
-  format: 'craftshot-companion',
+  format: 'f2f3-companion',
   schema: 1,
   mod: { name: 'F2+F3 Companion', version: '1.0.0+26.3', loader: 'fabric', minecraft: '26.3' },
   capturedAt: '2026-09-30T01:42:55.100Z',
@@ -73,10 +73,8 @@ function base(over: Partial<ScreenshotAnalysis>): ScreenshotAnalysis {
 
 describe('Companion mod sidecar', () => {
   it('lives next to the image', () => {
-    expect(companionPathFor('/s/2026-09-29_21.38.54.png')).toBe(
-      '/s/2026-09-29_21.38.54.craftshot.json'
-    )
-    expect(companionPathFor('/s/v1.2/foto (2).png')).toBe('/s/v1.2/foto (2).craftshot.json')
+    expect(companionPathFor('/s/2026-09-29_21.38.54.png')).toBe('/s/2026-09-29_21.38.54.f2f3.json')
+    expect(companionPathFor('/s/v1.2/foto (2).png')).toBe('/s/v1.2/foto (2).f2f3.json')
   })
 
   it('parses a file written by the real mod in 26.3', () => {
@@ -96,6 +94,11 @@ describe('Companion mod sidecar', () => {
     expect(
       parseCompanion(JSON.stringify({ ...village, world: { ...village.world, seed: 123 } }))
     ).toBeNull()
+  })
+
+  it('still reads sidecars written when the mod was called Craftshot', () => {
+    const old = parseCompanion(JSON.stringify({ ...village, format: 'craftshot-companion' }))
+    expect(old?.world.name).toBe(village.world.name)
   })
 
   it('treats missing structures as unknown (multiplayer)', () => {
@@ -196,12 +199,12 @@ describe('Companion mod technical data (real 26.3 files)', () => {
     parseCompanion(readFileSync(join(__dirname, 'fixtures/companion', name), 'utf8'))!
 
   it('reads tick, mob caps, game rules, mods and nearby entities', () => {
-    const c = load('chest-26.3.craftshot.json')
+    const c = load('chest-26.3.f2f3.json')
     expect(c.game?.tick).toMatchObject({ rate: 30, state: 'normal' })
     expect(c.game?.tick.mspt).toBeGreaterThan(0)
     expect(c.spawn?.chunks).toBe(289)
     expect(c.gamerules?.['minecraft:random_tick_speed']).toEqual({ value: 10, default: 3 })
-    expect(c.mods?.some((m) => m.id === 'craftshot_companion')).toBe(true)
+    expect(c.mods?.some((m) => m.id === 'f2f3_companion')).toBe(true)
     expect(c.nearby?.[0].count).toBeGreaterThan(0)
     expect(companionTechnical(c)).toMatchObject({
       server: { targetMs: 1000 / 30, tickState: undefined },
@@ -210,7 +213,7 @@ describe('Companion mod technical data (real 26.3 files)', () => {
   })
 
   it('reads the targeted chest: state, contents and comparator signal', () => {
-    const b = load('chest-26.3.craftshot.json').target.block!
+    const b = load('chest-26.3.f2f3.json').target.block!
     expect(b.state).toMatchObject({ facing: 'south', type: 'single' })
     expect(b.container?.items).toEqual([
       { id: 'minecraft:iron_ingot', count: 64, slot: 0 },
@@ -218,13 +221,13 @@ describe('Companion mod technical data (real 26.3 files)', () => {
     ])
     expect(b.signal).toMatchObject({ received: 0, containerSignal: 1 })
     // The location keeps the block state for the UI.
-    expect(companionLocation(load('chest-26.3.craftshot.json')).targetedBlock?.state?.facing).toBe(
+    expect(companionLocation(load('chest-26.3.f2f3.json')).targetedBlock?.state?.facing).toBe(
       'south'
     )
   })
 
   it("reads the targeted villager's trades with enchantments", () => {
-    const v = load('librarian-26.3.craftshot.json').target.entity!.villager!
+    const v = load('librarian-26.3.f2f3.json').target.entity!.villager!
     expect(v.profession).toBe('minecraft:librarian')
     expect(v.trades[0]).toMatchObject({
       buy: [{ id: 'minecraft:emerald', count: 12 }],

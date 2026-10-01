@@ -2,7 +2,7 @@ import type { Vec3 } from './types'
 
 /**
  * The map's plans (AFK spot, portal link) as the Companion mod draws them in the world:
- * "<game dir>/craftshot/plans.json", one entry per world. The app does the thinking (the
+ * "<game dir>/f2f3/plans.json", one entry per world. The app does the thinking (the
  * verdicts come worded); the mod only draws. Pure.
  */
 
@@ -49,7 +49,7 @@ export interface GamePlanPatch {
 }
 
 export interface GamePlans {
-  format: 'craftshot-plans'
+  format: 'f2f3-plans'
   schema: 1
   worlds: Record<string, GameWorldPlan>
 }
@@ -147,5 +147,5 @@ export function mergeGamePlans(existing: unknown, world: string, patch: unknown)
   }
   if (next.afk || next.portals) worlds[world] = next
   else delete worlds[world]
-  return { format: 'craftshot-plans', schema: 1, worlds }
+  return { format: 'f2f3-plans', schema: 1, worlds }
 }

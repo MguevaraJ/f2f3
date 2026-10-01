@@ -21,7 +21,7 @@ export interface LocatorEnv {
 
 /** How far above a game folder its launcher keeps versions/. */
 const MAX_ROOT_DEPTH = 4
-const MOD_JAR = /^craftshot-companion.*\.jar$/i
+const MOD_JAR = /^f2f3-companion.*\.jar$/i
 const IMAGE = /\.(png|jpe?g)$/i
 
 export function defaultMinecraftDir(env: LocatorEnv): string {

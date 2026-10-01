@@ -7,7 +7,7 @@ import type { LibraryService } from './LibraryService'
 const DELAY_MS = 1500
 
 /**
- * Keeps "<game dir>/craftshot/app-index.json" up to date for the Companion mod's in-game
+ * Keeps "<game dir>/f2f3/app-index.json" up to date for the Companion mod's in-game
  * gallery: notes, tags, favourites and everything the app worked out for each screenshot.
  * One file per game folder; only written when the screenshots folder sits inside one.
  */
@@ -42,7 +42,7 @@ export class GameIndexExporter {
         .filter((s) => (s.source ?? '') === root.mount)
         .map((s) => (root.mount ? { ...s, id: s.id.slice(root.mount.length + 1) } : s))
       const json = JSON.stringify(buildGameIndex(own))
-      const file = join(gameDir, 'craftshot', 'app-index.json')
+      const file = join(gameDir, 'f2f3', 'app-index.json')
       if (json === this.last.get(file) && existsSync(file)) continue
       await mkdir(dirname(file), { recursive: true })
       await writeFile(file + '.tmp', json, 'utf8')

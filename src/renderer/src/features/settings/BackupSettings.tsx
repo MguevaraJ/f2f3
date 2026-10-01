@@ -203,7 +203,7 @@ export function BackupSettings() {
           </label>
           <p className="muted small">
             Las capturas se guardan en <b>Mi unidad › F2+F3</b>, con tus mismas carpetas y un
-            archivo <code>craftshot-datos.json</code> con notas, favoritas y datos del F3. El
+            archivo <code>f2f3-datos.json</code> con notas, favoritas y datos del F3. El
             respaldo nunca borra nada de Drive. F2+F3 solo puede ver los archivos que él mismo crea.
           </p>
         </>

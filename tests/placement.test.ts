@@ -24,8 +24,8 @@ describe('placeCommand', () => {
   const player = { x: 0, y: 64, z: 0 }
 
   it('keeps the offset when facing the same way', () => {
-    expect(placeCommand('minecraft:craftshot/a', origin, player, 'north')).toBe(
-      '/place template minecraft:craftshot/a ~-3 ~ ~-10'
+    expect(placeCommand('minecraft:f2f3/a', origin, player, 'north')).toBe(
+      '/place template minecraft:f2f3/a ~-3 ~ ~-10'
     )
   })
 
@@ -57,7 +57,7 @@ describe('placeCommand', () => {
 
 describe('templateId', () => {
   it('makes a valid resource id from the image name', () => {
-    expect(templateId('2026-09-30_04.48.55.png')).toBe('minecraft:craftshot/2026-09-30_04.48.55')
-    expect(templateId('Mi Casa (2).png')).toBe('minecraft:craftshot/mi_casa_2_')
+    expect(templateId('2026-09-30_04.48.55.png')).toBe('minecraft:f2f3/2026-09-30_04.48.55')
+    expect(templateId('Mi Casa (2).png')).toBe('minecraft:f2f3/mi_casa_2_')
   })
 })

@@ -6,7 +6,7 @@ import { writeZip, zipNames } from '../src/main/zipExport'
 
 describe('ZIP export', () => {
   let dir: string
-  beforeEach(() => (dir = mkdtempSync(join(tmpdir(), 'craftshot-zip-'))))
+  beforeEach(() => (dir = mkdtempSync(join(tmpdir(), 'f2f3-zip-'))))
   afterEach(() => rmSync(dir, { recursive: true, force: true }))
 
   it('streams files byte-for-byte, keeping sub-folders', async () => {

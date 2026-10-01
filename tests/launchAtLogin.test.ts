@@ -7,7 +7,7 @@ const setLoginItemSettings = vi.fn()
 vi.mock('electron', () => ({
   app: {
     isPackaged: false,
-    getAppPath: () => '/home/steve/Mis Proyectos/craftshot',
+    getAppPath: () => '/home/steve/Mis Proyectos/f2f3',
     setLoginItemSettings,
     getLoginItemSettings: () => ({ wasOpenedAtLogin: true })
   }
@@ -19,16 +19,16 @@ const { LaunchAtLogin, HIDDEN_FLAG } = await import('../src/main/autostart/Launc
 
 describe('XDG desktop entry', () => {
   it('quotes paths with spaces and escapes special characters', () => {
-    expect(execLine(['/usr/bin/craftshot', '--hidden'])).toBe('/usr/bin/craftshot --hidden')
+    expect(execLine(['/usr/bin/f2f3', '--hidden'])).toBe('/usr/bin/f2f3 --hidden')
     expect(execLine(['/home/a b/F2+F3.AppImage'])).toBe('"/home/a b/F2+F3.AppImage"')
     expect(execLine(['/x/$HOME"q"'])).toBe('"/x/\\$HOME\\"q\\""')
     expect(execLine(['/x/100%'])).toBe('/x/100%%')
   })
 
   it('produces a valid autostart entry', () => {
-    const text = desktopEntry({ argv: ['/usr/bin/craftshot', '--hidden'], icon: '/i.png' })
+    const text = desktopEntry({ argv: ['/usr/bin/f2f3', '--hidden'], icon: '/i.png' })
     expect(text.split('\n')[0]).toBe('[Desktop Entry]')
-    expect(text).toContain('Exec=/usr/bin/craftshot --hidden')
+    expect(text).toContain('Exec=/usr/bin/f2f3 --hidden')
     expect(text).toContain('Type=Application')
     expect(text).toContain('Icon=/i.png')
   })
@@ -43,13 +43,13 @@ describe('LaunchAtLogin', () => {
   })
   afterEach(() => rmSync(dir, { recursive: true, force: true }))
 
-  it('Linux: writes and removes ~/.config/autostart/craftshot.desktop', () => {
+  it('Linux: writes and removes ~/.config/autostart/f2f3.desktop', () => {
     const l = new LaunchAtLogin('linux', dir)
     expect(existsSync(l.desktopFile)).toBe(false) // off by default: nothing written
     l.apply(true)
-    const text = readFileSync(join(dir, 'autostart', 'craftshot.desktop'), 'utf8')
+    const text = readFileSync(join(dir, 'autostart', 'f2f3.desktop'), 'utf8')
     // Dev build: Electron binary + app path (quoted: it has a space) + hidden flag.
-    expect(text).toContain(`"/home/steve/Mis Proyectos/craftshot" ${HIDDEN_FLAG}`)
+    expect(text).toContain(`"/home/steve/Mis Proyectos/f2f3" ${HIDDEN_FLAG}`)
     l.apply(true) // idempotent
     l.apply(false)
     expect(existsSync(l.desktopFile)).toBe(false)
@@ -59,7 +59,7 @@ describe('LaunchAtLogin', () => {
   it('Linux AppImage: autostarts the AppImage itself, not the temporary mount', () => {
     process.env.APPIMAGE = '/home/steve/Apps/F2+F3.AppImage'
     new LaunchAtLogin('linux', dir).apply(true)
-    expect(readFileSync(join(dir, 'autostart', 'craftshot.desktop'), 'utf8')).toContain(
+    expect(readFileSync(join(dir, 'autostart', 'f2f3.desktop'), 'utf8')).toContain(
       'Exec=/home/steve/Apps/F2+F3.AppImage --hidden'
     )
   })
@@ -69,7 +69,7 @@ describe('LaunchAtLogin', () => {
     expect(setLoginItemSettings).toHaveBeenCalledWith({
       openAtLogin: true,
       path: process.execPath,
-      args: ['/home/steve/Mis Proyectos/craftshot', HIDDEN_FLAG]
+      args: ['/home/steve/Mis Proyectos/f2f3', HIDDEN_FLAG]
     })
     new LaunchAtLogin('win32', dir).apply(false)
     expect(setLoginItemSettings).toHaveBeenLastCalledWith(

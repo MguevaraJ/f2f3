@@ -22,8 +22,8 @@ export function registerSchemePrivileges(): void {
 
 /**
  * Serves screenshots and thumbnails to the renderer without exposing `file://`.
- *   craftshot://image/<id>   original file
- *   craftshot://thumb/<id>   cached thumbnail (generated on demand)
+ *   f2f3://image/<id>   original file
+ *   f2f3://thumb/<id>   cached thumbnail (generated on demand)
  * Every id is resolved by the library, which refuses paths outside the root.
  */
 export function registerSchemeHandler(library: LibraryService, thumbs: ThumbnailService): void {

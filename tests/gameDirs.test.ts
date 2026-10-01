@@ -11,7 +11,7 @@ function touch(path: string, at?: number): void {
 }
 
 function home(): string {
-  const h = mkdtempSync(join(tmpdir(), 'craftshot-home-'))
+  const h = mkdtempSync(join(tmpdir(), 'f2f3-home-'))
   // Official launcher: launcher root and game folder are the same.
   touch(join(h, '.minecraft/options.txt'), Date.parse('2026-01-01'))
   touch(join(h, '.minecraft/screenshots/a.png'))
@@ -20,7 +20,7 @@ function home(): string {
   const sk = join(h, '.sklauncher')
   mkdirSync(join(sk, 'versions'), { recursive: true })
   touch(join(sk, 'instances/fabric-26-3/options.txt'))
-  touch(join(sk, 'instances/fabric-26-3/mods/craftshot-companion-1.0.0+26.3.jar'))
+  touch(join(sk, 'instances/fabric-26-3/mods/f2f3-companion-1.0.0+26.3.jar'))
   mkdirSync(join(sk, 'instances/never-played'), { recursive: true })
   touch(join(sk, 'instances/unlisted/options.txt'), Date.parse('2025-01-01'))
   writeFileSync(

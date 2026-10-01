@@ -6,7 +6,7 @@ import { Icon } from '../components/icons'
 import { blockString, tpCommand } from '../lib/coords'
 import { formatTime } from '../lib/format'
 
-const popup = window.craftshotPopup
+const popup = window.f2f3Popup
 /** Visible time after the last update; paused while hovered. */
 const LIFETIME_MS = 10_000
 

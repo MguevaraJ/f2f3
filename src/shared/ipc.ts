@@ -19,7 +19,7 @@ import type { ModVersion } from './modVersions'
 
 /**
  * Single source of truth for the renderer ⇄ main contract.
- * Invoke channels map 1:1 to methods of `CraftshotApi`; events are pushed from main.
+ * Invoke channels map 1:1 to methods of `F2F3Api`; events are pushed from main.
  */
 export const IPC = {
   library: {
@@ -142,7 +142,7 @@ export interface FontGlyphs {
   glyphs: Record<string, number[]>
 }
 
-export interface CraftshotApi {
+export interface F2F3Api {
   library: {
     get(): Promise<LibrarySnapshot>
     refresh(): Promise<LibrarySnapshot>
@@ -198,7 +198,7 @@ export interface CraftshotApi {
     /** Copies the build into a world so `/place template <templateId>` finds it; returns the file. */
     installBuild(id: string, folder: string, template?: string): Promise<string>
     /**
-     * Puts a world's plans (or removes them) in "craftshot/plans.json" of every game folder,
+     * Puts a world's plans (or removes them) in "f2f3/plans.json" of every game folder,
      * for the mod to draw in the world; returns how many folders were written.
      */
     sendPlan(world: string, patch: GamePlanPatch): Promise<number>
@@ -242,8 +242,8 @@ export interface CraftshotApi {
   }
 }
 
-/** URL helpers for the privileged `craftshot://` scheme (served by the main process). */
-export const SCHEME = 'craftshot'
+/** URL helpers for the privileged `f2f3://` scheme (served by the main process). */
+export const SCHEME = 'f2f3'
 export const imageUrl = (id: string, version: number): string =>
   `${SCHEME}://image/${encodeURIComponent(id)}?v=${Math.round(version)}`
 export const thumbUrl = (id: string, version: number): string =>

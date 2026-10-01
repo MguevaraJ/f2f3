@@ -253,7 +253,7 @@ export function Gallery({ shots, facets }: Props) {
   const onDrop = (e: DragEvent): void => {
     e.preventDefault()
     setDropping(false)
-    if (e.dataTransfer.types.includes('application/x-craftshot-ids')) return
+    if (e.dataTransfer.types.includes('application/x-f2f3-ids')) return
     const paths = [...e.dataTransfer.files].map((f) => api.library.pathForFile(f)).filter(Boolean)
     if (paths.length) void importFiles(paths)
   }

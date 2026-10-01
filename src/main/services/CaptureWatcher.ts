@@ -3,6 +3,7 @@ import { existsSync } from 'node:fs'
 import { stat } from 'node:fs/promises'
 import type { LibrarySnapshot, ScreenshotAnalysis, ScreenshotEntry } from '@shared/types'
 import { companionPathFor } from '@core/companion/parseCompanion'
+import { companionFileOf } from '../sidecars'
 import type { AnalysisService } from './AnalysisService'
 import { capturedAtFromName, type LibraryService } from './LibraryService'
 
@@ -102,7 +103,7 @@ export class CaptureWatcher extends EventEmitter<Events> {
     if (!state) return
     if (analysis.mod) this.modSeen = true
     // A read that raced the game still writing the file (image or mod sidecar): try once more.
-    const lateSidecar = !analysis.mod && existsSync(companionPathFor(this.library.resolveId(id)))
+    const lateSidecar = !analysis.mod && existsSync(companionFileOf(this.library.resolveId(id)))
     if ((analysis.error || lateSidecar) && !state.retried) {
       state.retried = true
       setTimeout(() => this.analysis.enqueueLocal([id], true), 400)

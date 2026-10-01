@@ -10,7 +10,8 @@ import type {
   LibrarySnapshot,
   ScreenshotEntry
 } from '@shared/types'
-import { companionPathFor, sidecarPathsFor } from '@core/companion/parseCompanion'
+import { sidecarPathsFor } from '@core/companion/parseCompanion'
+import { companionFileOf } from '../sidecars'
 import type { MetadataStore } from './MetadataStore'
 
 const IMAGE_RE = /\.(png|jpe?g)$/i
@@ -342,7 +343,7 @@ export class LibraryService extends EventEmitter<{ changed: [LibrarySnapshot] }>
       const st = await stat(abs)
       const name = basename(abs)
       const stored = this.metadata.analysis(abs)
-      const companionMtimeMs = await stat(companionPathFor(abs)).then(
+      const companionMtimeMs = await stat(companionFileOf(abs)).then(
         (s) => s.mtimeMs,
         () => undefined
       )

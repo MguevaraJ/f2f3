@@ -1,5 +1,5 @@
 {
-  "format": "craftshot-companion",
+  "format": "f2f3-companion",
   "schema": 1,
   "mod": {
     "name": "F2+F3 Companion",
@@ -7,14 +7,14 @@
     "loader": "fabric",
     "minecraft": "26.3"
   },
-  "capturedAt": "2026-09-30T04:31:53.786314019Z",
+  "capturedAt": "2026-09-30T03:46:38.132191620Z",
   "world": {
     "type": "singleplayer",
     "name": "New World",
     "seed": "-1844849896984713791",
     "dimension": "minecraft:overworld",
     "day": 0,
-    "timeOfDay": 13727,
+    "timeOfDay": 9899,
     "weather": "clear"
   },
   "player": {
@@ -34,8 +34,8 @@
       "z": -44
     },
     "facing": {
-      "direction": "east",
-      "yaw": -90.0,
+      "direction": "north",
+      "yaw": -180.0,
       "pitch": 30.0
     },
     "gameMode": "creative"
@@ -49,26 +49,43 @@
     "block": {
       "id": "minecraft:chest",
       "pos": {
-        "x": -1018,
-        "y": 101,
-        "z": -700
+        "x": -1020,
+        "y": 102,
+        "z": -702
       },
       "state": {
-        "facing": "north",
+        "facing": "south",
         "type": "single",
         "waterlogged": "false"
       },
       "container": {
         "size": 27,
-        "items": []
+        "items": [
+          {
+            "id": "minecraft:iron_ingot",
+            "count": 64,
+            "slot": 0
+          },
+          {
+            "id": "minecraft:redstone",
+            "count": 12,
+            "slot": 5
+          }
+        ]
       },
       "signal": {
         "received": 0,
-        "containerSignal": 0
+        "containerSignal": 1
       }
     }
   },
-  "entities": [],
+  "entities": [
+    {
+      "id": "minecraft:sheep",
+      "count": 1,
+      "nearest": 73.4
+    }
+  ],
   "nearby": [
     {
       "id": "minecraft:creeper",
@@ -76,43 +93,47 @@
     },
     {
       "id": "minecraft:zombie",
-      "count": 20
+      "count": 17
     },
     {
       "id": "minecraft:skeleton",
-      "count": 18
+      "count": 17
     },
     {
       "id": "minecraft:bat",
-      "count": 10
+      "count": 12
     },
     {
       "id": "minecraft:spider",
       "count": 9
     },
     {
+      "id": "minecraft:squid",
+      "count": 8
+    },
+    {
       "id": "minecraft:pig",
       "count": 8
     },
     {
-      "id": "minecraft:glow_squid",
-      "count": 8
+      "id": "minecraft:enderman",
+      "count": 7
+    },
+    {
+      "id": "minecraft:rabbit",
+      "count": 7
     },
     {
       "id": "minecraft:villager",
       "count": 7
     },
     {
-      "id": "minecraft:squid",
+      "id": "minecraft:sheep",
       "count": 7
     },
     {
-      "id": "minecraft:sheep",
+      "id": "minecraft:glow_squid",
       "count": 6
-    },
-    {
-      "id": "minecraft:rabbit",
-      "count": 5
     },
     {
       "id": "minecraft:cow",
@@ -123,12 +144,12 @@
       "count": 2
     },
     {
-      "id": "minecraft:enderman",
+      "id": "minecraft:item",
       "count": 2
     },
     {
-      "id": "minecraft:item",
-      "count": 2
+      "id": "minecraft:witch",
+      "count": 1
     },
     {
       "id": "minecraft:goat",
@@ -136,14 +157,6 @@
     },
     {
       "id": "minecraft:iron_golem",
-      "count": 1
-    },
-    {
-      "id": "minecraft:slime",
-      "count": 1
-    },
-    {
-      "id": "minecraft:armor_stand",
       "count": 1
     }
   ],
@@ -154,14 +167,14 @@
     "simulationDistance": 12,
     "serverBrand": "fabric",
     "tick": {
-      "rate": 20.0,
+      "rate": 30.0,
       "state": "normal",
-      "mspt": 5.55
+      "mspt": 5.84
     }
   },
   "mods": [
     {
-      "id": "craftshot_companion",
+      "id": "f2f3_companion",
       "name": "F2+F3 Companion",
       "version": "1.0.0+26.3"
     },
@@ -415,49 +428,65 @@
     "chunks": 289,
     "counts": {
       "monster": 71,
-      "creature": 159,
+      "creature": 160,
       "ambient": 15,
       "axolotls": 0,
-      "underground_water_creature": 8,
-      "water_creature": 7,
+      "underground_water_creature": 6,
+      "water_creature": 8,
       "water_ambient": 0,
       "misc": 0
     }
   },
   "gamerules": {
-    "minecraft:mob_griefing": {
-      "value": true,
-      "default": true
+    "minecraft:max_command_sequence_length": {
+      "value": 65536,
+      "default": 65536
     },
     "minecraft:spawn_patrols": {
       "value": true,
       "default": true
     },
-    "minecraft:mob_explosion_drop_decay": {
-      "value": true,
-      "default": true
-    },
-    "minecraft:pvp": {
-      "value": true,
-      "default": true
-    },
-    "minecraft:tnt_explosion_drop_decay": {
+    "minecraft:universal_anger": {
       "value": false,
       "default": false
+    },
+    "minecraft:player_movement_check": {
+      "value": true,
+      "default": true
+    },
+    "minecraft:keep_inventory": {
+      "value": false,
+      "default": false
+    },
+    "minecraft:random_tick_speed": {
+      "value": 10,
+      "default": 3
+    },
+    "minecraft:block_explosion_drop_decay": {
+      "value": true,
+      "default": true
     },
     "minecraft:entity_drops": {
       "value": true,
       "default": true
     },
-    "minecraft:log_admin_commands": {
+    "minecraft:command_blocks_work": {
       "value": true,
       "default": true
     },
-    "minecraft:show_death_messages": {
+    "minecraft:spawn_monsters": {
       "value": true,
       "default": true
     },
-    "minecraft:send_command_feedback": {
+    "minecraft:forgive_dead_players": {
+      "value": true,
+      "default": true
+    },
+    "minecraft:fall_damage": {
+      "value": true,
+      "default": true
+    },
+    "minecraft:natural_health_regeneration": {
       "value": true,
       "default": true
     },
@@ -469,19 +498,23 @@
       "value": true,
       "default": true
     },
+    "minecraft:tnt_explosion_drop_decay": {
+      "value": false,
+      "default": false
+    },
+    "minecraft:respawn_radius": {
+      "value": 10,
+      "default": 10
+    },
     "minecraft:spawn_wardens": {
       "value": true,
       "default": true
     },
-    "minecraft:max_command_sequence_length": {
-      "value": 65536,
-      "default": 65536
+    "minecraft:fire_damage": {
+      "value": true,
+      "default": true
     },
-    "minecraft:max_command_forks": {
-      "value": 65536,
-      "default": 65536
-    },
-    "minecraft:command_block_output": {
+    "minecraft:mob_griefing": {
       "value": true,
       "default": true
     },
@@ -489,51 +522,15 @@
       "value": true,
       "default": true
     },
-    "minecraft:elytra_movement_check": {
-      "value": true,
-      "default": true
+    "minecraft:players_nether_portal_creative_delay": {
+      "value": 0,
+      "default": 0
     },
-    "minecraft:player_movement_check": {
-      "value": true,
-      "default": true
+    "minecraft:players_sleeping_percentage": {
+      "value": 100,
+      "default": 100
     },
-    "minecraft:locator_bar": {
-      "value": true,
-      "default": true
-    },
-    "minecraft:show_advancement_messages": {
-      "value": true,
-      "default": true
-    },
-    "minecraft:reduced_debug_info": {
-      "value": false,
-      "default": false
-    },
-    "minecraft:players_nether_portal_default_delay": {
-      "value": 80,
-      "default": 80
-    },
-    "minecraft:spawn_monsters": {
-      "value": true,
-      "default": true
-    },
-    "minecraft:spawn_phantoms": {
-      "value": true,
-      "default": true
-    },
-    "minecraft:block_explosion_drop_decay": {
-      "value": true,
-      "default": true
-    },
-    "minecraft:forgive_dead_players": {
-      "value": true,
-      "default": true
-    },
-    "minecraft:advance_time": {
-      "value": true,
-      "default": true
-    },
-    "minecraft:drowning_damage": {
+    "minecraft:spawn_wandering_traders": {
       "value": true,
       "default": true
     },
@@ -541,7 +538,75 @@
       "value": true,
       "default": true
     },
-    "minecraft:tnt_explodes": {
+    "minecraft:mob_drops": {
+      "value": true,
+      "default": true
+    },
+    "minecraft:freeze_damage": {
+      "value": true,
+      "default": true
+    },
+    "minecraft:max_block_modifications": {
+      "value": 32768,
+      "default": 32768
+    },
+    "minecraft:max_command_forks": {
+      "value": 65536,
+      "default": 65536
+    },
+    "minecraft:ender_pearls_vanish_on_death": {
+      "value": true,
+      "default": true
+    },
+    "minecraft:players_nether_portal_default_delay": {
+      "value": 80,
+      "default": 80
+    },
+    "minecraft:drowning_damage": {
+      "value": true,
+      "default": true
+    },
+    "minecraft:show_advancement_messages": {
+      "value": true,
+      "default": true
+    },
+    "minecraft:pvp": {
+      "value": true,
+      "default": true
+    },
+    "minecraft:spawn_phantoms": {
+      "value": true,
+      "default": true
+    },
+    "minecraft:locator_bar": {
+      "value": true,
+      "default": true
+    },
+    "minecraft:projectiles_can_break_blocks": {
+      "value": true,
+      "default": true
+    },
+    "minecraft:mob_explosion_drop_decay": {
+      "value": true,
+      "default": true
+    },
+    "minecraft:spawner_blocks_work": {
+      "value": true,
+      "default": true
+    },
+    "minecraft:fire_spread_radius_around_player": {
+      "value": 128,
+      "default": 128
+    },
+    "minecraft:elytra_movement_check": {
+      "value": true,
+      "default": true
+    },
+    "minecraft:log_admin_commands": {
+      "value": true,
+      "default": true
+    },
+    "minecraft:raids": {
       "value": true,
       "default": true
     },
@@ -549,21 +614,17 @@
       "value": 1,
       "default": 1
     },
-    "minecraft:max_block_modifications": {
-      "value": 32768,
-      "default": 32768
+    "minecraft:send_command_feedback": {
+      "value": true,
+      "default": true
     },
-    "minecraft:lava_source_conversion": {
+    "minecraft:command_block_output": {
+      "value": true,
+      "default": true
+    },
+    "minecraft:immediate_respawn": {
       "value": false,
       "default": false
-    },
-    "minecraft:natural_health_regeneration": {
-      "value": true,
-      "default": true
-    },
-    "minecraft:freeze_damage": {
-      "value": true,
-      "default": true
     },
     "minecraft:spread_vines": {
       "value": true,
@@ -573,63 +634,11 @@
       "value": true,
       "default": true
     },
-    "minecraft:universal_anger": {
-      "value": false,
-      "default": false
-    },
-    "minecraft:fire_damage": {
+    "minecraft:tnt_explodes": {
       "value": true,
       "default": true
     },
-    "minecraft:spawn_wandering_traders": {
-      "value": true,
-      "default": true
-    },
-    "minecraft:fire_spread_radius_around_player": {
-      "value": 128,
-      "default": 128
-    },
-    "minecraft:projectiles_can_break_blocks": {
-      "value": true,
-      "default": true
-    },
-    "minecraft:players_nether_portal_creative_delay": {
-      "value": 0,
-      "default": 0
-    },
-    "minecraft:ender_pearls_vanish_on_death": {
-      "value": true,
-      "default": true
-    },
-    "minecraft:keep_inventory": {
-      "value": false,
-      "default": false
-    },
-    "minecraft:spawner_blocks_work": {
-      "value": true,
-      "default": true
-    },
-    "minecraft:advance_weather": {
-      "value": true,
-      "default": true
-    },
-    "minecraft:max_entity_cramming": {
-      "value": 24,
-      "default": 24
-    },
-    "minecraft:respawn_radius": {
-      "value": 10,
-      "default": 10
-    },
-    "minecraft:fall_damage": {
-      "value": true,
-      "default": true
-    },
-    "minecraft:global_sound_events": {
-      "value": true,
-      "default": true
-    },
-    "minecraft:raids": {
+    "minecraft:show_death_messages": {
       "value": true,
       "default": true
     },
@@ -637,41 +646,30 @@
       "value": false,
       "default": false
     },
-    "minecraft:mob_drops": {
-      "value": true,
-      "default": true
-    },
-    "minecraft:players_sleeping_percentage": {
-      "value": 100,
-      "default": 100
-    },
-    "minecraft:random_tick_speed": {
-      "value": 10,
-      "default": 3
-    },
-    "minecraft:immediate_respawn": {
+    "minecraft:reduced_debug_info": {
       "value": false,
       "default": false
     },
-    "minecraft:command_blocks_work": {
+    "minecraft:global_sound_events": {
       "value": true,
       "default": true
+    },
+    "minecraft:advance_time": {
+      "value": true,
+      "default": true
+    },
+    "minecraft:advance_weather": {
+      "value": true,
+      "default": true
+    },
+    "minecraft:lava_source_conversion": {
+      "value": false,
+      "default": false
+    },
+    "minecraft:max_entity_cramming": {
+      "value": 24,
+      "default": 24
     }
-  },
-  "build": {
-    "file": "2026-09-30_00.31.53.craftshot.nbt",
-    "origin": {
-      "x": -1034,
-      "y": 85,
-      "z": -716
-    },
-    "size": {
-      "x": 33,
-      "y": 33,
-      "z": 33
-    },
-    "blocks": 13854,
-    "entities": 3
   },
   "structures": {
     "inside": [

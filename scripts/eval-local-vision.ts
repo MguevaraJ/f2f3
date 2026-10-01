@@ -1,5 +1,5 @@
 /**
- * Evaluates the local analyser on screenshots (dimension from Craftshot's cache when known).
+ * Evaluates the local analyser on screenshots (dimension from F2F3's cache when known).
  *   npm run eval:local -- ~/.minecraft/screenshots/*.png
  */
 import { readFileSync } from 'node:fs'
@@ -19,7 +19,7 @@ const vision = await CLIPVisionModelWithProjection.from_pretrained(LOCAL_MODEL.i
 })
 let cache: Record<string, { dimension?: { id: string } }> = {}
 try {
-  cache = JSON.parse(readFileSync(homedir() + '/.config/Craftshot/library.json', 'utf8')).analyses
+  cache = JSON.parse(readFileSync(homedir() + '/.config/F2F3/library.json', 'utf8')).analyses
 } catch {
   /* no cache */
 }

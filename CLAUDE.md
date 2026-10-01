@@ -5,25 +5,28 @@ Launcher, más un mod Fabric para Minecraft 26.3 (**F2+F3 Companion**, en el rep
 del juego junto a cada captura y lleva la app dentro del juego. **UI y textos en español. Código y comentarios en inglés.**
 
 **Estado (2026-09-30):** app y mod estables; la hoja de ruta "Minecraft técnico" (6 fases) está completa. Árbol de
-trabajo limpio, 167 tests. Repo: github.com/MguevaraJ/f2f3 (`master`); el mod va en su propio repo
+trabajo limpio, 168 tests. Repo: github.com/MguevaraJ/f2f3 (`master`); el mod va en su propio repo
 (`../f2f3-companion`, github.com/MguevaraJ/f2f3-companion). Pendientes y decisiones abiertas al final.
 
 ## Nombre
-La app se llama **F2+F3** y el mod **F2+F3 Companion** (ya existía otra "Craftshot"). Solo cambió lo visible: títulos,
-textos, `app.setName('F2+F3')`, nombre del mod y de su pantalla. En electron-builder `productName: F2F3` ("+" no vale
-en nombres de archivo → `dist/F2F3-1.0.0.AppImage`) y `linux.desktop.entry.Name: F2+F3`.
-**Se conservan a propósito** los identificadores internos (cambiarlos rompe datos existentes):
-carpeta de datos `~/.config/Craftshot` (fijada con `app.setPath('userData', …)` salvo que se pase `--user-data-dir`),
-`appId dev.mguevara.craftshot`, protocolo `craftshot://`, sufijos `.craftshot.json` / `.craftshot.nbt`, formato
-`craftshot-companion`, id del mod `craftshot_companion`, jar `craftshot-companion-*.jar`, espacio `craftshot:` de las
-plantillas, `craftshot/app-index.json`, carpeta "Craftshot" de Google Drive, variables `CRAFTSHOT_*`, paquete Java
-`dev.mguevara.craftshot.companion`, nombre del repo y de `package.json`.
+La app se llama **F2+F3** y el mod **F2+F3 Companion** (antes "Craftshot"; ya existía otra). Lo visible es "F2+F3"
+(títulos, `app.setName('F2+F3')`, entrada de escritorio, carpeta de Google Drive); donde hace falta un nombre válido
+para archivos e identificadores se usa **`f2f3` / `F2F3`**: `productName: F2F3`, `appId dev.mguevara.f2f3`, carpeta
+de datos `~/.config/F2F3`, protocolo `f2f3://`, `window.f2f3`, variables `F2F3_*`, sufijos `.f2f3.json` /
+`.f2f3.nbt`, formato `f2f3-companion`, id del mod `f2f3_companion`, jars `f2f3-companion-*.jar`, espacio `f2f3:` de
+las plantillas, `<carpeta del juego>/f2f3/`, paquete Java `dev.mguevara.f2f3.companion`.
+**Compatibilidad con lo anterior al cambio de nombre (no quitar):** `~/.config/Craftshot` se renombra a `F2F3` al
+arrancar (`main/index.ts`); se siguen leyendo y moviendo `.craftshot.json` / `.craftshot.nbt` (`companionPathsFor`,
+`buildPathsFor`, `main/sidecars.ts`) y el formato `craftshot-companion`; se borra el `craftshot.desktop` de
+autoarranque; el mod lee esos sidecars y migra `config/craftshot_companion.json`. Los builds ya guardados en mundos
+siguen en el espacio `craftshot:` (el sidecar guarda su id). La carpeta de Drive se localiza por `appProperties`, así
+que una ya creada conserva el nombre "Craftshot". Sin probar en real: la migración de la carpeta de datos.
 
 ## Comandos
 ```bash
 npm run dev            # desarrollo
 npm run build          # typecheck + build + scripts/check-preload.mjs (falla si un preload usa chunks)
-npm run typecheck && npx eslint . && npx vitest run    # verificación estándar (167 tests)
+npm run typecheck && npx eslint . && npx vitest run    # verificación estándar (168 tests)
 npx prettier --write <archivos>                        # el repo va formateado con prettier
 npm run build:mod      # compila los tres mods de ../f2f3-companion y copia los jar a resources/ (juego de prueba CERRADO)
 npm run dist:linux     # AppImage (el .env con MAIN_VITE_GOOGLE_CLIENT_ID/SECRET se incrusta)
@@ -42,7 +45,7 @@ src/shared/    types.ts, ipc.ts (contrato IPC tipado), popupIpc.ts, f3Tips.ts, w
 src/main/      index.ts, services/ (Library, MetadataStore, Settings, SecretStore, WorkerPool, Thumbnail, Analysis,
                LocalVision, Backup, CaptureWatcher, GameIndexExporter, MinecraftLocator), minecraft/ (gameDirs.ts,
                worlds.ts), vision/ (proveedores IA), google/ (OAuth+Drive), notifier/CapturePopup.ts,
-               BackgroundController.ts, autostart/, workers/, ipc/registerIpc.ts, protocol.ts (craftshot://)
+               BackgroundController.ts, autostart/, workers/, ipc/registerIpc.ts, protocol.ts (f2f3://)
 src/preload/   index.ts (API principal) y popup.ts (API mínima del popup) — NO pueden compartir módulos runtime
 src/renderer/  React + Zustand. features/{gallery,viewer,details,coords,map,settings,library}, components/
                (Onboarding, GameFolderPicker, Sidebar…), lib/, store/, styles/
@@ -58,14 +61,14 @@ React: el lint prohíbe `setState` dentro de efectos → reiniciar estado durant
 - Prioridad: **manual > mod > f3 > vision > local > heuristic**. Con mod, los mobs son solo los del mod; estructuras del mod + las de la IA.
 - Resueltos: `location` (mod > F3; la UI usa `location`, no `f3.block`), `dimension`, `biome`, `mobs`, `structures`, `build`.
 - `carryOver()` conserva vision/local/manual al reanalizar. **Subir `ANALYSIS_SCHEMA`** (ahora 9) al cambiar el pipeline.
-- Caché en `~/.config/Craftshot/library.json` por ruta absoluta + fingerprint `${size}-${mtime}[-m<mtime del sidecar>]`.
+- Caché en `~/.config/F2F3/library.json` por ruta absoluta + fingerprint `${size}-${mtime}[-m<mtime del sidecar>]`.
 - Etiquetas de origen: `src/renderer/src/lib/sources.ts` (SOURCE_INFO, LEVELS, MOD_LEVEL).
 - El análisis corre en `src/main/workers/analysis.worker.ts` (pngjs + `analyzeImage`; lee sidecar y `.nbt`).
 - Zod con secciones tolerantes: una sección mal formada del sidecar se descarta sola (`.catch`).
 
 ## Carpetas de juego
 Todo cuelga de la **carpeta del juego** = padre de la carpeta de capturas (`saves/`, `mods/`, `schematics/`,
-`craftshot/app-index.json`). **No asumir `~/.minecraft`.**
+`f2f3/app-index.json`). **No asumir `~/.minecraft`.**
 - Launcher oficial: `.minecraft` es a la vez raíz del launcher (`versions/`, `assets/`) y carpeta de juego.
 - Launchers de instancias (SKLauncher `~/.sklauncher/instances/<id>` con `instances.json` {name, directory,
   minecraftVersion, gameType, lastPlayed}; Prism, MultiMC, Modrinth, CurseForge, ATLauncher, GDLauncher): cada
@@ -113,20 +116,20 @@ datos técnicos, builds). Se reabre desde Ajustes › "Ver la introducción de n
    genera mobs si su centro está a <128 bloques horizontales, entidades en el cuadrado de chunks ≤ simulación y
    redstone un chunk más; portales: cuadrado ±16 (Nether) / ±128 (Overworld), toda la altura, el más cercano en 3D y
    luego el más bajo.
-5. **Builds**: el mod guarda `NOMBRE.craftshot.nbt` (estructura vanilla) y `build` {file, origin, size, blocks,
+5. **Builds**: el mod guarda `NOMBRE.f2f3.nbt` (estructura vanilla) y `build` {file, origin, size, blocks,
    entities, template} en el JSON. App: `core/nbt/readNbt.ts`, `core/companion/structure.ts` (`summarizeStructure`;
    paleta `Name ?? id`), `buildPathFor`/`sidecarPathsFor` (el .nbt sigue a la imagen al mover/renombrar/borrar),
    `features/details/BuildSection.tsx` (materiales en stacks, "Guardar .nbt…", "Pegarlo donde estaba"),
    `shared/placement.ts` (`placeCommand`: `/place template <id> ~dx ~dy ~dz [rotación]`; clockwise_90 = (x,z)→(−z,x)),
    `main/minecraft/worlds.ts` (`listSaves`, `installTemplate` en `saves/<mundo>/generated/<ns>/structure/`).
 6. **La app dentro del juego**: `shared/gameIndex.ts` (`buildGameIndex`, puro, test) + `GameIndexExporter` escriben
-   `<carpeta del juego>/craftshot/app-index.json` (solo si esa carpeta tiene `saves/` u `options.txt`), 1,5 s después
+   `<carpeta del juego>/f2f3/app-index.json` (solo si esa carpeta tiene `saves/` u `options.txt`), 1,5 s después
    de `library changed`, `analysis updated` o `setMeta`. Formato: `shots[id relativo a screenshots] {world, dimension,
    block, favorite, note, tags, sections[{title, rows[[etiqueta, valor]]}]}` — las filas van ya redactadas en español
    y el mod solo las pinta.
 
 7. **Planes en el juego**: los paneles AFK y Portales tienen "Mostrar en el juego" / "Quitar" → IPC
-   `companion.sendPlan(world, patch)` → `main/minecraft/plans.ts` escribe `<carpeta del juego>/craftshot/plans.json` en
+   `companion.sendPlan(world, patch)` → `main/minecraft/plans.ts` escribe `<carpeta del juego>/f2f3/plans.json` en
    todas las carpetas de juego. Formato y limpieza en `shared/gamePlans.ts` (`mergeGamePlans`, test): `worlds[nombre]
    {seed?, afk? {dimension, spot, kind, simulation, farms[{x, y|null, z, label, level, text}]}, portals? {aDim, a, b}}`;
    en el parche, clave ausente = se conserva, null = se quita. Los planes de la app siguen sin persistir (se envían a mano).
@@ -137,7 +140,7 @@ clave por captura).
 
 ## Mod "F2+F3 Companion" (repo aparte: `../f2f3-companion`)
 El código del mod (Fabric 26.3, 1.21.1 y 1.20.1) vive en su propio repositorio, con su `CLAUDE.md` (clases, mixins,
-APIs por versión, cómo probarlo). Aquí solo quedan los jars compilados (`resources/craftshot-companion*.jar`), el
+APIs por versión, cómo probarlo). Aquí solo quedan los jars compilados (`resources/f2f3-companion*.jar`), el
 contrato JSON y los fixtures reales (`tests/fixtures/companion/`). `npm run build:mod` (`scripts/build-mod.mjs`)
 compila los tres proyectos de `../f2f3-companion` (o `F2F3_COMPANION_DIR`) y copia los jars.
 App: `shared/modVersions.ts` (`MOD_VERSIONS`), `components/SaveModButton.tsx` (selector de versión + botón, en
@@ -147,7 +150,7 @@ M lista de materiales, Mayús+F2 build.
 
 ### Contrato JSON del sidecar (schema 1) — mantenerlo estable, es la API entre mod y app
 ```json
-{ "format": "craftshot-companion", "schema": 1,
+{ "format": "f2f3-companion", "schema": 1,
   "mod": { "name": "F2+F3 Companion", "version": "1.0.0+26.3", "loader": "fabric", "minecraft": "26.3" },
   "capturedAt": "2026-09-29T15:32:10.123Z",
   "world": { "type": "singleplayer|multiplayer|realms", "name": "…", "seed": "123", "dimension": "minecraft:overworld",
@@ -158,7 +161,7 @@ M lista de materiales, Mayús+F2 build.
   "target": { "block": {"id":"minecraft:stone","pos":{…}}, "entity": {"id":"minecraft:zombie","distance":3.2} },
   "entities": [ {"id":"minecraft:cow","count":3,"nearest":12.5} ],
   "structures": { "inside": ["minecraft:village_plains"], "target": [] },
-  "build": { "file": "….craftshot.nbt", "origin": {…}, "size": {…}, "blocks": 173, "entities": 0, "template": "craftshot:casa" } }
+  "build": { "file": "….f2f3.nbt", "origin": {…}, "size": {…}, "blocks": 173, "entities": 0, "template": "f2f3:casa" } }
 ```
 `seed` solo en un jugador y **como string**; `structures` ausente = desconocido (multijugador). `entities` = seres vivos
 visibles (dentro del campo de visión y con línea de visión, ≤96 bloques). Más los campos opcionales de la fase 3.
@@ -167,7 +170,7 @@ visibles (dentro del campo de visión y con línea de visión, ≤96 bloques). M
 ## Pruebas y entorno
 - El usuario usa **i3** (tiling): las ventanas cambian de tamaño al abrirse otras; medir con `xdotool getwindowgeometry`
   antes de hacer clic. Captura: `import -window <id>`. Comprobar `xdotool getactivewindow getwindowname` antes de teclear.
-- App: modo debug `CRAFTSHOT_CAPTURE=out.png CRAFTSHOT_SIZE=1440x900 [CRAFTSHOT_SCRIPT=js] npx electron . --user-data-dir=<tmp>`
+- App: modo debug `F2F3_CAPTURE=out.png F2F3_SIZE=1440x900 [F2F3_SCRIPT=js] npx electron . --user-data-dir=<tmp>`
   (tras `npm run build`). En el `settings.json` de prueba poner `onboardingDone` **y** `gameDirConfirmed`.
   **No tocar la instancia de la app que tenga abierta el usuario.**
 - Minecraft del usuario: 26.3 (GUI scale 2; el F3 de 1.21.9+ oculta el bioma por defecto) y 1.20.1 Forge; juega con el
@@ -180,10 +183,7 @@ visibles (dentro del campo de visión y con línea de visión, ≤96 bloques). M
   el selector de versión de "Guardar el mod" en pantalla y `installTemplate` en un mundo 1.20.1. Forge: no hay port.
 - Nombres de ítems y bloques en español en la app (leer `es_es.json` de los assets de la versión); hoy salen en inglés
   (`prettifyId`).
-- Renombrar lo interno que aún dice "craftshot" y que el usuario ve (jar, espacio `craftshot:` del `/place`, carpeta
-  de Drive): ofrecido, sin decidir; los dos últimos necesitan migración.
 - Abrir chat/inventario cancela la selección y la colocación de builds aunque estén fijadas.
 - Sin probar en real: respaldo en Drive con varias carpetas, guía entre dimensiones, galería del mod en multijugador,
   `.deb`, y el diálogo nativo de "Guardar el mod".
-- `dist/Craftshot-1.0.0.AppImage` es un resto del nombre anterior.
 - Ideas: cajas de estructuras, cubiomes-WASM (confirmar soporte 26.x), guardar los planes del mapa en la app, repetir una captura desde el mismo punto.

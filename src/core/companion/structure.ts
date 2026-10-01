@@ -2,7 +2,7 @@ import type { BuildSummary, Vec3 } from '@shared/types'
 import { readNbt, type NbtCompound, type NbtValue } from '../nbt/readNbt'
 
 /**
- * Summary of a vanilla structure file (the ".craftshot.nbt" the mod saves on sneak+F2):
+ * Summary of a vanilla structure file (the ".f2f3.nbt" the mod saves on sneak+F2):
  * size, block counts by id (the material list) and entities. Pure.
  */
 

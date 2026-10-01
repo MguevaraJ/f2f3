@@ -27,7 +27,7 @@ interface BackupState {
   md5: Record<string, { fp: string; md5: string }>
 }
 
-const META_FILE = 'craftshot-datos.json'
+const META_FILE = 'f2f3-datos.json'
 const PARALLEL = 3
 const AUTO_DELAY_MS = 20_000
 
@@ -351,7 +351,7 @@ export class BackupService extends EventEmitter<{ status: [BackupStatus] }> {
     local: { path: string; entry: ScreenshotEntry; abs: string }[]
   ): Promise<void> {
     const doc = {
-      app: 'Craftshot',
+      app: 'F2F3',
       version: 1,
       source,
       screenshots: local.map((l) => ({

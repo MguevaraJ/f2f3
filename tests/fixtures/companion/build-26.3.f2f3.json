@@ -1,5 +1,5 @@
 {
-  "format": "craftshot-companion",
+  "format": "f2f3-companion",
   "schema": 1,
   "mod": {
     "name": "F2+F3 Companion",
@@ -7,14 +7,14 @@
     "loader": "fabric",
     "minecraft": "26.3"
   },
-  "capturedAt": "2026-09-30T03:48:43.116207261Z",
+  "capturedAt": "2026-09-30T04:31:53.786314019Z",
   "world": {
     "type": "singleplayer",
     "name": "New World",
     "seed": "-1844849896984713791",
     "dimension": "minecraft:overworld",
     "day": 0,
-    "timeOfDay": 12294,
+    "timeOfDay": 13727,
     "weather": "clear"
   },
   "player": {
@@ -34,9 +34,9 @@
       "z": -44
     },
     "facing": {
-      "direction": "north",
-      "yaw": -180.0,
-      "pitch": 0.0
+      "direction": "east",
+      "yaw": -90.0,
+      "pitch": 30.0
     },
     "gameMode": "creative"
   },
@@ -46,65 +46,49 @@
     "block": 5
   },
   "target": {
-    "entity": {
-      "id": "minecraft:villager",
-      "distance": 4.0,
-      "villager": {
-        "profession": "minecraft:librarian",
-        "type": "minecraft:plains",
-        "level": 1,
-        "xp": 0,
-        "golemDetectedRecently": false,
-        "trades": [
-          {
-            "buy": [
-              {
-                "id": "minecraft:emerald",
-                "count": 12
-              }
-            ],
-            "sell": {
-              "id": "minecraft:enchanted_book",
-              "count": 1,
-              "enchantments": {
-                "minecraft:mending": 1
-              }
-            },
-            "uses": 0,
-            "maxUses": 4
-          }
-        ]
+    "block": {
+      "id": "minecraft:chest",
+      "pos": {
+        "x": -1018,
+        "y": 101,
+        "z": -700
+      },
+      "state": {
+        "facing": "north",
+        "type": "single",
+        "waterlogged": "false"
+      },
+      "container": {
+        "size": 27,
+        "items": []
+      },
+      "signal": {
+        "received": 0,
+        "containerSignal": 0
       }
     }
   },
-  "entities": [
-    {
-      "id": "minecraft:villager",
-      "count": 1,
-      "nearest": 4.1
-    },
-    {
-      "id": "minecraft:sheep",
-      "count": 1,
-      "nearest": 73.4
-    }
-  ],
+  "entities": [],
   "nearby": [
     {
       "id": "minecraft:creeper",
-      "count": 35
+      "count": 21
     },
     {
       "id": "minecraft:zombie",
-      "count": 17
-    },
-    {
-      "id": "minecraft:bat",
-      "count": 14
+      "count": 20
     },
     {
       "id": "minecraft:skeleton",
-      "count": 11
+      "count": 18
+    },
+    {
+      "id": "minecraft:bat",
+      "count": 10
+    },
+    {
+      "id": "minecraft:spider",
+      "count": 9
     },
     {
       "id": "minecraft:pig",
@@ -119,16 +103,12 @@
       "count": 7
     },
     {
-      "id": "minecraft:sheep",
+      "id": "minecraft:squid",
       "count": 7
     },
     {
-      "id": "minecraft:squid",
+      "id": "minecraft:sheep",
       "count": 6
-    },
-    {
-      "id": "minecraft:spider",
-      "count": 5
     },
     {
       "id": "minecraft:rabbit",
@@ -147,6 +127,10 @@
       "count": 2
     },
     {
+      "id": "minecraft:item",
+      "count": 2
+    },
+    {
       "id": "minecraft:goat",
       "count": 1
     },
@@ -155,7 +139,11 @@
       "count": 1
     },
     {
-      "id": "minecraft:item",
+      "id": "minecraft:slime",
+      "count": 1
+    },
+    {
+      "id": "minecraft:armor_stand",
       "count": 1
     }
   ],
@@ -168,12 +156,12 @@
     "tick": {
       "rate": 20.0,
       "state": "normal",
-      "mspt": 6.88
+      "mspt": 5.55
     }
   },
   "mods": [
     {
-      "id": "craftshot_companion",
+      "id": "f2f3_companion",
       "name": "F2+F3 Companion",
       "version": "1.0.0+26.3"
     },
@@ -426,12 +414,12 @@
   "spawn": {
     "chunks": 289,
     "counts": {
-      "monster": 70,
+      "monster": 71,
       "creature": 159,
-      "ambient": 17,
+      "ambient": 15,
       "axolotls": 0,
       "underground_water_creature": 8,
-      "water_creature": 6,
+      "water_creature": 7,
       "water_ambient": 0,
       "misc": 0
     }
@@ -670,10 +658,27 @@
       "default": true
     }
   },
+  "build": {
+    "file": "2026-09-30_00.31.53.f2f3.nbt",
+    "origin": {
+      "x": -1034,
+      "y": 85,
+      "z": -716
+    },
+    "size": {
+      "x": 33,
+      "y": 33,
+      "z": 33
+    },
+    "blocks": 13854,
+    "entities": 3
+  },
   "structures": {
     "inside": [
       "minecraft:village_plains"
     ],
-    "target": []
+    "target": [
+      "minecraft:village_plains"
+    ]
   }
 }

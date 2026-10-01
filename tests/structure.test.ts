@@ -30,7 +30,7 @@ describe('readNbt', () => {
 })
 
 describe('build snapshot (real 26.3 file, sneak+F2 at a chest)', () => {
-  const json = parseCompanion(fixture('build-26.3.craftshot.json').toString('utf8'))!
+  const json = parseCompanion(fixture('build-26.3.f2f3.json').toString('utf8'))!
 
   it('parses the build section of the sidecar', () => {
     expect(json.build).toEqual({
@@ -42,16 +42,16 @@ describe('build snapshot (real 26.3 file, sneak+F2 at a chest)', () => {
   })
 
   it('keeps the name the build got in the world', () => {
-    const raw = JSON.parse(fixture('build-26.3.craftshot.json').toString('utf8'))
-    raw.build.template = 'craftshot:build_3'
-    expect(parseCompanion(JSON.stringify(raw))!.build!.template).toBe('craftshot:build_3')
+    const raw = JSON.parse(fixture('build-26.3.f2f3.json').toString('utf8'))
+    raw.build.template = 'f2f3:build_3'
+    expect(parseCompanion(JSON.stringify(raw))!.build!.template).toBe('f2f3:build_3')
     raw.build.template = 'no es un id'
     // A bad name only drops the build section, never the whole sidecar.
     expect(parseCompanion(JSON.stringify(raw))).not.toBeNull()
   })
 
   it('summarizes the structure file like the mod counted it', () => {
-    const s = summarizeStructure(fixture('build-26.3.craftshot.nbt'))!
+    const s = summarizeStructure(fixture('build-26.3.f2f3.nbt'))!
     expect(s.size).toEqual({ x: 33, y: 33, z: 33 })
     expect(s.blocks).toBe(json.build!.blocks)
     expect(s.materials.reduce((a, m) => a + m.count, 0)).toBe(s.blocks)
@@ -69,27 +69,33 @@ describe('build snapshot (real 26.3 file, sneak+F2 at a chest)', () => {
   })
 
   it('names the sidecars after the image', () => {
-    expect(buildPathFor('/s/a.b.png')).toBe('/s/a.b.craftshot.nbt')
-    expect(sidecarPathsFor('/s/x.png')).toEqual(['/s/x.craftshot.json', '/s/x.craftshot.nbt'])
+    expect(buildPathFor('/s/a.b.png')).toBe('/s/a.b.f2f3.nbt')
+    // The names from before the rename come along when an image is moved or deleted.
+    expect(sidecarPathsFor('/s/x.png')).toEqual([
+      '/s/x.f2f3.json',
+      '/s/x.craftshot.json',
+      '/s/x.f2f3.nbt',
+      '/s/x.craftshot.nbt'
+    ])
   })
 })
 
 describe('build snapshot (real 1.21.1 file, from the Fabric 1.21.1 port)', () => {
-  const json = parseCompanion(fixture('build-1.21.1.craftshot.json').toString('utf8'))!
+  const json = parseCompanion(fixture('build-1.21.1.f2f3.json').toString('utf8'))!
 
   it('parses the sidecar the port writes', () => {
     expect(json.minecraft).toBe('1.21.1')
     expect(json.modVersion).toBe('1.0.0+1.21.1')
     expect(json.build).toMatchObject({
       size: { x: 16, y: 12, z: 16 },
-      template: 'craftshot:prueba'
+      template: 'f2f3:prueba'
     })
     expect(json.gamerules?.['minecraft:random_tick_speed']).toEqual({ value: 3, default: 3 })
     expect(json.spawn?.chunks).toBeGreaterThan(0)
   })
 
   it('summarizes its structure file (palette written with "Name")', () => {
-    const s = summarizeStructure(fixture('build-1.21.1.craftshot.nbt'))!
+    const s = summarizeStructure(fixture('build-1.21.1.f2f3.nbt'))!
     expect(s.size).toEqual({ x: 16, y: 12, z: 16 })
     expect(s.blocks).toBe(json.build!.blocks)
     expect(s.materials.map((m) => m.id)).toEqual(
@@ -99,20 +105,20 @@ describe('build snapshot (real 1.21.1 file, from the Fabric 1.21.1 port)', () =>
 })
 
 describe('build snapshot (real 1.20.1 file, from the Fabric 1.20.1 port)', () => {
-  const json = parseCompanion(fixture('build-1.20.1.craftshot.json').toString('utf8'))!
+  const json = parseCompanion(fixture('build-1.20.1.f2f3.json').toString('utf8'))!
 
   it('parses the sidecar the port writes', () => {
     expect(json.minecraft).toBe('1.20.1')
     expect(json.game?.tick).toMatchObject({ rate: 20, state: 'normal' })
     expect(json.build).toMatchObject({
       size: { x: 16, y: 14, z: 16 },
-      template: 'craftshot:prueba'
+      template: 'f2f3:prueba'
     })
     expect(json.target?.block?.id).toBe('minecraft:stone')
   })
 
   it('summarizes its structure file', () => {
-    const s = summarizeStructure(fixture('build-1.20.1.craftshot.nbt'))!
+    const s = summarizeStructure(fixture('build-1.20.1.f2f3.nbt'))!
     expect(s.blocks).toBe(json.build!.blocks)
     expect(s.materials.map((m) => m.id)).toEqual(
       expect.arrayContaining(['minecraft:oak_leaves', 'minecraft:stone'])

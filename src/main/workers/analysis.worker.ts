@@ -3,7 +3,8 @@ import { dirname } from 'node:path'
 import { parentPort } from 'node:worker_threads'
 import { PNG } from 'pngjs'
 import { analyzeImage } from '@core/analyze'
-import { buildPathFor, companionPathFor, parseCompanion } from '@core/companion/parseCompanion'
+import { parseCompanion } from '@core/companion/parseCompanion'
+import { buildFileOf, companionFileOf } from '../sidecars'
 import { summarizeStructure } from '@core/companion/structure'
 import { loadFontFrom, type MinecraftFont } from '@core/font/minecraftFont'
 import { downscale } from '@core/image/resize'
@@ -38,7 +39,7 @@ function writeAtomic(path: string, data: Buffer): void {
 /** Exact game data from the F2+F3 Companion mod, when it wrote a sidecar. */
 function companion(file: string): ReturnType<typeof parseCompanion> {
   try {
-    return parseCompanion(readFileSync(companionPathFor(file), 'utf8'))
+    return parseCompanion(readFileSync(companionFileOf(file), 'utf8'))
   } catch {
     return null
   }
@@ -51,7 +52,7 @@ function build(
 ): ReturnType<typeof summarizeStructure> {
   if (!mod?.build) return null
   try {
-    return summarizeStructure(readFileSync(buildPathFor(file)))
+    return summarizeStructure(readFileSync(buildFileOf(file)))
   } catch {
     return null
   }

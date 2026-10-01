@@ -125,7 +125,7 @@ export type InfoSource = 'mod' | 'f3' | 'vision' | 'local' | 'heuristic' | 'manu
 
 /**
  * Exact game state written by the F2+F3 Companion mod next to a screenshot
- * ("name.craftshot.json", format "craftshot-companion" schema 1).
+ * ("name.f2f3.json", format "f2f3-companion" schema 1).
  */
 export interface CompanionData {
   modVersion: string
@@ -210,13 +210,13 @@ export interface CompanionVillager {
   trades: { buy: CompanionItem[]; sell: CompanionItem; uses: number; maxUses: number }[]
 }
 
-/** The build saved by the mod on sneak+F2 (".craftshot.nbt"), as the mod describes it. */
+/** The build saved by the mod on sneak+F2 (".f2f3.nbt"), as the mod describes it. */
 export interface CompanionBuild {
   origin: Vec3
   size: Vec3
   blocks: number
   entities: number
-  /** Template the mod saved in the world ("craftshot:build_3"), for /place template. */
+  /** Template the mod saved in the world ("f2f3:build_3"), for /place template. */
   template?: string
 }
 

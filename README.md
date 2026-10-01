@@ -41,7 +41,7 @@ El mod opcional de Fabric que guarda los datos exactos del juego junto a cada ca
   con columnas extra: XYZ exacto, chunk, región, orientación, mobs, nota y comando `/tp`.
 
 - **Copia de seguridad en Google Drive**: conecta tu cuenta y F2+F3 sube tus capturas a
-  *Mi unidad › Craftshot › minecraft* con tus mismas carpetas, más `craftshot-datos.json` (notas,
+  *Mi unidad › F2+F3 › minecraft* con tus mismas carpetas, más `f2f3-datos.json` (notas,
   favoritas, datos del F3). Es incremental (compara MD5), verifica cada subida, detecta renombres y
   movimientos (mueve el archivo en Drive en vez de volver a subirlo), nunca borra nada de Drive, puede
   respaldar automáticamente cada captura nueva y **restaurar** las que falten en tu equipo.
@@ -57,7 +57,7 @@ El mod opcional de Fabric que guarda los datos exactos del juego junto a cada ca
   sin bandeja por defecto: se vuelve a abrir ejecutando F2+F3 otra vez (instancia única). La
   elección se puede recordar y cambiar en Ajustes.
 - **Iniciar con el sistema** (desactivado por defecto): arranca en segundo plano al iniciar sesión.
-  Windows/macOS usan los elementos de inicio del sistema; Linux, `~/.config/autostart/craftshot.desktop`
+  Windows/macOS usan los elementos de inicio del sistema; Linux, `~/.config/autostart/f2f3.desktop`
   (GNOME, KDE, XFCE… y i3/sway con `dex -a`).
 
 ## Uso
@@ -117,7 +117,7 @@ src/
     vision/      IA avanzada: prompt/esquema comunes y proveedores (Claude SDK, OpenAI, Gemini, Ollama)
     google/      OAuth (loopback + PKCE) y cliente REST de Drive con reintentos y backoff
     workers/     Worker thread: decodifica PNG, OCR y miniatura fuera del hilo principal
-    protocol.ts  Esquema craftshot:// para imágenes y miniaturas (sin exponer file://)
+    protocol.ts  Esquema f2f3:// para imágenes y miniaturas (sin exponer file://)
     ipc/         Handlers con validación de argumentos
   preload/     Puente mínimo y tipado (contextBridge)
   renderer/    React + Zustand
@@ -131,5 +131,5 @@ key nunca llega al renderer.
 
 ### Depuración visual
 
-`CRAFTSHOT_CAPTURE=/tmp/out.png [CRAFTSHOT_SIZE=1440x900] [CRAFTSHOT_SCRIPT="js"] npm start`
+`F2F3_CAPTURE=/tmp/out.png [F2F3_SIZE=1440x900] [F2F3_SCRIPT="js"] npm start`
 guarda una captura de la ventana y cierra la app.

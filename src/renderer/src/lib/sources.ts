@@ -61,7 +61,7 @@ export const MOD_LEVEL = {
   gives:
     'Coordenadas, bioma, mobs visibles, estructuras, semilla, hora y clima sin abrir el F3; y para técnico: TPS, límite de mobs, reglas del juego, contenido de cofres y tolvas, señal de redstone y tratos de aldeanos.',
   needs:
-    'Minecraft 26.3 con Fabric Loader. Guarda el mod y ponlo en la carpeta mods de ese perfil; al pulsar F2 deja un .craftshot.json junto a la captura.'
+    'Minecraft 26.3 con Fabric Loader. Guarda el mod y ponlo en la carpeta mods de ese perfil; al pulsar F2 deja un .f2f3.json junto a la captura.'
 } as const
 
 /** The levels as presented in onboarding and settings. */

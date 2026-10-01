@@ -1,37 +1,37 @@
 {
-  "format": "craftshot-companion",
+  "format": "f2f3-companion",
   "schema": 1,
   "mod": {
     "name": "F2+F3 Companion",
-    "version": "1.0.0+1.21.1",
+    "version": "1.0.0+1.20.1",
     "loader": "fabric",
-    "minecraft": "1.21.1"
+    "minecraft": "1.20.1"
   },
-  "capturedAt": "2026-10-01T06:25:41.278846113Z",
+  "capturedAt": "2026-10-01T06:29:57.591711546Z",
   "world": {
     "type": "singleplayer",
     "name": "Mundo nuevo",
-    "seed": "-770022721427752299",
+    "seed": "-8382554285089428220",
     "dimension": "minecraft:overworld",
     "day": 0,
-    "timeOfDay": 3061,
+    "timeOfDay": 835,
     "weather": "clear"
   },
   "player": {
     "position": {
-      "x": 9.5,
-      "y": 102.0,
-      "z": 3.5
+      "x": -0.5,
+      "y": 135.0,
+      "z": -3.5
     },
     "block": {
-      "x": 9,
-      "y": 102,
-      "z": 3
+      "x": -1,
+      "y": 135,
+      "z": -4
     },
     "chunk": {
-      "x": 0,
-      "y": 6,
-      "z": 0
+      "x": -1,
+      "y": 8,
+      "z": -1
     },
     "facing": {
       "direction": "south",
@@ -40,43 +40,53 @@
     },
     "gameMode": "creative"
   },
-  "biome": "minecraft:snowy_taiga",
+  "biome": "minecraft:forest",
   "light": {
     "sky": 15,
     "block": 0
   },
-  "target": {},
-  "entities": [
-    {
-      "id": "minecraft:cow",
-      "count": 1,
-      "nearest": 18.2
+  "target": {
+    "block": {
+      "id": "minecraft:stone",
+      "pos": {
+        "x": -1,
+        "y": 136,
+        "z": -1
+      },
+      "signal": {
+        "received": 0
+      }
     }
-  ],
+  },
+  "entities": [],
   "nearby": [
     {
+      "id": "minecraft:creeper",
+      "count": 23
+    },
+    {
       "id": "minecraft:skeleton",
-      "count": 27
+      "count": 22
     },
     {
       "id": "minecraft:zombie",
-      "count": 17
-    },
-    {
-      "id": "minecraft:creeper",
-      "count": 15
+      "count": 16
     },
     {
       "id": "minecraft:bat",
+      "count": 16
+    },
+    {
+      "id": "minecraft:chicken",
       "count": 13
     },
     {
-      "id": "minecraft:spider",
-      "count": 9
+      "id": "minecraft:bee",
+      "count": 8
     },
     {
-      "id": "minecraft:squid",
-      "count": 8
+      "id": "minecraft:pig",
+      "count": 7
     },
     {
       "id": "minecraft:wolf",
@@ -87,24 +97,12 @@
       "count": 7
     },
     {
-      "id": "minecraft:item",
-      "count": 6
+      "id": "minecraft:spider",
+      "count": 7
     },
     {
       "id": "minecraft:glow_squid",
-      "count": 5
-    },
-    {
-      "id": "minecraft:chicken",
-      "count": 4
-    },
-    {
-      "id": "minecraft:sheep",
-      "count": 4
-    },
-    {
-      "id": "minecraft:fox",
-      "count": 2
+      "count": 6
     },
     {
       "id": "minecraft:enderman",
@@ -124,14 +122,14 @@
     "tick": {
       "rate": 20.0,
       "state": "normal",
-      "mspt": 3.06
+      "mspt": 4.78
     }
   },
   "mods": [
     {
-      "id": "craftshot_companion",
+      "id": "f2f3_companion",
       "name": "F2+F3 Companion",
-      "version": "1.0.0+1.21.1"
+      "version": "1.0.0+1.20.1"
     },
     {
       "id": "fabricloader",
@@ -148,11 +146,11 @@
     "chunks": 289,
     "counts": {
       "monster": 70,
-      "creature": 126,
-      "ambient": 15,
+      "creature": 106,
+      "ambient": 16,
       "axolotls": 0,
-      "underground_water_creature": 5,
-      "water_creature": 8,
+      "underground_water_creature": 6,
+      "water_creature": 0,
       "water_ambient": 0,
       "misc": 0
     }
@@ -242,10 +240,6 @@
       "value": true,
       "default": true
     },
-    "minecraft:ender_pearls_vanish_on_death": {
-      "value": true,
-      "default": true
-    },
     "minecraft:fall_damage": {
       "value": true,
       "default": true
@@ -282,10 +276,6 @@
       "value": 65536,
       "default": 65536
     },
-    "minecraft:max_command_fork_count": {
-      "value": 65536,
-      "default": 65536
-    },
     "minecraft:max_entity_cramming": {
       "value": 24,
       "default": 24
@@ -302,21 +292,9 @@
       "value": true,
       "default": true
     },
-    "minecraft:players_nether_portal_creative_delay": {
-      "value": 1,
-      "default": 1
-    },
-    "minecraft:players_nether_portal_default_delay": {
-      "value": 80,
-      "default": 80
-    },
     "minecraft:players_sleeping_percentage": {
       "value": 100,
       "default": 100
-    },
-    "minecraft:projectiles_can_break_blocks": {
-      "value": true,
-      "default": true
     },
     "minecraft:random_tick_speed": {
       "value": 3,
@@ -337,10 +315,6 @@
     "minecraft:snow_accumulation_height": {
       "value": 1,
       "default": 1
-    },
-    "minecraft:spawn_chunk_radius": {
-      "value": 2,
-      "default": 2
     },
     "minecraft:spawn_radius": {
       "value": 10,
@@ -364,20 +338,20 @@
     }
   },
   "build": {
-    "file": "2026-10-01_02.25.41.craftshot.nbt",
+    "file": "2026-10-01_02.29.57.f2f3.nbt",
     "origin": {
-      "x": 9,
-      "y": 103,
-      "z": 13
+      "x": -1,
+      "y": 136,
+      "z": -1
     },
     "size": {
       "x": 16,
-      "y": 12,
+      "y": 14,
       "z": 16
     },
-    "blocks": 426,
-    "entities": 1,
-    "template": "craftshot:prueba"
+    "blocks": 906,
+    "entities": 0,
+    "template": "f2f3:prueba"
   },
   "structures": {
     "inside": [],

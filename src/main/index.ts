@@ -1,4 +1,5 @@
 import { app, BrowserWindow, clipboard, globalShortcut, ipcMain, session } from 'electron'
+import { existsSync, renameSync } from 'node:fs'
 import { join } from 'node:path'
 import { IPC } from '@shared/ipc'
 import { LaunchAtLogin } from './autostart/LaunchAtLogin'
@@ -14,10 +15,21 @@ registerSchemePrivileges()
 
 // The packaged name is file-safe ("F2F3"); this is the one shown to people.
 app.setName('F2+F3')
-// The app was called Craftshot: its data folder keeps that name so nothing is lost
-// (unless one is given explicitly, as the tests do).
-if (!app.commandLine.hasSwitch('user-data-dir'))
-  app.setPath('userData', join(app.getPath('appData'), 'Craftshot'))
+// The data folder has a file-safe name (unless one is given explicitly, as the tests do).
+// The app was called Craftshot: a folder from then is renamed once, so nothing is lost.
+if (!app.commandLine.hasSwitch('user-data-dir')) {
+  const dataDir = join(app.getPath('appData'), 'F2F3')
+  const oldDataDir = join(app.getPath('appData'), 'Craftshot')
+  let dir = dataDir
+  if (!existsSync(dataDir) && existsSync(oldDataDir)) {
+    try {
+      renameSync(oldDataDir, dataDir)
+    } catch {
+      dir = oldDataDir
+    }
+  }
+  app.setPath('userData', dir)
+}
 if (!app.requestSingleInstanceLock()) app.quit()
 
 let services: Services | null = null
@@ -53,7 +65,7 @@ app.on('second-instance', () => {
 })
 
 app.whenReady().then(() => {
-  app.setAppUserModelId('dev.mguevara.craftshot')
+  app.setAppUserModelId('dev.mguevara.f2f3')
   // Deny every permission request (camera, notifications, …): the app needs none.
   session.defaultSession.setPermissionRequestHandler((_wc, _perm, cb) => cb(false))
 
@@ -134,13 +146,13 @@ app.whenReady().then(() => {
   settings.on('changed', (next, prev) => {
     if (next.launchAtLogin !== prev.launchAtLogin) applyAutostart(next.launchAtLogin)
   })
-  const startHidden = autostart.startedAtLogin() && !process.env.CRAFTSHOT_CAPTURE
+  const startHidden = autostart.startedAtLogin() && !process.env.F2F3_CAPTURE
 
   mainWindow = createMainWindow({ visible: !startHidden })
   mainWindow.on('closed', onMainClosed)
   background.attach(mainWindow)
   if (startHidden) background.syncTray()
-  if (process.env.CRAFTSHOT_CAPTURE) void captureForDebug(mainWindow, process.env.CRAFTSHOT_CAPTURE)
+  if (process.env.F2F3_CAPTURE) void captureForDebug(mainWindow, process.env.F2F3_CAPTURE)
 
   app.on('activate', () => {
     if (!mainWindow) showMainWindow()
@@ -148,18 +160,18 @@ app.whenReady().then(() => {
 })
 
 /**
- * Debug aid: CRAFTSHOT_CAPTURE=/path/out.png writes a screenshot of the window after
- * it settles, then quits. CRAFTSHOT_SCRIPT may hold JS to run in the page first.
+ * Debug aid: F2F3_CAPTURE=/path/out.png writes a screenshot of the window after
+ * it settles, then quits. F2F3_SCRIPT may hold JS to run in the page first.
  */
 async function captureForDebug(win: BrowserWindow, out: string): Promise<void> {
   const { writeFile } = await import('node:fs/promises')
   await new Promise<void>((r) => win.webContents.once('did-finish-load', () => r()))
-  const [w, h] = (process.env.CRAFTSHOT_SIZE ?? '').split('x').map(Number)
+  const [w, h] = (process.env.F2F3_SIZE ?? '').split('x').map(Number)
   if (w && h) win.setContentSize(w, h)
-  await new Promise((r) => setTimeout(r, Number(process.env.CRAFTSHOT_DELAY ?? 4000)))
-  if (process.env.CRAFTSHOT_SCRIPT) {
-    await win.webContents.executeJavaScript(process.env.CRAFTSHOT_SCRIPT)
-    await new Promise((r) => setTimeout(r, Number(process.env.CRAFTSHOT_SCRIPT_DELAY ?? 1500)))
+  await new Promise((r) => setTimeout(r, Number(process.env.F2F3_DELAY ?? 4000)))
+  if (process.env.F2F3_SCRIPT) {
+    await win.webContents.executeJavaScript(process.env.F2F3_SCRIPT)
+    await new Promise((r) => setTimeout(r, Number(process.env.F2F3_SCRIPT_DELAY ?? 1500)))
   }
   const image = await win.webContents.capturePage()
   await writeFile(out, image.toPNG())

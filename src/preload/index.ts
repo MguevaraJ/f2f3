@@ -1,5 +1,5 @@
 import { contextBridge, ipcRenderer, webUtils, type IpcRendererEvent } from 'electron'
-import { IPC, type CraftshotApi, type Unsubscribe } from '@shared/ipc'
+import { IPC, type F2F3Api, type Unsubscribe } from '@shared/ipc'
 
 /**
  * The only bridge between the sandboxed renderer and Node/Electron.
@@ -16,7 +16,7 @@ function subscribe<A extends unknown[]>(channel: string, cb: (...args: A) => voi
   return () => ipcRenderer.removeListener(channel, listener)
 }
 
-const api: CraftshotApi = {
+const api: F2F3Api = {
   library: {
     get: invoke(IPC.library.get),
     refresh: invoke(IPC.library.refresh),
@@ -92,4 +92,4 @@ const api: CraftshotApi = {
   }
 }
 
-contextBridge.exposeInMainWorld('craftshot', api)
+contextBridge.exposeInMainWorld('f2f3', api)

@@ -352,7 +352,7 @@ function WorldFact({ shot }: { shot: ScreenshotEntry }) {
           <>
             <input
               className="input small-select"
-              list="craftshot-worlds"
+              list="f2f3-worlds"
               autoFocus
               defaultValue={shot.meta.world ?? ''}
               placeholder={w.source !== 'manual' && w.name ? w.name : 'Nombre del mundo'}
@@ -362,7 +362,7 @@ function WorldFact({ shot }: { shot: ScreenshotEntry }) {
                 if (e.key === 'Escape') setEditing(false)
               }}
             />
-            <datalist id="craftshot-worlds">
+            <datalist id="f2f3-worlds">
               {names.map((n) => (
                 <option key={n} value={n} />
               ))}

@@ -20,13 +20,13 @@ function rotate(v: Vec3, quarters: number): Vec3 {
   return { x: x + 0, y: v.y, z: z + 0 } // "+ 0" turns -0 into 0
 }
 
-/** Template id for a screenshot: "minecraft:craftshot/2026-09-30_04.48.55". */
+/** Template id for a screenshot: "minecraft:f2f3/2026-09-30_04.48.55". */
 export function templateId(imageName: string): string {
   const base = imageName
     .replace(/\.[^.]+$/, '')
     .toLowerCase()
     .replace(/[^a-z0-9_.-]+/g, '_')
-  return `minecraft:craftshot/${base || 'build'}`
+  return `minecraft:f2f3/${base || 'build'}`
 }
 
 /**

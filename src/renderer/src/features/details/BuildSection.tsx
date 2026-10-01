@@ -106,7 +106,7 @@ export function BuildSection({
         </div>
       ) : (
         <p className="muted small">
-          No se encontró el archivo <code>.craftshot.nbt</code> junto a la captura.
+          No se encontró el archivo <code>.f2f3.nbt</code> junto a la captura.
         </p>
       )}
 
@@ -193,7 +193,7 @@ function PlaceBlock({
       {inWorld && (
         <p className="small">
           Ya está en el mundo «{mod.world.name}» como <code>{id}</code>. En el juego, escribe{' '}
-          <code>/place template craftshot:</code> y el juego te sugiere todos tus builds.
+          <code>/place template f2f3:</code> y el juego te sugiere todos tus builds.
         </p>
       )}
       {saves && saves.length > 0 ? (

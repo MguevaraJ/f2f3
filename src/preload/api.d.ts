@@ -1,9 +1,9 @@
-import type { CapturePopupApi, CraftshotApi } from '../shared/ipc'
+import type { CapturePopupApi, F2F3Api } from '../shared/ipc'
 
 declare global {
   interface Window {
-    craftshot: CraftshotApi
-    craftshotPopup: CapturePopupApi
+    f2f3: F2F3Api
+    f2f3Popup: CapturePopupApi
   }
 }
 

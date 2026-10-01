@@ -104,7 +104,7 @@ export function buildCoordsTable(rows: ScreenshotEntry[], opts: CoordsTableOptio
   const date = new Date().toISOString().slice(0, 10)
   return {
     sheetName: 'Coordenadas',
-    fileName: `craftshot-coordenadas-${date}`,
+    fileName: `f2f3-coordenadas-${date}`,
     columns,
     rows: data
   }

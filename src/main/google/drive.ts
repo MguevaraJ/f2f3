@@ -58,7 +58,7 @@ export class DriveHttpError extends Error {
 const API = 'https://www.googleapis.com/drive/v3'
 const UPLOAD = 'https://www.googleapis.com/upload/drive/v3'
 const FOLDER_MIME = 'application/vnd.google-apps.folder'
-const APP_FOLDER = 'Craftshot'
+const APP_FOLDER = 'F2+F3'
 const FIELDS = 'id,name,mimeType,md5Checksum,size,parents,appProperties'
 /** Above this, use a resumable session instead of a single multipart request. */
 const MULTIPART_LIMIT = 5 * 1024 * 1024
@@ -185,7 +185,7 @@ export class DriveClient implements DriveApi {
       appProperties: { cs_source: source, cs_path: path, cs_kind: kind }
     }
     if (file.data.byteLength <= MULTIPART_LIMIT) {
-      const boundary = `craftshot${Date.now().toString(36)}`
+      const boundary = `f2f3${Date.now().toString(36)}`
       const body = Buffer.concat([
         Buffer.from(
           `--${boundary}\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n${JSON.stringify(metadata)}\r\n` +

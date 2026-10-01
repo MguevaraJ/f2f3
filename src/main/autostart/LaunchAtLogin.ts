@@ -19,7 +19,7 @@ export class LaunchAtLogin {
   ) {}
 
   get desktopFile(): string {
-    return join(this.configDir, 'autostart', 'craftshot.desktop')
+    return join(this.configDir, 'autostart', 'f2f3.desktop')
   }
 
   /** Command that starts this very installation (AppImage, installed binary or dev). */
@@ -34,6 +34,8 @@ export class LaunchAtLogin {
   /** Makes the OS state match `enabled`. Idempotent: also refreshes paths after updates. */
   apply(enabled: boolean): void {
     if (this.platform === 'linux') {
+      // The entry written when the app was called Craftshot.
+      rmSync(join(this.configDir, 'autostart', 'craftshot.desktop'), { force: true })
       if (enabled) {
         mkdirSync(join(this.configDir, 'autostart'), { recursive: true })
         const content = desktopEntry({ argv: this.command(), icon: appIcon })
