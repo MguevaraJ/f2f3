@@ -236,6 +236,8 @@ function ViewerFrame({ shot, shots, index, go, prefs, setPrefs }: FrameProps) {
 
   const onPointerDown = (e: PointerEvent): void => {
     if (e.button !== 0) return
+    // Capturing the pointer would redirect the click away from the ‹ › buttons on the stage.
+    if (e.target instanceof Element && e.target.closest('button')) return
     e.currentTarget.setPointerCapture(e.pointerId)
     drag.current = { x: e.clientX, y: e.clientY, ox: view.x, oy: view.y, moved: false }
   }
