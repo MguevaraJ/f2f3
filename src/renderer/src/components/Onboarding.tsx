@@ -9,13 +9,7 @@ import { GameFolderPicker } from './GameFolderPicker'
 import { GrassBlock, Icon } from './icons'
 import { McText } from './McText'
 
-const STEPS = [
-  'Inicio',
-  'Tu Minecraft',
-  'Niveles',
-  'Modelo local',
-  'Consejo F3'
-] as const
+const STEPS = ['Inicio', 'Tu Minecraft', 'Niveles', 'Modelo local', 'Consejo F3'] as const
 const FOLDER_STEP = 1
 
 /**
