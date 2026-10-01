@@ -1,7 +1,11 @@
 package dev.mguevara.craftshot.companion;
 
+import java.util.ArrayList;
+import java.util.List;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.Font;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.Screenshot;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -10,6 +14,7 @@ import net.minecraft.gizmos.Gizmos;
 import net.minecraft.network.chat.ClickEvent;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.HoverEvent;
+import net.minecraft.util.FormattedCharSequence;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
 
@@ -37,6 +42,8 @@ public final class BuildPreview {
 	private static int computedSize;
 	private static BuildRegion region;
 	private static int age;
+	private static String hudStatus = "";
+	private static String hudControls = "";
 
 	private static int captureIn;
 	private static boolean capturing;
@@ -182,12 +189,11 @@ public final class BuildPreview {
 			Gizmos.cuboid(box, locked ? BOX_EDGES_LOCKED : BOX_EDGES).setAlwaysOnTop();
 		}
 		if (aimed != null) Gizmos.cuboid(aimed, TARGET).setAlwaysOnTop();
-		if (age % 10 == 0) {
-			message(mc, region == null
-				? "Apunta a la base del build · Esc cancela"
-				: (locked ? "FIJADA · " : "") + "Build " + region.sizeText() + " · " + region.blocks() + " bloques · F2 guarda · Enter "
-					+ (locked ? "suelta" : "fija") + " · rueda agachado: tamaño (" + size + ") · Esc cancela");
-		}
+		// Shown by drawHud: the action bar is a single line and cut the text on narrow windows.
+		hudStatus = region == null ? "Apunta a la base del build"
+			: (locked ? "FIJADA · " : "") + "Build " + region.sizeText() + " · " + region.blocks() + " bloques";
+		hudControls = region == null ? "Esc cancela"
+			: "F2 guarda · Enter " + (locked ? "suelta" : "fija") + " · rueda agachado: tamaño (" + size + ") · Esc cancela";
 		age++;
 	}
 
@@ -224,6 +230,27 @@ public final class BuildPreview {
 			case "west" -> "oeste";
 			default -> facing;
 		};
+	}
+
+	/** Status and controls above the hotbar while the preview is on, each wrapped to the screen width. */
+	public static void drawHud(GuiGraphicsExtractor g) {
+		Minecraft mc = Minecraft.getInstance();
+		if (!active || mc.gui.screen() != null) return;
+		Font font = mc.font;
+		int max = Math.max(60, g.guiWidth() - 24);
+		List<FormattedCharSequence> lines = new ArrayList<>(font.split(Component.literal(hudStatus), max));
+		int statusLines = lines.size();
+		lines.addAll(font.split(Component.literal(hudControls), max));
+		int lineHeight = font.lineHeight + 2;
+		int widest = 0;
+		for (FormattedCharSequence line : lines) widest = Math.max(widest, font.width(line));
+		// Above the hotbar, the hearts and the held item's name.
+		int top = g.guiHeight() - 62 - lines.size() * lineHeight;
+		g.fill((g.guiWidth() - widest) / 2 - 5, top - 4, (g.guiWidth() + widest) / 2 + 5, top + lines.size() * lineHeight + 1, 0x90000000);
+		for (int i = 0; i < lines.size(); i++) {
+			FormattedCharSequence line = lines.get(i);
+			g.text(font, line, (g.guiWidth() - font.width(line)) / 2, top + i * lineHeight, i < statusLines ? 0xFFFFE066 : 0xFFFFFFFF);
+		}
 	}
 
 	private static void message(Minecraft mc, String text) {

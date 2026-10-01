@@ -188,6 +188,9 @@ dentro del campo de visión de la cámara (FOV vertical de opciones + aspecto de
    `listSaves` (lee `Data.LevelName` de level.dat; saves = padre de screenshotsDir) e `installTemplate`
    (`saves/<mundo>/generated/minecraft/structure/craftshot/<img>.nbt`). IPC `companion.listSaves`/`installBuild`.
    UI: bloque "Pegarlo donde estaba" en `BuildSection` (mundo, "Añadir al mundo", dirección, comando).
+   **Texto de la vista previa**: ya no usa la barra de acción (una sola línea, se cortaba); `BuildPreview.drawHud`
+   desde el mixin `Hud.extractRenderState` TAIL dibuja estado + controles con `font.split` (ajuste al ancho) sobre un
+   fondo oscuro. En 26.3 el HUD es `net.minecraft.client.gui.Hud` (no `Gui`) y `Options.hideGui` ya no existe.
    **Guardado en el mundo** (automático al guardar con la vista previa): `ServerCollector.build` usa
    `server.getStructureTemplateManager().getOrCreate(craftshot:build_N)` + `save(id)` (como el bloque de estructura:
    escribe `generated/craftshot/structure/build_N.nbt` y actualiza la caché, así `/place` lo encuentra sin reabrir el
