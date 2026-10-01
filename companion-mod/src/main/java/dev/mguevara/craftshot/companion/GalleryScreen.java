@@ -50,7 +50,7 @@ public final class GalleryScreen extends Screen {
 	private double detailScroll;
 
 	private int gridWidth, columns, cellWidth, imageHeight, panelX, panelWidth, bottom, detailTop, detailBottom;
-	private Button filterButton, guideButton, copyButton, placeButton, undoButton;
+	private Button filterButton, guideButton, copyButton, placeButton, materialsButton, undoButton;
 
 	public GalleryScreen() {
 		super(Component.literal("F2+F3"));
@@ -85,6 +85,11 @@ public final class GalleryScreen extends Screen {
 		placeButton = addRenderableWidget(Button.builder(Component.literal("Colocar build"), b -> {
 			minecraft.gui.setScreen(null);
 			BuildPlacer.start(minecraft, selected);
+		}).bounds(x, y, w, BUTTON).build());
+		materialsButton = addRenderableWidget(Button.builder(Component.empty(), b -> {
+			if (Materials.isFor(selected)) Materials.clear();
+			else Materials.start(minecraft, selected);
+			minecraft.gui.setScreen(null);
 		}).bounds(x, y, w, BUTTON).build());
 		undoButton = addRenderableWidget(Button.builder(Component.literal("Deshacer"), b -> {
 			minecraft.gui.setScreen(null);
@@ -132,12 +137,17 @@ public final class GalleryScreen extends Screen {
 		placeButton.visible = capture != null && capture.build() != null;
 		placeButton.active = minecraft.hasSingleplayerServer();
 		placeButton.setTooltip(Tooltip.create(Component.literal(placeButton.active ? "Coloca el build guardado con esta captura" : "Solo en mundos de un jugador")));
+		boolean pinned = Materials.isFor(capture);
+		materialsButton.visible = capture != null && capture.build() != null;
+		materialsButton.setMessage(Component.literal(pinned ? "Quitar lista" : "Materiales"));
+		materialsButton.setTooltip(Tooltip.create(Component.literal(pinned ? "Quita la lista de materiales de la pantalla"
+			: "Fija en pantalla lo que necesita este build y lo va tachando con tu inventario")));
 		undoButton.setTooltip(Tooltip.create(Component.literal("Deshace la última colocación de un build")));
 		undoButton.visible = BuildPlacer.canUndo(minecraft);
 
 		// Two per row at the bottom of the panel (a lone one takes the row); the details take the rest.
 		List<Button> visible = new ArrayList<>();
-		for (Button button : new Button[] { guideButton, copyButton, placeButton, undoButton }) if (button.visible) visible.add(button);
+		for (Button button : new Button[] { guideButton, copyButton, placeButton, materialsButton, undoButton }) if (button.visible) visible.add(button);
 		int rows = (visible.size() + 1) / 2;
 		int left = panelX + 4, full = panelWidth - 8, half = (full - 2) / 2;
 		int top = bottom - 3 - rows * (BUTTON + 2);

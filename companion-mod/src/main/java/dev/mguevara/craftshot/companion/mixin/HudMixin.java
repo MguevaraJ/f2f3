@@ -3,6 +3,8 @@ package dev.mguevara.craftshot.companion.mixin;
 import dev.mguevara.craftshot.companion.BuildPlacer;
 import dev.mguevara.craftshot.companion.BuildPreview;
 import dev.mguevara.craftshot.companion.Guide;
+import dev.mguevara.craftshot.companion.Materials;
+import dev.mguevara.craftshot.companion.Plans;
 import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.Hud;
@@ -19,5 +21,7 @@ public abstract class HudMixin {
 		BuildPreview.drawHud(graphics);
 		BuildPlacer.drawHud(graphics);
 		Guide.drawHud(graphics);
+		Plans.drawHud(graphics);
+		Materials.drawHud(graphics);
 	}
 }
