@@ -26,6 +26,9 @@ linux:
       Name: F2+F3
 win:
   target: nsis
+nsis:
+  # No spaces: release assets and the signing service handle the name as is.
+  artifactName: ${productName}-Setup-${version}.${ext}
 mac:
   target: dmg
   category: public.app-category.graphics-design

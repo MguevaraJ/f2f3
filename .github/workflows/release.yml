@@ -1,0 +1,82 @@
+name: Release build
+
+# Builds the installers from a clean checkout. The Windows installer is then sent to
+# SignPath (free code signing for open source, certificate by SignPath Foundation) once
+# the repository variables below exist; until then the job just uploads it unsigned.
+#   Variables: SIGNPATH_ORGANIZATION_ID, SIGNPATH_PROJECT_SLUG, SIGNPATH_SIGNING_POLICY_SLUG
+#   Secrets:   SIGNPATH_API_TOKEN, MAIN_VITE_GOOGLE_CLIENT_ID, MAIN_VITE_GOOGLE_CLIENT_SECRET
+
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  linux:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - name: Google OAuth client (baked into the build)
+        shell: bash
+        env:
+          ID: ${{ secrets.MAIN_VITE_GOOGLE_CLIENT_ID }}
+          SECRET: ${{ secrets.MAIN_VITE_GOOGLE_CLIENT_SECRET }}
+        run: printf 'MAIN_VITE_GOOGLE_CLIENT_ID=%s\nMAIN_VITE_GOOGLE_CLIENT_SECRET=%s\n' "$ID" "$SECRET" > .env
+      - run: npm run build
+      - run: npx electron-builder --linux AppImage --publish never
+      - uses: actions/upload-artifact@v4
+        with:
+          name: linux
+          path: dist/*.AppImage
+          if-no-files-found: error
+
+  windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - name: Google OAuth client (baked into the build)
+        shell: bash
+        env:
+          ID: ${{ secrets.MAIN_VITE_GOOGLE_CLIENT_ID }}
+          SECRET: ${{ secrets.MAIN_VITE_GOOGLE_CLIENT_SECRET }}
+        run: printf 'MAIN_VITE_GOOGLE_CLIENT_ID=%s\nMAIN_VITE_GOOGLE_CLIENT_SECRET=%s\n' "$ID" "$SECRET" > .env
+      - run: npm run build
+      - run: npx electron-builder --win nsis --x64 --publish never
+      - name: Upload the unsigned installer
+        id: unsigned
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-unsigned
+          path: dist/*.exe
+          if-no-files-found: error
+      - name: Sign with SignPath
+        if: ${{ vars.SIGNPATH_ORGANIZATION_ID != '' }}
+        uses: signpath/github-action-submit-signing-request@v1
+        with:
+          api-token: ${{ secrets.SIGNPATH_API_TOKEN }}
+          organization-id: ${{ vars.SIGNPATH_ORGANIZATION_ID }}
+          project-slug: ${{ vars.SIGNPATH_PROJECT_SLUG }}
+          signing-policy-slug: ${{ vars.SIGNPATH_SIGNING_POLICY_SLUG }}
+          github-artifact-id: ${{ steps.unsigned.outputs.artifact-id }}
+          wait-for-completion: true
+          output-artifact-directory: signed
+      - name: Upload the signed installer
+        if: ${{ vars.SIGNPATH_ORGANIZATION_ID != '' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-signed
+          path: signed/*
+          if-no-files-found: error

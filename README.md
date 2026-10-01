@@ -133,3 +133,24 @@ key nunca llega al renderer.
 
 `F2F3_CAPTURE=/tmp/out.png [F2F3_SIZE=1440x900] [F2F3_SCRIPT="js"] npm start`
 guarda una captura de la ventana y cierra la app.
+
+## Firma de código
+
+El instalador de Windows se compila en GitHub Actions a partir de este repositorio
+([`.github/workflows/release.yml`](.github/workflows/release.yml)) y se firma a través de SignPath.
+
+Free code signing provided by [SignPath.io](https://about.signpath.io/), certificate by
+[SignPath Foundation](https://signpath.org/).
+
+- Autor, revisor y quien aprueba cada firma: [Moises Guevara](https://github.com/MguevaraJ).
+- Solo se firman las versiones publicadas en la página de releases de este repositorio.
+
+### Privacidad
+
+Este programa no envía información a otros sistemas en red salvo que lo pida quien lo usa. Las únicas conexiones
+son opcionales y las inicia el usuario: el respaldo en su propia cuenta de Google Drive, la descarga del modelo local
+de reconocimiento y el análisis con el proveedor de IA que configure con su propia clave.
+
+## Licencia
+
+[MIT](LICENSE).
