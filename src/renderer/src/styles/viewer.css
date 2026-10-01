@@ -110,7 +110,7 @@
   transform-origin: center;
   will-change: transform;
   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6);
-  transition: opacity 0.15s;
+  transition: opacity 0.2s;
 }
 .viewer-placeholder {
   width: 1920px;

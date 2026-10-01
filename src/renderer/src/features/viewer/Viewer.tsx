@@ -65,7 +65,6 @@ export function Viewer({ shots }: { shots: ScreenshotEntry[] }) {
   if (!shot) return null
   return (
     <ViewerFrame
-      key={shot.id}
       shot={shot}
       shots={shots}
       index={index}
@@ -94,7 +93,10 @@ function ViewerFrame({ shot, shots, index, go, prefs, setPrefs }: FrameProps) {
   const drag = useRef<{ x: number; y: number; ox: number; oy: number; moved: boolean } | null>(null)
 
   const [stage, setStage] = useState({ w: 0, h: 0 })
-  const [natural, setNatural] = useState({ w: 0, h: 0 })
+  /** Real size of the image once it has loaded; until then the library's size frames it. */
+  const [dims, setDims] = useState<{ id: string; w: number; h: number } | null>(null)
+  const loaded = dims?.id === shot.id
+  const natural = loaded ? dims : { w: shot.width, h: shot.height }
   const [rotation, setRotation] = useState(0)
   const [flip, setFlip] = useState({ x: false, y: false })
   /** null = "fit to window" (derived from the stage size), otherwise a manual view. */
@@ -102,6 +104,20 @@ function ViewerFrame({ shot, shots, index, go, prefs, setPrefs }: FrameProps) {
   const [grabbing, setGrabbing] = useState(false)
   const [pixel, setPixel] = useState<Pixel | null>(null)
   const { showInfo, showStrip, smooth, picker } = prefs
+
+  // The viewer stays mounted while moving between screenshots (no flicker): only the
+  // per-image state starts over.
+  const [shownId, setShownId] = useState(shot.id)
+  if (shownId !== shot.id) {
+    setShownId(shot.id)
+    setRotation(0)
+    setFlip({ x: false, y: false })
+    setManual(null)
+    setPixel(null)
+  }
+  useEffect(() => {
+    canvasRef.current = null
+  }, [shot.id])
 
   // Track the stage size; "fit" is then pure derived state.
   useEffect(() => {
@@ -124,7 +140,6 @@ function ViewerFrame({ shot, shots, index, go, prefs, setPrefs }: FrameProps) {
         )
       : 1
   const view: View = manual ?? { zoom: fitZoom, x: 0, y: 0 }
-  const loaded = natural.w > 0
 
   const close = useCallback(() => {
     if (document.fullscreenElement) void document.exitFullscreen()
@@ -409,15 +424,24 @@ function ViewerFrame({ shot, shots, index, go, prefs, setPrefs }: FrameProps) {
               } else fit()
             }}
           >
-            {!loaded && (
-              <img
-                className="viewer-placeholder"
-                src={thumbUrl(shot.id, shot.mtimeMs)}
-                alt=""
-                style={{ width: Math.max(0, stage.w - FIT_PADDING) }}
-              />
-            )}
+            {/* The thumbnail shows at once, framed like the image that then fades in over it. */}
             <img
+              key={`thumb-${shot.id}`}
+              className="viewer-placeholder"
+              src={thumbUrl(shot.id, shot.mtimeMs)}
+              alt=""
+              draggable={false}
+              style={{
+                width: natural.w,
+                height: natural.h,
+                transform,
+                // Leaves once the image has faded in over it (its blur would show as a halo).
+                opacity: loaded ? 0 : undefined,
+                transitionDelay: loaded ? '0.2s' : undefined
+              }}
+            />
+            <img
+              key={shot.id}
               ref={imgRef}
               className={`viewer-img ${pixelated ? 'pixelated' : ''}`}
               src={imageUrl(shot.id, shot.mtimeMs)}
@@ -426,7 +450,11 @@ function ViewerFrame({ shot, shots, index, go, prefs, setPrefs }: FrameProps) {
               draggable={false}
               style={{ transform, opacity: loaded ? 1 : 0 }}
               onLoad={(e) =>
-                setNatural({ w: e.currentTarget.naturalWidth, h: e.currentTarget.naturalHeight })
+                setDims({
+                  id: shot.id,
+                  w: e.currentTarget.naturalWidth,
+                  h: e.currentTarget.naturalHeight
+                })
               }
             />
             <button className="viewer-nav prev" onClick={() => go(-1)} aria-label="Anterior (←)">
