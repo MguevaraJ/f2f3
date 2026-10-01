@@ -1,12 +1,12 @@
 # F2+F3 (antes Craftshot) — contexto para agentes
 
 App de escritorio (Electron + React + TypeScript) que gestiona las capturas de Minecraft con estética del Minecraft
-Launcher, más un mod Fabric para Minecraft 26.3 (**F2+F3 Companion**, en `companion-mod/`) que guarda los datos exactos
+Launcher, más un mod Fabric para Minecraft 26.3 (**F2+F3 Companion**, en el repo aparte `../f2f3-companion`) que guarda los datos exactos
 del juego junto a cada captura y lleva la app dentro del juego. **UI y textos en español. Código y comentarios en inglés.**
 
 **Estado (2026-09-30):** app y mod estables; la hoja de ruta "Minecraft técnico" (6 fases) está completa. Árbol de
-trabajo limpio (planes en el juego, lista de materiales y ports a 1.21.1 y 1.20.1 ya commiteados en la rama
-`mod-planes-materiales-ports`), 167 tests. Sin remoto configurado todavía. Pendientes y decisiones abiertas al final.
+trabajo limpio en la rama `mod-planes-materiales-ports`, 167 tests; el mod se movió a su propio repo
+(`../f2f3-companion`). Sin remoto configurado todavía. Pendientes y decisiones abiertas al final.
 
 ## Nombre
 La app se llama **F2+F3** y el mod **F2+F3 Companion** (ya existía otra "Craftshot"). Solo cambió lo visible: títulos,
@@ -25,7 +25,7 @@ npm run dev            # desarrollo
 npm run build          # typecheck + build + scripts/check-preload.mjs (falla si un preload usa chunks)
 npm run typecheck && npx eslint . && npx vitest run    # verificación estándar (167 tests)
 npx prettier --write <archivos>                        # el repo va formateado con prettier
-npm run build:mod      # compila los tres mods (26.3, 1.21.1 y 1.20.1) y copia los jar a resources/ (con el juego de prueba CERRADO)
+npm run build:mod      # compila los tres mods de ../f2f3-companion y copia los jar a resources/ (juego de prueba CERRADO)
 npm run dist:linux     # AppImage (el .env con MAIN_VITE_GOOGLE_CLIENT_ID/SECRET se incrusta)
 npm run ocr -- <png…>  # OCR del F3 desde terminal
 npm run eval:local -- <png…>   # evalúa el modelo local (CLIP); MODEL_CACHE=dir
@@ -47,8 +47,6 @@ src/preload/   index.ts (API principal) y popup.ts (API mínima del popup) — N
 src/renderer/  React + Zustand. features/{gallery,viewer,details,coords,map,settings,library}, components/
                (Onboarding, GameFolderPicker, Sidebar…), lib/, store/, styles/
 tests/         vitest (+ fixtures reales: PNG del F3, sidecars y .nbt en tests/fixtures/companion/)
-companion-mod/ mod Fabric 26.3 (Gradle); cliente de prueba en companion-mod/run/
-companion-mod-1.21.1/ y companion-mod-1.20.1/  ports a Fabric (proyectos Gradle aparte, mismo código + compat/)
 ```
 El renderer **no puede importar `@core`**: la lógica compartida va en `src/shared`.
 Seguridad: contextIsolation, sandbox, CSP, rutas del renderer validadas con `LibraryService.resolveId`, claves solo en main (safeStorage).
@@ -100,7 +98,7 @@ datos técnicos, builds). Se reabre desde Ajustes › "Ver la introducción de n
 1. **Parser F3 técnico** (26.3): `server` (MSPT/TPS, /tick, brand), `spawnCounts` (mob caps, orden de MobCategory: MO C
    AM AX UWC WC WA MI; en 1.20.1 por posición), `day`, `speed`, `heightmaps`, `targetedBlock.state`/`tags`. UI: sección
    "Técnico" + `lib/technical.ts`. Fixture `tests/fixtures/f3-26.3-technical-scale2.png`. Perfil del F3 del cliente de
-   prueba: `companion-mod/run/debug-profile.json`.
+   prueba: `../f2f3-companion/fabric-26.3/run/debug-profile.json`.
 2. **Mapa** (`features/map/`: `view.ts` puro, `drawMap.ts` canvas con `Shape` genérico, `MapView.tsx`): por mundo y
    dimensión, Nether⇄Overworld (×8), chunks/regiones, chunks slime (`shared/slime.ts`, BigInt, validado contra
    `WorldgenRandom.seedSlimeChunk`, sal 987234911), medir. Mundos (`shared/worlds.ts`): `meta.world` manual > nombre del
@@ -137,11 +135,15 @@ Otros arreglos de UI de esta etapa: clic normal solo abre el visor y la casilla 
 múltiple (`lib/selectionSummary.ts`, `SelectionSummary.tsx`); flechas y transición suave del visor (`ViewerFrame` sin
 clave por captura).
 
-## Mod "F2+F3 Companion" (`companion-mod/`, Minecraft 26.3, Fabric)
-Gradle 9.7.1 con wrapper, plugin `net.fabricmc.fabric-loom` 1.18-SNAPSHOT, Java release 25 (JDK 26 y 21 instalados),
-loader 0.19.5. **Sin dependencia de fabric-api: todos los ganchos son mixins.** Entrypoint
-`dev.mguevara.craftshot.companion.CraftshotCompanion`, mixins en `craftshot_companion.mixins.json`.
-Tras cambiarlo: `npm run build:mod`; el usuario lo reinstala desde Ajustes › "Guardar el mod".
+## Mod "F2+F3 Companion" (repo aparte: `../f2f3-companion`)
+El código del mod (Fabric 26.3, 1.21.1 y 1.20.1) vive en su propio repositorio, con su `CLAUDE.md` (clases, mixins,
+APIs por versión, cómo probarlo). Aquí solo quedan los jars compilados (`resources/craftshot-companion*.jar`), el
+contrato JSON y los fixtures reales (`tests/fixtures/companion/`). `npm run build:mod` (`scripts/build-mod.mjs`)
+compila los tres proyectos de `../f2f3-companion` (o `F2F3_COMPANION_DIR`) y copia los jars.
+App: `shared/modVersions.ts` (`MOD_VERSIONS`), `components/SaveModButton.tsx` (selector de versión + botón, en
+Ajustes y onboarding), `companion.saveMod(version)`. `installTemplate` usa `structures` (plural) en mundos anteriores
+a 1.21 según el `DataVersion` del `level.dat`. Teclas del mod: F6 galería, H guía, J planes (Mayús+J chunks slime),
+M lista de materiales, Mayús+F2 build.
 
 ### Contrato JSON del sidecar (schema 1) — mantenerlo estable, es la API entre mod y app
 ```json
@@ -161,95 +163,6 @@ Tras cambiarlo: `npm run build:mod`; el usuario lo reinstala desde Ajustes › "
 `seed` solo en un jugador y **como string**; `structures` ausente = desconocido (multijugador). `entities` = seres vivos
 visibles (dentro del campo de visión y con línea de visión, ≤96 bloques). Más los campos opcionales de la fase 3.
 
-### Clases
-- `SnapshotCollector` / `CaptureSnapshot` / `ServerCollector` (hilo del servidor) / `SidecarWriter` (cola FIFO; escribe
-  el `.nbt` antes del JSON, en `Util.ioPool()`, tmp + move atómico).
-- `CompanionConfig` — `config/craftshot_companion.json`: `build` "sneak" | "always" | "never"; `buildSize` (16, 3–97;
-  `buildRadius` antiguo = 2r+1); `buildBase` "corner" | "center"; `galleryKey` ("f6"); `guideKey` ("h"); `plansKey` ("j"); `materialsKey` ("m"). Las teclas son
-  el nombre tras `key.keyboard.`; se detectan en el mixin de `KeyboardHandler` (sin KeyMapping, no salen en Controles).
-- `BuildRegion.corner(level, target, depth, width, facing, height)`: el bloque apuntado es la esquina inferior cercana
-  derecha; la caja crece `depth` hacia donde mira el jugador y `width` a su izquierda; `height` 0 = hasta el bloque más
-  alto (máx. 97).
-- `BuildPreview` — **Mayús+F2**, tres pasos con la rueda agachado y F2 para avanzar: 1 fondo, 2 ancho (la caja queda
-  fijada al entrar), 3 altura; luego `BuildNameScreen` (nombre → `slug()` `[a-z0-9_.-]`; vacío → `build_N`; repetido →
-  `_2`…), captura retrasada 2 ticks. En los pasos 1 y 2 la caja se dibuja de 1 bloque de alto. Enter fija/suelta, Esc
-  retrocede un paso o cancela (sin abrir el menú de pausa); abrir chat o inventario cancela. Rayo propio de 96 bloques
-  (`player.pick`). Texto con `drawLines` (ajustado al ancho con `font.split`) desde el mixin del HUD.
-  El build se guarda también en el mundo: `getStructureTemplateManager().getOrCreate(craftshot:<nombre>)` + `save(id)`
-  (`generated/craftshot/structure/`, singular), y el chat da "[Copiar comando]".
-- `GalleryScreen` (**F6**): cuadrícula + panel (imagen al 60 %, datos en un recuadro oscuro con barra de scroll,
-  botones de 16 px en dos columnas: "Guiarme", "Copiar XYZ", "Colocar build", "Materiales", "Deshacer", con tooltips). Filtro "Solo
-  este mundo" / "Todos los mundos". `CaptureIndex` recorre `screenshots/` (4 niveles) fuera del hilo cliente: usa el
-  `app-index.json` de la app y, si no hay, el propio sidecar (nombres con `Language.getInstance()`).
-  `Thumbnails`: `NativeImage.read` + `resizeSubRectTo` (480 px), `DynamicTexture`, LRU de 96, se liberan en `removed()`.
-- `Guide`: flecha en el HUD (escala 0,7; `g.pose()` translate + rotate), distancia y "sube/baja N". En el mundo solo un
-  punto (`Gizmos.point`, a 48 bloques como mucho en esa dirección: los gizmos lejanos no se dibujan); a ≤24 bloques,
-  además el bloque y una línea desde los pies. **H** oculta/muestra. Se borra al llegar (≤3 bloques en horizontal y ≤12
-  de altura) o al salir del mundo. Entre Overworld y Nether apunta a las coordenadas equivalentes (no probado en juego).
-- `Plans`: lee `craftshot/plans.json` (lo relee cada 40 ticks si cambió, fuera del hilo cliente) y dibuja el plan del
-  mundo actual (mismo nombre que usa la galería): punto AFK, esferas de 24 y 128 (tres círculos máximos + el corte a la
-  altura de los pies, más grueso), cuadrados de simulación y de solo bloques, granjas con su color, portales A/B y el
-  cuadrado de búsqueda. **J** oculta/muestra los planes; **Mayús+J** los chunks slime (±4 chunks, solo Overworld;
-  `WorldgenRandom.seedSlimeChunk`; semilla del servidor integrado o la `seed` del plan). Línea en el HUD a la izquierda.
-  Probado en juego: AFK, granjas, HUD y recarga del archivo; portales y relleno de chunks slime sin ver en pantalla.
-- `Materials`: lista de materiales de un build fijada en el HUD (derecha, centrada en altura, escala 0,75), al estilo
-  de la lista de Satisfactory. Botón "Materiales" / "Quitar lista" de la galería. Lee `palette` + `blocks` del `.nbt`
-  (bloque → `asItem()`; sin ítem se ignora; losa doble = 2; mitad superior de puertas/plantas y cabecera de cama = 0),
-  recuenta el inventario cada 5 ticks, pendientes arriba y completos en verde, máx. 10 filas ("+N más"), aviso al
-  tenerlo todo. **M** oculta/muestra. No mira dentro de shulkers ni bundles. Probado en juego.
-- `BuildPlacer` (solo un jugador): carga el `.craftshot.nbt` (`StructureTemplate.load(BuiltInRegistries.BLOCK, tag)`),
-  caja naranja con la misma convención de esquina, girada por cuartos según hacia dónde mira el jugador ahora frente a
-  la captura. Enter coloca en el hilo del servidor con `placeInWorld` (no usa `/place`: funciona sin trucos); rueda
-  agachado sube/baja; Esc cancela. Ancla por rotación: 90° → min+(sz−1,0,0); 180° → min+(sx−1,0,sz−1); 270° →
-  min+(0,0,sx−1) (probado en juego S/E/O). Antes guarda la zona con `fillFromWorld` para "Deshacer" (solo la última;
-  las entidades colocadas no se quitan).
-- Mixins: `ScreenshotMixin` (`grab(Minecraft,boolean)` HEAD cancelable + `getFile` RETURN), `MinecraftMixin`
-  (`tick()` TAIL: vista previa, colocador y guía, dentro de `collectPerTickGizmos`), `MouseHandlerMixin` (`onScroll`),
-  `KeyboardHandlerMixin` (`keyPress` HEAD, acción 1 = pulsación), `HudMixin` (`Hud.extractRenderState` TAIL).
-
-### Port a 1.21.1 (`companion-mod-1.21.1/`, probado en juego: sidecar, builds, galería, materiales, planes, colocador)
-Copia del código de 26.3 adaptada; **un cambio en el mod hay que hacerlo en los tres proyectos**. Loom
-`net.fabricmc.fabric-loom-remap` + `loom.officialMojangMappings()`, Java 21, mismo id de mod y mismo contrato JSON.
-Para tocar lo mínimo, `compat/` imita las clases de 26.3: `Gizmos` / `GizmoStyle` / `TextGizmo` (formas por tick que
-`LevelRendererMixin` dibuja al final de `renderLevel` con Tesselator: quads `position_color`, líneas `rendertype_lines`
-troceadas a 16 bloques, texto `drawInBatch`; `MinecraftMixin` llama `beginTick`/`endTick`), `GuiGraphicsExtractor`
-(envuelve `GuiGraphics`), `KeyEvent`, `RenderPipelines`. Diferencias: `ResourceLocation`, `mc.screen`/`mc.setScreen`,
-`Gui.render`, `Screen.render` (la galería pinta el fondo primero y luego los widgets a mano), `keyPress(JIIII)V`,
-F2 = `Screenshot.grab(File, RenderTarget, Consumer)`, NBT clásico (`getList(k, 10)`), `GameRules.visitGameRuleTypes`
-(ids convertidos a `minecraft:snake_case`; los que 26.x renombró no coinciden con `KEY_RULES`), `getDayTime`,
-`registryOrThrow`, `server.getStructureManager()`, `fillFromWorld(..., Block)`. Mundo de prueba: `Mundo nuevo`
-(`./gradlew runClient --args='--quickPlaySingleplayer "Mundo nuevo"'`); javap contra el jar con nombres:
-`~/.gradle/caches/fabric-loom/minecraftMaven/net/minecraft/minecraft-merged/1.21.1-*/…jar`.
-App: `shared/modVersions.ts` (`MOD_VERSIONS`), `components/SaveModButton.tsx` (selector de versión + botón, en
-Ajustes y onboarding), `companion.saveMod(version)`, jars `resources/craftshot-companion.jar` (26.3) y
-`craftshot-companion-<versión>.jar`. Fixtures `tests/fixtures/companion/build-1.21.1.*` y `build-1.20.1.*`.
-
-### Port a 1.20.1 (`companion-mod-1.20.1/`, probado en juego igual que el de 1.21.1)
-Copia del de 1.21.1 con Java 17. Diferencias: `Gui.render(GuiGraphics, float)`, `LevelRenderer.renderLevel(PoseStack,
-…)` (el modelview es `PoseStack`; `BufferBuilder.begin/vertex/endVertex`, `endOrDiscardIfEmpty`), texto de `Gizmos`
-con escala X negativa (la rotación de cámara mira al revés antes de 1.21), `Screen.renderBackground(GuiGraphics)` no lo
-llama `render` (BuildNameScreen pinta su panel a mano), `mouseScrolled` de 3 argumentos, `new ResourceLocation`,
-`NbtIo` con `File`, sin `/tick` (tick fijo 20 / "normal", `getAverageTickTime`), `mc.player.getServerBrand()`,
-`mc.isConnectedToRealms()`, encantamientos con `EnchantmentHelper.getEnchantments`, builds del mundo en
-`generated/craftshot/structures/` (plural). La app elige `structure` o `structures` al instalar una plantilla según
-el `DataVersion` del `level.dat` (< 3953 = anterior a 1.21). Mundo de prueba: `Mundo nuevo`.
-
-### APIs de 26.3 (sin ofuscar; verificar con `javap -p -cp ~/.minecraft/versions/26.3/26.3.jar <clase>`)
-- `Identifier` (no ResourceLocation): `fromNamespaceAndPath`, `isValidPath`; `ResourceKey.identifier()`.
-- Pantallas: `mc.gui.screen()` / `mc.gui.setScreen()` (no `mc.screen`); HUD `net.minecraft.client.gui.Hud`
-  (`extractRenderState(GuiGraphicsExtractor, DeltaTracker)`); `Options.hideGui` no existe.
-  `Screen.extractRenderState` / `extractBackground`; `mouseClicked(MouseButtonEvent, boolean)`,
-  `mouseScrolled(x, y, dx, dy)`, `keyPressed(KeyEvent)`; `KeyEvent.isConfirmation()` / `isEscape()` / `key()`.
-- `GuiGraphicsExtractor`: `text`, `centeredText`, `fill`, `outline(x, y, w, h, color)`, `enableScissor`, `pose()`
-  (Matrix3x2fStack), `blit(RenderPipelines.GUI_TEXTURED, id, x, y, 0, 0, w, h, w, h)`, `guiWidth()` / `guiHeight()`.
-- `Gizmos.cuboid` / `line` / `point` / `billboardText` + `.setAlwaysOnTop()`; `GizmoStyle.fill` / `stroke`.
-- `Screenshot.grab(Minecraft, boolean)` es la entrada de F2; `KeyboardHandler.keyPress(long, int, KeyEvent)`,
-  `setClipboard`; `MouseHandler.onScroll(long, double, double)`; `player.sendOverlayMessage` / `sendSystemMessage`;
-  `ClickEvent.CopyToClipboard`, `HoverEvent.ShowText`.
-- `Level.getOverworldClockTime()` (no hay `getDayTime`); servidor integrado: `mc.getSingleplayerServer()`,
-  `server.execute/submit`, `getLevel(dim)`, `getStructureTemplateManager()`; `StructureTemplate.fillFromWorld(level,
-  pos, size, entities, List<Block>)`, `placeInWorld(level, pos, pos, StructurePlaceSettings, random, 2)`; la paleta de
-  las estructuras usa `id` en 26.x (antes `Name`); `/place` cachea las búsquedas fallidas mientras el mundo está abierto.
 
 ## Pruebas y entorno
 - El usuario usa **i3** (tiling): las ventanas cambian de tamaño al abrirse otras; medir con `xdotool getwindowgeometry`
@@ -257,13 +170,6 @@ el `DataVersion` del `level.dat` (< 3953 = anterior a 1.21). Mundo de prueba: `M
 - App: modo debug `CRAFTSHOT_CAPTURE=out.png CRAFTSHOT_SIZE=1440x900 [CRAFTSHOT_SCRIPT=js] npx electron . --user-data-dir=<tmp>`
   (tras `npm run build`). En el `settings.json` de prueba poner `onboardingDone` **y** `gameDirConfirmed`.
   **No tocar la instancia de la app que tenga abierta el usuario.**
-- Mod: `cd companion-mod && ./gradlew runClient --args='--quickPlaySingleplayer "New World (1)"'` (~70 s). `New World
-  (1)` tiene trucos; `New World` no; `CraftshotTest` ya no carga. La ventana se busca con `xdotool search --class
-  Minecraft` (la titulada "…Singleplayer"). Poner `pauseOnLostFocus:false` en `run/options.txt` mientras se prueba.
-  `pkill -f '[j]ava.*Knot'` **en un comando aparte** (si la línea contiene "java…Knot" se mata la propia shell).
-  No ejecutar `build:mod` con el cliente abierto. Mover el ratón con xdotool gira la cámara al cerrar una pantalla; un
-  Esc sin pantalla abierta abre el menú de pausa; en espectador Mayús hace descender. Al leer `mc.log`, recortar líneas
-  (`cut -c1-200`): hay una de varios KB.
 - Minecraft del usuario: 26.3 (GUI scale 2; el F3 de 1.21.9+ oculta el bioma por defecto) y 1.20.1 Forge; juega con el
   launcher oficial (`~/.minecraft`) y con SKLauncher (`~/.sklauncher`).
 - Preferencia del usuario: **ahorrar tokens** — pocas capturas de pantalla (recortadas), salidas filtradas, mensajes breves.

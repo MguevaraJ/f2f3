@@ -1,8 +1,0 @@
-{
-	"required": true,
-	"minVersion": "0.8",
-	"package": "dev.mguevara.craftshot.companion.mixin",
-	"compatibilityLevel": "JAVA_25",
-	"client": ["ScreenshotMixin", "MinecraftMixin", "MouseHandlerMixin", "KeyboardHandlerMixin", "HudMixin"],
-	"injectors": { "defaultRequire": 1 }
-}
